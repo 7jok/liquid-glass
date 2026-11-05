@@ -1,0 +1,30 @@
+; Liquid Glass — cava (visualiseur audio dans le terminal).
+; Les couleurs du dégradé sont réécrites par le service Spotify quand les
+; couleurs dynamiques sont actives (pochette en cours).
+[general]
+framerate = 60
+autosens = 1
+bars = 0
+bar_width = 2
+bar_spacing = 1
+sleep_timer = 5
+
+[input]
+method = pipewire
+source = auto
+
+[output]
+method = noncurses
+
+[color]
+; fond transparent : le verre du terminal reste visible
+background = default
+gradient = 1
+gradient_color_1 = '#64d2ff'
+gradient_color_2 = '#0a84ff'
+gradient_color_3 = '#5e5ce6'
+gradient_color_4 = '#bf5af2'
+gradient_color_5 = '#ff375f'
+
+[smoothing]
+noise_reduction = 77

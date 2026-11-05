@@ -1,0 +1,98 @@
+# Liquid Glass — prompt Starship.
+# Couleurs ANSI uniquement : le prompt suit la palette du thème (clair ou sombre).
+#
+#   ~/Work/liquid-glass   main ●2 ⇡1                         ⏱ 3s  20:41
+#   ❯
+"$schema" = "https://starship.rs/config-schema.json"
+add_newline = true
+command_timeout = 200
+scan_timeout = 20
+
+format = """
+$directory$git_branch$git_state$git_status$python$nodejs$rust$golang\
+$fill\
+$cmd_duration$jobs$time
+$character"""
+
+[fill]
+symbol = " "
+
+[directory]
+style = "bold blue"
+read_only = " 󰌾"
+read_only_style = "red"
+truncation_length = 3
+truncation_symbol = "…/"
+format = "[ $path]($style)[$read_only]($read_only_style) "
+repo_root_style = "bold blue"
+repo_root_format = "[ $before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
+before_repo_root_style = "blue"
+
+[directory.substitutions]
+"~/Work" = "󰉋 Work"
+"~/Documents" = "󰈙 Documents"
+"~/Downloads" = "󰇚 Downloads"
+
+[git_branch]
+symbol = " "
+style = "purple"
+format = "[$symbol$branch]($style) "
+
+[git_status]
+style = "bright-black"
+format = "([$all_status$ahead_behind]($style) )"
+conflicted = "[≠${count}](red) "
+ahead = "[⇡${count}](cyan) "
+behind = "[⇣${count}](cyan) "
+diverged = "[⇕⇡${ahead_count}⇣${behind_count}](cyan) "
+untracked = "[?${count}](bright-black) "
+stashed = "[≡${count}](bright-black) "
+modified = "[●${count}](yellow) "
+staged = "[+${count}](green) "
+renamed = "[»${count}](yellow) "
+deleted = "[✕${count}](red) "
+
+[git_state]
+style = "yellow"
+format = '[\($state( $progress_current/$progress_total)\)]($style) '
+
+[python]
+symbol = " "
+style = "yellow"
+format = '[$symbol$pyenv_prefix($version)( \($virtualenv\))]($style) '
+
+[nodejs]
+symbol = " "
+style = "green"
+format = "[$symbol($version)]($style) "
+
+[rust]
+symbol = " "
+style = "red"
+format = "[$symbol($version)]($style) "
+
+[golang]
+symbol = " "
+style = "cyan"
+format = "[$symbol($version)]($style) "
+
+[cmd_duration]
+min_time = 2000
+style = "bright-black"
+format = "[󱎫 $duration]($style) "
+
+[jobs]
+symbol = "✦"
+style = "purple"
+format = "[$symbol$number]($style) "
+
+[time]
+disabled = false
+style = "bright-black"
+time_format = "%H:%M"
+format = "[$time]($style)"
+
+[character]
+success_symbol = "[❯](bold blue)"
+error_symbol = "[❯](bold red)"
+vimcmd_symbol = "[❮](bold green)"

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.control",
+  "name": "Liquid Glass — Centre de contrôle",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Centre de contrôle façon macOS : Wi-Fi, Bluetooth, Ne pas déranger, mode sombre, lumière nocturne, luminosité, volume, lecteur",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "ControlCenter.qml" },
+  "barWidget": { "displayName": "Centre de contrôle", "description": "Réglages rapides", "category": "System", "allowMultiple": false, "defaultSection": "right" }
+}

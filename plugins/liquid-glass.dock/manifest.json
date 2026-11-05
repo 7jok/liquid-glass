@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.dock",
+  "name": "Liquid Glass Dock",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Dock façon macOS : verre, magnification, indicateurs (clone de omarchy.dock)",
+  "kinds": [
+    "service",
+    "menu"
+  ],
+  "entryPoints": {
+    "service": "Dock.qml",
+    "menu": "AppLibraryHost.qml"
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.dock"
+  }
+}

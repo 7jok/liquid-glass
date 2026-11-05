@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.clock",
+  "name": "Liquid Glass — Horloge",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Date et heure façon macOS ; clic = centre de notifications",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Clock.qml" },
+  "barWidget": { "displayName": "Horloge macOS", "description": "jeu. 5 nov. 20:41", "category": "Time", "allowMultiple": false, "defaultSection": "right" }
+}

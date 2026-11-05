@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.logo",
+  "name": "Liquid Glass — Logo",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Logo de la barre et menu système (À propos, Réglages, Verrouiller, Redémarrer, Éteindre)",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Logo.qml" },
+  "barWidget": {
+    "displayName": "Logo Liquid Glass",
+    "description": "Menu système façon macOS",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}

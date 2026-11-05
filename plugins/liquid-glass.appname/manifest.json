@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.appname",
+  "name": "Liquid Glass — Nom de l'app",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Nom de l'application active, en gras, comme la barre de menus macOS",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "AppName.qml" },
+  "barWidget": { "displayName": "Nom de l'app", "description": "Application active", "category": "Windows", "allowMultiple": false, "defaultSection": "left" }
+}

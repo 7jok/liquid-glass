@@ -10,8 +10,8 @@ REPO_PKGS=(
   cava               # visualiseur audio (optionnel, désactivé par défaut)
   matugen            # extraction de palette depuis la pochette
   inter-font         # police d'interface proche de SF Pro
-  kvantum            # moteur de thème Qt
-  qt5ct qt6ct        # réglages Qt5/Qt6 (police, icônes, style)
+  # Qt : pas de Kvantum/qt6ct. Omarchy exporte QT_QPA_PLATFORMTHEME=gtk3, donc les
+  # apps Qt suivent le thème GTK (MacTahoe), ses icônes et sa police.
 )
 
 # AUR (thèmes libres façon macOS Tahoe, par vinceliuice)

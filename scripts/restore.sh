@@ -45,6 +45,13 @@ while IFS= read -r rel; do
   fi
 done <"$SRC/absent.txt"
 
+# Commandes et cache propres à Liquid Glass (hors du périmètre sauvegardé).
+# Seuls les liens symboliques sont retirés : un vrai fichier homonyme est laissé.
+for f in "$HOME/.local/bin/liquid-glass" "$HOME/.local/bin/liquid-glass-spotify"; do
+  if [[ -L $f ]]; then rm -f -- "$f"; echo "supprimé   ${f/#$HOME/\~}"; fi
+done
+[[ -d $HOME/.cache/liquid-glass ]] && rm -rf -- "${HOME:?}/.cache/liquid-glass" && echo "supprimé   ~/.cache/liquid-glass"
+
 systemctl --user daemon-reload 2>/dev/null || true
 
 # 3. Réglages système

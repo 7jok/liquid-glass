@@ -61,7 +61,7 @@ dynamic_colors = true
 desktop = true        # en grand sur le bureau, derrière les fenêtres
 widget = false        # petit widget flottant déplaçable
 bar = true            # ligne actuelle dans la barre du haut
-# Le mode karaoké plein écran s'ouvre avec SUPER+ALT+K.
+# Le mode karaoké plein écran s'ouvre avec SUPER+ALT+M (⌘⌥M).
 
 [visualizer]
 # Visualiseur cava en bas du fond d'écran (coûteux sur iGPU : off par défaut).

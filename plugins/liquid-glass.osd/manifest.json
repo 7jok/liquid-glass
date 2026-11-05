@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.osd",
+  "name": "Liquid Glass — OSD",
+  "version": "1.0.0",
+  "description": "Affichage volume/luminosité en verre façon macOS",
+  "kinds": [
+    "panel"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "panel": "Osd.qml"
+  },
+  "omarchy": {
+    "clonedFrom": "omarchy.osd"
+  },
+  "author": "Liquid Glass"
+}

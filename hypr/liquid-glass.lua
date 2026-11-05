@@ -106,7 +106,7 @@ o.window({ tag = "terminal" }, { opacity = "1.0 1.0" })
 -- ---------------------------------------------------------------------------
 hl.layer_rule({
   -- Pas les paroles du bureau ni le visualiseur : flouter derrière du texte n'a pas de sens.
-  match = { namespace = "^(omarchy-dock|omarchy-launcher|omarchy-lock.*|liquid-glass-(spotlight|mission|switcher|karaoke|lyrics-widget|cheatsheet|settings))$" },
+  match = { namespace = "^(omarchy-dock|omarchy-launcher|omarchy-lock.*|liquid-glass-(spotlight|mission|switcher|karaoke|lyrics-widget|cheatsheet|settings)|omarchy-osd)$" },
   blur = true,
   ignore_alpha = 0.05,
 })

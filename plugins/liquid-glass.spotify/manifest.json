@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.spotify",
+  "name": "Liquid Glass — Spotify",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Intégration Spotify (MPRIS) : fond d'écran pochette, couleurs dynamiques, paroles synchronisées, visualiseur, mini-lecteur",
+  "kinds": ["service", "bar-widget"],
+  "entryPoints": { "service": "Service.qml", "barWidget": "NowPlaying.qml" },
+  "barWidget": { "displayName": "Lecture en cours", "description": "Mini-lecteur Spotify et paroles", "category": "Media", "allowMultiple": false, "defaultSection": "right" }
+}

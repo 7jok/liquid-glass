@@ -10,6 +10,8 @@ imprime UNE ligne JSON sur stdout.
   lyrics  --artist A --title T [--album B] [--length S]
   palette --image FICHIER [--theme light|dark]
   wallpaper --image FICHIER --mode cover|blur|gradient [--layout center|left] [--theme light|dark]
+  colors  --accent #rrggbb [--accent2 #rrggbb] | --reset
+          → applique l'accent en direct au shell, aux bordures Hyprland et aux terminaux foot
 
 Sécurité : téléchargements HTTPS uniquement vers des hôtes connus (pochettes Spotify,
 LRCLIB), taille et délai bornés ; aucune valeur externe n'est passée à un shell.
@@ -52,6 +54,15 @@ def fetch(url: str, limit: int, timeout: float = 8.0) -> bytes:
     if len(data) > limit:
         raise ValueError("réponse trop volumineuse")
     return data
+
+
+def image_id(image: Path) -> str:
+    """Identifiant de cache d'une pochette. Celles du cache sont déjà nommées par le
+    hash de leur URL ; pour un fichier local (cover.jpg de mpv…), on hache chemin +
+    date de modification pour éviter les collisions entre albums."""
+    if image.parent == CACHE / "covers":
+        return image.stem
+    return key(str(image), str(image.stat().st_mtime_ns))
 
 
 def magick(*args: str) -> None:
@@ -137,7 +148,7 @@ def hsl_to_hex(h: float, s: float, l: float) -> str:
 
 def palette(image: Path, theme: str) -> dict:
     """Extrait 6 couleurs dominantes, choisit un accent vif et lisible pour le thème."""
-    cache = CACHE / "palettes" / f"{image.stem}-{theme}.json"
+    cache = CACHE / "palettes" / f"{image_id(image)}-{theme}.json"
     if cache.exists():
         return json.loads(cache.read_text())
     res = subprocess.run(
@@ -176,7 +187,7 @@ def wallpaper(image: Path, mode: str, layout: str, theme: str) -> Path:
     W, H = screen_size()
     walls = CACHE / "wallpapers"
     walls.mkdir(parents=True, exist_ok=True)
-    dest = walls / f"{image.stem}-{mode}-{layout}-{theme}-{W}x{H}.jpg"
+    dest = walls / f"{image_id(image)}-{mode}-{layout}-{theme}-{W}x{H}.jpg"
     if dest.exists():
         return dest
     tmp = dest.with_suffix(".tmp.jpg")
@@ -286,6 +297,94 @@ def lyrics(artist: str, title: str, album: str, length: float) -> dict:
     return result
 
 
+
+# --------------------------------------------------------- couleurs dynamiques
+THEME_DIR = Path.home() / ".local/state/omarchy/current/theme"
+COLORS_FLAG = CACHE / "dynamic-colors-active"
+
+
+def _theme_value(text: str, key: str) -> str | None:
+    m = re.search(rf'^\s*{re.escape(key)}\s*=\s*"([^"]+)"', text, re.M)
+    return m.group(1) if m else None
+
+
+def _foot_ttys() -> list[str]:
+    """Terminaux des shells lancés par foot (pour leur envoyer des séquences OSC)."""
+    foot, ttys = set(), []
+    procs = []
+    for d in Path("/proc").iterdir():
+        if not d.name.isdigit():
+            continue
+        try:
+            stat = (d / "stat").read_text()
+            comm = stat[stat.index("(") + 1 : stat.rindex(")")]
+            ppid = int(stat[stat.rindex(")") + 2 :].split()[1])
+            procs.append((int(d.name), ppid, comm))
+            if comm == "foot":
+                foot.add(int(d.name))
+        except (OSError, ValueError):
+            continue
+    for pid, ppid, _ in procs:
+        if ppid in foot:
+            try:
+                t = os.readlink(f"/proc/{pid}/fd/0")
+                if t.startswith("/dev/pts/") and t not in ttys and os.stat(t).st_uid == os.getuid():
+                    ttys.append(t)
+            except OSError:
+                continue
+    return ttys
+
+
+def _osc_all(seq: str) -> None:
+    for t in _foot_ttys():
+        try:
+            fd = os.open(t, os.O_WRONLY | os.O_NOCTTY | os.O_NONBLOCK)
+            os.write(fd, seq.encode())
+            os.close(fd)
+        except OSError:
+            continue
+
+
+def _rgba(hexcol: str, alpha: str) -> str:
+    return f"rgba({hexcol.lstrip('#')}{alpha})"
+
+
+def apply_colors(accent: str | None, accent2: str | None, reset: bool) -> dict:
+    """Applique (ou retire) l'accent de la pochette : shell, bordures Hyprland, foot."""
+    hexre = re.compile(r"^#[0-9a-fA-F]{6}$")
+    colors_txt = (THEME_DIR / "colors.toml").read_text()
+    shell_txt = (THEME_DIR / "shell.toml").read_text() if (THEME_DIR / "shell.toml").exists() else ""
+    theme_accent = _theme_value(colors_txt, "accent") or "#0a84ff"
+
+    if reset or not accent:
+        if not COLORS_FLAG.exists():
+            return {"colors": "inchangées"}
+        new_colors, new_shell = colors_txt, shell_txt
+        act = _theme_value(colors_txt, "hyprland_active_border") or "rgba(ffffff40)"
+        border = f'"{act}"'
+        osc = "\033]104;4;12\007\033]112\007"
+        COLORS_FLAG.unlink(missing_ok=True)
+    else:
+        if not hexre.match(accent) or (accent2 and not hexre.match(accent2)):
+            raise ValueError("couleur invalide")
+        accent2 = accent2 or accent
+        pat = re.compile(re.escape(theme_accent), re.I)
+        new_colors = pat.sub(accent, colors_txt)
+        new_shell = pat.sub(accent, shell_txt)
+        border = f'{{ colors = {{ "{_rgba(accent, "cc")}", "{_rgba(accent2, "66")}" }}, angle = 45 }}'
+        osc = f"\033]4;4;{accent}\007\033]4;12;{accent2}\007\033]12;{accent}\007"
+        COLORS_FLAG.parent.mkdir(parents=True, exist_ok=True)
+        COLORS_FLAG.write_text(accent)
+
+    import base64
+    b64 = lambda t: base64.b64encode(t.encode()).decode()
+    subprocess.run(["omarchy-shell", "-q", "shell", "applyTheme", b64(new_colors), b64(new_shell)], timeout=5)
+    subprocess.run(["hyprctl", "eval", f"hl.config({{ general = {{ col = {{ active_border = {border} }} }} }})"],
+                   capture_output=True, timeout=5)
+    _osc_all(osc)
+    return {"colors": "réinitialisées" if (reset or not accent) else accent}
+
+
 # ---------------------------------------------------------------- commandes
 def main() -> int:
     ap = argparse.ArgumentParser(prog="liquid-glass-spotify")
@@ -313,6 +412,10 @@ def main() -> int:
     wa.add_argument("--mode", default="cover", choices=["cover", "blur", "gradient"])
     wa.add_argument("--layout", default="center", choices=["center", "left"])
     wa.add_argument("--theme", default="light", choices=["light", "dark"])
+    co = sub.add_parser("colors")
+    co.add_argument("--accent", default="")
+    co.add_argument("--accent2", default="")
+    co.add_argument("--reset", action="store_true")
     a = ap.parse_args()
 
     if not shutil.which("magick") and a.cmd in ("track", "palette", "wallpaper"):
@@ -320,7 +423,9 @@ def main() -> int:
         return 1
 
     try:
-        if a.cmd == "lyrics":
+        if a.cmd == "colors":
+            out(apply_colors(a.accent or None, a.accent2 or None, a.reset))
+        elif a.cmd == "lyrics":
             out(lyrics(a.artist, a.title, a.album, a.length))
         elif a.cmd == "palette":
             out(palette(Path(a.image), a.theme))

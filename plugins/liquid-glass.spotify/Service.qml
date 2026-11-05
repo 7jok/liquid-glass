@@ -113,6 +113,18 @@ Item {
   readonly property color accent: palette && palette.accent ? palette.accent : Commons.Color.accent
   readonly property color accent2: palette && palette.accent2 ? palette.accent2 : Commons.Color.accent
 
+  // Pochette du morceau courant pour l'écran de verrouillage (qui ne peut pas
+  // interroger ce service) : ~/.cache/liquid-glass/now-playing.json.
+  FileView {
+    id: nowPlayingFile
+    path: svc.home + "/.cache/liquid-glass/now-playing.json"
+    atomicWrites: true
+    printErrors: false
+  }
+  function writeNowPlaying() {
+    nowPlayingFile.setText(JSON.stringify({ title: title, artist: artist, cover: coverPath }) + "\n")
+  }
+
   onTrackKeyChanged: {
     lineIndex = -1
     lyricLines = []
@@ -165,6 +177,7 @@ Item {
         if (!res || res.error) { if (res) console.warn("liquid-glass-spotify:", res.error); return }
         if (svc.requestedKey !== svc.trackKey) return   // morceau déjà changé
         svc.coverPath = res.cover || ""
+        svc.writeNowPlaying()
         svc.palette = res.palette || null
         var ly = res.lyrics || {}
         svc.lyricLines = Array.isArray(ly.lines) ? ly.lines : []

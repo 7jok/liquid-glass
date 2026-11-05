@@ -1,0 +1,21 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.lock",
+  "name": "Liquid Glass — Écran de verrouillage",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Écran de verrouillage façon macOS (horloge, avatar, champ de verre, pochette) — flux PAM d'Omarchy inchangé",
+  "omarchy": {
+    "capabilities": [
+      "authentication"
+    ],
+    "clonedFrom": "omarchy.lock"
+  },
+  "kinds": [
+    "service"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "service": "Service.qml"
+  }
+}

@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+"""liquid-glass-spotify — travail lourd déclenché par le shell à chaque changement de morceau.
+
+Le shell (plugin QML liquid-glass.spotify) écoute MPRIS (événements, pas de polling)
+et appelle cette commande seulement quand le morceau change. Chaque sous-commande
+imprime UNE ligne JSON sur stdout.
+
+  track   --art URL --artist A --title T [--album B] [--length S] [--mode M] [--layout L] [--theme light|dark]
+          → {cover, wallpaper, palette, lyrics}   (tout en une fois, avec cache)
+  lyrics  --artist A --title T [--album B] [--length S]
+  palette --image FICHIER [--theme light|dark]
+  wallpaper --image FICHIER --mode cover|blur|gradient [--layout center|left] [--theme light|dark]
+
+Sécurité : téléchargements HTTPS uniquement vers des hôtes connus (pochettes Spotify,
+LRCLIB), taille et délai bornés ; aucune valeur externe n'est passée à un shell.
+"""
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import time
+import urllib.parse
+import urllib.request
+from pathlib import Path
+
+CACHE = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache")) / "liquid-glass"
+UA = "liquid-glass/0.1 (desktop lyrics and artwork; +https://lrclib.net)"
+ART_HOSTS = (".scdn.co", ".spotifycdn.com", ".spotify.com")
+MAX_IMAGE = 8 * 1024 * 1024
+MAX_JSON = 2 * 1024 * 1024
+LYRICS_MISS_TTL = 24 * 3600  # on retente un morceau sans paroles après 24 h
+
+
+def out(obj: dict) -> None:
+    print(json.dumps(obj, ensure_ascii=False))
+
+
+def key(*parts: str) -> str:
+    return hashlib.sha1("\x1f".join(p.strip().lower() for p in parts).encode()).hexdigest()[:20]
+
+
+def fetch(url: str, limit: int, timeout: float = 8.0) -> bytes:
+    req = urllib.request.Request(url, headers={"User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=timeout) as r:  # noqa: S310 (URL validée par l'appelant)
+        data = r.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("réponse trop volumineuse")
+    return data
+
+
+def magick(*args: str) -> None:
+    subprocess.run(["magick", *args], check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=60)
+
+
+def screen_size() -> tuple[int, int]:
+    """Résolution physique du moniteur principal (fond d'écran à la bonne taille)."""
+    try:
+        mons = json.loads(subprocess.run(["hyprctl", "-j", "monitors"], capture_output=True, text=True, timeout=3).stdout)
+        m = next((m for m in mons if m.get("focused")), mons[0])
+        return int(m["width"]), int(m["height"])
+    except Exception:
+        return 1920, 1080
+
+
+# ---------------------------------------------------------------- pochette
+def hires(url: str) -> str:
+    """Les pochettes Spotify existent en 64/300/640 px : on demande la 640."""
+    return re.sub(r"(ab67616d0000)(1e02|4851)", r"\g<1>b273", url)
+
+
+def get_cover(art: str) -> Path | None:
+    if not art:
+        return None
+    covers = CACHE / "covers"
+    covers.mkdir(parents=True, exist_ok=True)
+    u = urllib.parse.urlparse(art)
+    if u.scheme == "file":
+        p = Path(urllib.parse.unquote(u.path))
+        return p if p.is_file() and p.stat().st_size <= MAX_IMAGE else None
+    if u.scheme != "https" or not (u.hostname or "").endswith(ART_HOSTS):
+        return None
+    url = hires(art)
+    dest = covers / f"{key(url)}.jpg"
+    if dest.exists():
+        return dest
+    tmp = dest.with_suffix(".part")
+    tmp.write_bytes(fetch(url, MAX_IMAGE))
+    # Ré-encodage par ImageMagick : valide que c'est bien une image, normalise en JPEG.
+    magick(str(tmp), "-strip", "-resize", "1000x1000>", "-quality", "92", str(dest))
+    tmp.unlink(missing_ok=True)
+    return dest
+
+
+# ------------------------------------------------------------------ palette
+def hex_to_hsl(h: str) -> tuple[float, float, float]:
+    r, g, b = (int(h[i : i + 2], 16) / 255 for i in (1, 3, 5))
+    mx, mn = max(r, g, b), min(r, g, b)
+    l = (mx + mn) / 2
+    if mx == mn:
+        return 0.0, 0.0, l
+    d = mx - mn
+    s = d / (2 - mx - mn) if l > 0.5 else d / (mx + mn)
+    if mx == r:
+        hh = (g - b) / d + (6 if g < b else 0)
+    elif mx == g:
+        hh = (b - r) / d + 2
+    else:
+        hh = (r - g) / d + 4
+    return hh / 6, s, l
+
+
+def hsl_to_hex(h: float, s: float, l: float) -> str:
+    def f(p: float, q: float, t: float) -> float:
+        t %= 1
+        if t < 1 / 6:
+            return p + (q - p) * 6 * t
+        if t < 1 / 2:
+            return q
+        if t < 2 / 3:
+            return p + (q - p) * (2 / 3 - t) * 6
+        return p
+
+    if s == 0:
+        r = g = b = l
+    else:
+        q = l * (1 + s) if l < 0.5 else l + s - l * s
+        p = 2 * l - q
+        r, g, b = f(p, q, h + 1 / 3), f(p, q, h), f(p, q, h - 1 / 3)
+    return "#{:02x}{:02x}{:02x}".format(round(r * 255), round(g * 255), round(b * 255))
+
+
+def palette(image: Path, theme: str) -> dict:
+    """Extrait 6 couleurs dominantes, choisit un accent vif et lisible pour le thème."""
+    cache = CACHE / "palettes" / f"{image.stem}-{theme}.json"
+    if cache.exists():
+        return json.loads(cache.read_text())
+    res = subprocess.run(
+        ["magick", str(image), "-resize", "96x96", "-colors", "8", "-format", "%c", "histogram:info:-"],
+        capture_output=True, text=True, timeout=30, check=True,
+    ).stdout
+    found: list[tuple[int, str]] = []
+    for line in res.splitlines():
+        m = re.search(r"^\s*(\d+):.*?(#[0-9A-Fa-f]{6})", line)
+        if m:
+            found.append((int(m.group(1)), m.group(2).lower()))
+    found.sort(reverse=True)
+    colors = [c for _, c in found] or ["#0a84ff"]
+
+    def score(c: str) -> float:
+        _, s, l = hex_to_hsl(c)
+        return s * (1 - abs(l - 0.5) * 1.6)
+
+    base = max(colors, key=score)
+    h, s, l = hex_to_hsl(base)
+    # Accent : saturé, luminosité adaptée au thème pour rester lisible.
+    s = max(s, 0.55)
+    accent = hsl_to_hex(h, min(s, 0.9), 0.45 if theme == "light" else 0.62)
+    accent2 = hsl_to_hex((h + 0.08) % 1, min(s, 0.85), 0.52 if theme == "light" else 0.68)
+    # Teinte de surface : la couleur dominante, très claire (clair) ou très sombre (sombre).
+    dh, ds, _ = hex_to_hsl(colors[0])
+    surface = hsl_to_hex(dh, min(ds, 0.35), 0.95 if theme == "light" else 0.11)
+    pal = {"accent": accent, "accent2": accent2, "surface": surface, "colors": colors[:6]}
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    cache.write_text(json.dumps(pal))
+    return pal
+
+
+# --------------------------------------------------------------- wallpaper
+def wallpaper(image: Path, mode: str, layout: str, theme: str) -> Path:
+    W, H = screen_size()
+    walls = CACHE / "wallpapers"
+    walls.mkdir(parents=True, exist_ok=True)
+    dest = walls / f"{image.stem}-{mode}-{layout}-{theme}-{W}x{H}.jpg"
+    if dest.exists():
+        return dest
+    tmp = dest.with_suffix(".tmp.jpg")
+    dark = theme == "dark"
+    bright = "62" if dark else "108"
+    small = f"{max(W // 6, 160)}x{max(H // 6, 90)}"
+
+    if mode == "gradient":
+        pal = palette(image, theme)
+        cols = (pal["colors"] + [pal["accent"], pal["accent2"]])[:5]
+        sw, sh = 640, 360
+        draws: list[str] = []
+        spots = [(120, 300, 260, 170), (520, 60, 240, 160), (600, 340, 220, 140), (300, 20, 200, 120), (330, 200, 160, 110)]
+        for c, (cx, cy, rx, ry) in zip(cols, spots):
+            draws += ["-fill", c, "-draw", f"ellipse {cx},{cy} {rx},{ry} 0,360"]
+        base = pal["surface"]
+        magick("-size", f"{sw}x{sh}", f"xc:{base}", *draws, "-blur", "0x70",
+               "-modulate", f"{bright},130", "-resize", f"{W}x{H}!",
+               "(", "-size", f"{W}x{H}", "xc:gray50", "+noise", "Gaussian", "-colorspace", "gray",
+               "-evaluate", "multiply", "0.5", ")", "-compose", "overlay", "-composite",
+               "-quality", "90", str(tmp))
+    else:
+        # Fond : la pochette étirée, très floutée (calcul en petit puis agrandie : rapide).
+        bg = ["(", str(image), "-resize", f"{small}^", "-gravity", "center", "-extent", small,
+              "-blur", "0x14", "-modulate", f"{bright},145", "-resize", f"{W}x{H}!", ")"]
+        if mode == "blur":
+            magick(*bg, "-quality", "90", str(tmp))
+        else:  # cover : pochette nette, coins arrondis, ombre douce
+            size = int(H * 0.42)
+            r = max(12, size // 18)
+            x = int(W * 0.28) - size // 2 if layout == "left" else W // 2 - size // 2
+            y = int(H * 0.47) - size // 2
+            magick(*bg,
+                   "(", str(image), "-resize", f"{size}x{size}^", "-gravity", "center", "-extent", f"{size}x{size}",
+                   "(", "+clone", "-alpha", "extract", "-fill", "black", "-colorize", "100",
+                   "-fill", "white", "-draw", f"roundrectangle 0,0 {size - 1},{size - 1} {r},{r}", ")",
+                   "-alpha", "off", "-compose", "CopyOpacity", "-composite", "-compose", "over",
+                   "(", "+clone", "-background", "black", "-shadow", "45x28+0+18", ")",
+                   "+swap", "-background", "none", "-layers", "merge", "+repage", ")",
+                   "-gravity", "northwest", "-geometry", f"+{x - 28}+{y - 10}", "-compose", "over", "-composite",
+                   "-quality", "90", str(tmp))
+    tmp.replace(dest)
+    _prune(walls, keep=40)
+    return dest
+
+
+def _prune(folder: Path, keep: int) -> None:
+    files = sorted(folder.glob("*.jpg"), key=lambda p: p.stat().st_mtime, reverse=True)
+    for p in files[keep:]:
+        p.unlink(missing_ok=True)
+
+
+# ------------------------------------------------------------------ paroles
+TS = re.compile(r"\[(\d+):(\d+(?:\.\d+)?)\]")
+
+
+def parse_lrc(text: str) -> list[dict]:
+    lines: list[dict] = []
+    for raw in text.splitlines():
+        stamps = TS.findall(raw)
+        if not stamps:
+            continue
+        words = TS.sub("", raw)
+        words = re.sub(r"<\d+:\d+(?:\.\d+)?>", "", words).strip()  # balises mot à mot (LRC enrichi)
+        for mm, ss in stamps:
+            lines.append({"t": round(int(mm) * 60 + float(ss), 2), "text": words[:300]})
+    lines.sort(key=lambda l: l["t"])
+    return lines[:2000]
+
+
+def lyrics(artist: str, title: str, album: str, length: float) -> dict:
+    folder = CACHE / "lyrics"
+    folder.mkdir(parents=True, exist_ok=True)
+    f = folder / f"{key(artist, title)}.json"
+    if f.exists():
+        data = json.loads(f.read_text())
+        if data.get("found") or time.time() - f.stat().st_mtime < LYRICS_MISS_TTL:
+            return data
+
+    def api(path: str, params: dict) -> object:
+        q = urllib.parse.urlencode({k: v for k, v in params.items() if v})
+        return json.loads(fetch(f"https://lrclib.net/api/{path}?{q}", MAX_JSON).decode())
+
+    result: dict = {"found": False, "synced": False, "lines": [], "plain": ""}
+    item = None
+    try:
+        item = api("get", {"artist_name": artist, "track_name": title, "album_name": album,
+                           "duration": str(round(length)) if length else ""})
+    except Exception:
+        item = None
+    if not isinstance(item, dict) or not (item.get("syncedLyrics") or item.get("plainLyrics")):
+        try:
+            hits = api("search", {"artist_name": artist, "track_name": title})
+            hits = [h for h in hits if isinstance(h, dict)] if isinstance(hits, list) else []
+            hits.sort(key=lambda h: (not h.get("syncedLyrics"), abs(float(h.get("duration") or 0) - length) if length else 0))
+            item = hits[0] if hits else None
+        except Exception:
+            item = None
+    if isinstance(item, dict):
+        if item.get("instrumental"):
+            result = {"found": True, "synced": False, "instrumental": True, "lines": [], "plain": ""}
+        elif item.get("syncedLyrics"):
+            result = {"found": True, "synced": True, "lines": parse_lrc(str(item["syncedLyrics"])), "plain": ""}
+        elif item.get("plainLyrics"):
+            result = {"found": True, "synced": False, "lines": [], "plain": str(item["plainLyrics"])[:20000]}
+    f.write_text(json.dumps(result, ensure_ascii=False))
+    return result
+
+
+# ---------------------------------------------------------------- commandes
+def main() -> int:
+    ap = argparse.ArgumentParser(prog="liquid-glass-spotify")
+    sub = ap.add_subparsers(dest="cmd", required=True)
+    t = sub.add_parser("track")
+    t.add_argument("--art", default="")
+    t.add_argument("--artist", default="")
+    t.add_argument("--title", default="")
+    t.add_argument("--album", default="")
+    t.add_argument("--length", type=float, default=0.0)
+    t.add_argument("--mode", default="cover", choices=["off", "cover", "blur", "gradient"])
+    t.add_argument("--layout", default="center", choices=["center", "left"])
+    t.add_argument("--theme", default="light", choices=["light", "dark"])
+    t.add_argument("--no-lyrics", action="store_true")
+    ly = sub.add_parser("lyrics")
+    ly.add_argument("--artist", default="")
+    ly.add_argument("--title", default="")
+    ly.add_argument("--album", default="")
+    ly.add_argument("--length", type=float, default=0.0)
+    pa = sub.add_parser("palette")
+    pa.add_argument("--image", required=True)
+    pa.add_argument("--theme", default="light", choices=["light", "dark"])
+    wa = sub.add_parser("wallpaper")
+    wa.add_argument("--image", required=True)
+    wa.add_argument("--mode", default="cover", choices=["cover", "blur", "gradient"])
+    wa.add_argument("--layout", default="center", choices=["center", "left"])
+    wa.add_argument("--theme", default="light", choices=["light", "dark"])
+    a = ap.parse_args()
+
+    if not shutil.which("magick") and a.cmd in ("track", "palette", "wallpaper"):
+        out({"error": "ImageMagick (magick) introuvable"})
+        return 1
+
+    try:
+        if a.cmd == "lyrics":
+            out(lyrics(a.artist, a.title, a.album, a.length))
+        elif a.cmd == "palette":
+            out(palette(Path(a.image), a.theme))
+        elif a.cmd == "wallpaper":
+            out({"wallpaper": str(wallpaper(Path(a.image), a.mode, a.layout, a.theme))})
+        elif a.cmd == "track":
+            res: dict = {"cover": "", "wallpaper": "", "palette": None, "lyrics": None}
+            try:
+                cover = get_cover(a.art)
+            except Exception as e:  # pas de pochette : le reste peut continuer
+                cover, res["coverError"] = None, str(e)[:200]
+            if cover:
+                res["cover"] = str(cover)
+                res["palette"] = palette(cover, a.theme)
+                if a.mode != "off":
+                    res["wallpaper"] = str(wallpaper(cover, a.mode, a.layout, a.theme))
+            if not a.no_lyrics and a.title:
+                res["lyrics"] = lyrics(a.artist, a.title, a.album, a.length)
+            out(res)
+    except Exception as e:
+        out({"error": str(e)[:300]})
+        return 1
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

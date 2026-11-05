@@ -12,7 +12,6 @@ REPO_PKGS=(
   inter-font         # police d'interface proche de SF Pro
   kvantum            # moteur de thème Qt
   qt5ct qt6ct        # réglages Qt5/Qt6 (police, icônes, style)
-  python-pillow      # analyse d'image légère pour les couleurs/fonds
 )
 
 # AUR (thèmes libres façon macOS Tahoe, par vinceliuice)

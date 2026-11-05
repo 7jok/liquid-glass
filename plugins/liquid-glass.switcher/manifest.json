@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.switcher",
+  "name": "Liquid Glass — Sélecteur d'apps",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Sélecteur d'applications façon ⌘Tab (SUPER+Tab), trié par usage récent",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Switcher.qml" }
+}

@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.mission",
+  "name": "Liquid Glass — Mission Control",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Exposé façon macOS : aperçus en direct des fenêtres, bandeau des bureaux, glisser pour déplacer",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Mission.qml" }
+}

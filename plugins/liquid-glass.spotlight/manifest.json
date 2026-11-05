@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.spotlight",
+  "name": "Liquid Glass — Spotlight",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Recherche universelle façon macOS : applications, fichiers, calculatrice, commandes, web",
+  "kinds": ["overlay", "menu"],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Spotlight.qml",
+    "menu": "Spotlight.qml"
+  }
+}

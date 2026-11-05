@@ -16,6 +16,10 @@ auto_dark_at = "19:30"
 # Police de l'interface (barre, dock, panneaux Liquid Glass) et police mono.
 font_ui = "Inter"
 font_mono = "JetBrainsMono Nerd Font"
+# Logo de la barre : pomme | arch | tux | omarchy | orb | goutte | custom
+# (custom : image SVG/PNG de logo_path, chemin absolu).
+logo = "pomme"
+logo_path = ""
 
 [glass]
 # Flou Hyprland : taille et nombre de passes (plus = plus flou, plus coûteux).
@@ -72,3 +76,28 @@ bars = 64
 # Raccourcis façon macOS (⌘Espace Spotlight, ⌘Q quitter, ⌘Tab, ⌘⇧3/4/5…).
 # false = garder uniquement les raccourcis Omarchy. Voir README pour la liste.
 macos_shortcuts = true
+
+[widgets]
+# Widgets du bureau façon macOS (sur le fond d'écran, sous les fenêtres).
+enabled = true
+# left | right
+position = "left"
+clock = true
+calendar = true
+weather = true
+battery = true
+# Lecture en cours aux couleurs de la pochette (avec la palette cliquable).
+music = true
+# Ville de la météo ("" = celle du fuseau horaire). Données : Open-Meteo, sans clé.
+weather_city = ""
+# Masquer les widgets quand la pochette sert de fond d'écran.
+hide_on_cover = true
+
+[hotcorners]
+# Coins actifs : pointer dans un coin de l'écran déclenche une action.
+# Actions : mission | desktop | spotlight | control | karaoke | lock | settings | "" (rien)
+# Les coins du haut sont libres par défaut (la barre et le logo y sont).
+top_left = ""
+top_right = ""
+bottom_left = "mission"
+bottom_right = "desktop"

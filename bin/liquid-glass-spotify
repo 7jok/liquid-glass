@@ -27,6 +27,7 @@ import shutil
 import subprocess
 import sys
 import time
+import unicodedata
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -258,6 +259,34 @@ def parse_lrc(text: str) -> list[dict]:
     return lines[:2000]
 
 
+def norm(text: str) -> str:
+    """Minuscules, sans accents ni ponctuation, espaces simples."""
+    t = unicodedata.normalize("NFKD", text or "").encode("ascii", "ignore").decode().lower()
+    t = re.sub(r"[^a-z0-9]+", " ", t)
+    return " ".join(t.split())
+
+
+def clean_title(title: str) -> str:
+    """Retire « (feat. …) », « - Remastered 2011 », « [Live] »… du titre."""
+    t = re.sub(r"\s*[\(\[][^\)\]]*[\)\]]", "", title or "")
+    t = re.sub(r"\s+-\s+.*$", "", t)
+    return t.strip() or (title or "")
+
+
+def same_track(hit: dict, artist: str, title: str, length: float) -> bool:
+    ht, ha = norm(clean_title(str(hit.get("trackName") or ""))), norm(str(hit.get("artistName") or ""))
+    want_t, want_a = norm(clean_title(title)), norm(artist)
+    if not ht or not want_t:
+        return False
+    title_ok = ht == want_t or (min(len(ht), len(want_t)) >= 4 and (ht in want_t or want_t in ht))
+    # Artistes : au moins un nom en commun (« A, B & C » côté Spotify).
+    names = [norm(a) for a in re.split(r",|&| feat\.? | x ", artist or "") if norm(a)]
+    artist_ok = any(n and (n in ha or ha in n) for n in names) if ha else False
+    dur = float(hit.get("duration") or 0)
+    dur_ok = not length or not dur or abs(dur - length) <= 8
+    return title_ok and artist_ok and dur_ok
+
+
 def lyrics(artist: str, title: str, album: str, length: float) -> dict:
     folder = CACHE / "lyrics"
     folder.mkdir(parents=True, exist_ok=True)
@@ -279,13 +308,22 @@ def lyrics(artist: str, title: str, album: str, length: float) -> dict:
     except Exception:
         item = None
     if not isinstance(item, dict) or not (item.get("syncedLyrics") or item.get("plainLyrics")):
-        try:
-            hits = api("search", {"artist_name": artist, "track_name": title})
-            hits = [h for h in hits if isinstance(h, dict)] if isinstance(hits, list) else []
-            hits.sort(key=lambda h: (not h.get("syncedLyrics"), abs(float(h.get("duration") or 0) - length) if length else 0))
-            item = hits[0] if hits else None
-        except Exception:
-            item = None
+        # La recherche LRCLIB est floue : on ne garde que les résultats dont le titre
+        # et l'artiste correspondent vraiment (sinon on afficherait les paroles d'une
+        # autre chanson), et dont la durée est proche quand on la connaît.
+        item = None
+        for params in ({"artist_name": artist, "track_name": title},
+                       {"artist_name": artist, "track_name": clean_title(title)},
+                       {"q": f"{artist} {clean_title(title)}"}):
+            try:
+                hits = api("search", params)
+            except Exception:
+                continue
+            hits = [h for h in hits if isinstance(h, dict) and same_track(h, artist, title, length)] if isinstance(hits, list) else []
+            if hits:
+                hits.sort(key=lambda h: (not h.get("syncedLyrics"), abs(float(h.get("duration") or 0) - length) if length else 0))
+                item = hits[0]
+                break
     if isinstance(item, dict):
         if item.get("instrumental"):
             result = {"found": True, "synced": False, "instrumental": True, "lines": [], "plain": ""}

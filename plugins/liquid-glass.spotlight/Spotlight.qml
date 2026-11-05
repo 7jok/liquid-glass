@@ -6,6 +6,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "Calc.js" as Calc
+import "Units.js" as Units
 
 // ============================================================================
 // Liquid Glass — Spotlight (SUPER+Espace).
@@ -13,6 +14,9 @@ import "Calc.js" as Calc
 //   • Applications : index et recherche floue d'Omarchy (appLibrary)
 //   • Commandes : verrouiller, mode sombre, captures, karaoké, réglages…
 //   • Fichiers : fd dans ~ (sans shell, motif littéral, 8 résultats max)
+//   • Conversions : « 10 km en miles », « 72 f en c », « 3 go en mo »
+//   • Sites : « yt … », « wiki … », « gh … », « sp … » (Spotify), « maps … », « aw … »…
+//   • Champ vide : éléments ouverts récemment (comme l'historique de Spotlight)
 //   • « > commande » : exécute dans un terminal ; sinon recherche web en dernier recours
 // Navigation : ↑/↓, Entrée, Échap. Ctrl+Entrée sur un fichier : l'afficher dans Fichiers.
 // ============================================================================
@@ -52,6 +56,11 @@ Item {
     ["Paroles sur le bureau", "Musique", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "desktop"], "lyrics spotify"],
     ["Widget de paroles", "Musique", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "widget"], "lyrics spotify"],
     ["Ne pas déranger", "Notifications", 0xF009B, ["omarchy-shell", "notifications", "toggleDnd"], "dnd concentration focus"],
+    ["Lecture / Pause", "Musique", 0xF040A, ["omarchy-shell", "liquid-glass.spotify", "playPause"], "play pause musique spotify lecture"],
+    ["Morceau suivant", "Musique", 0xF04AD, ["omarchy-shell", "liquid-glass.spotify", "next"], "next suivant skip musique"],
+    ["Morceau précédent", "Musique", 0xF04AE, ["omarchy-shell", "liquid-glass.spotify", "previous"], "previous précédent musique"],
+    ["Historique du presse-papiers", "Système", 0xF014F, ["omarchy-shell", "shell", "toggle", "omarchy.clipboard"], "clipboard copier coller presse"],
+    ["Émojis", "Saisie", 0xF0785, ["omarchy-shell", "shell", "toggle", "omarchy.emojis"], "emoji smiley caractères"],
     ["Night Shift", "Affichage", 0xF0594, ["omarchy-shell", "nightlight", "toggle"], "nightlight lumière nocturne"],
     ["Changer de thème Omarchy", "Apparence", 0xF03D8, ["omarchy-shell", "shell", "toggle", "omarchy.menu", "{\"menu\":\"theme\"}"], "theme"],
     ["Moniteur d'activité", "Système", 0xF0128, ["omarchy-launch-or-focus-tui", "btop"], "btop processus cpu ram"],
@@ -60,6 +69,55 @@ Item {
     ["Éteindre", "Alimentation", 0xF0425, ["omarchy", "system", "shutdown"], "shutdown poweroff"],
     ["Fermer la session", "Alimentation", 0xF0343, ["omarchy", "system", "logout"], "logout déconnexion"]
   ]
+
+  // ------------------------------------------------------------------ sites
+  // [mots-clés, nom, adresse (la recherche est ajoutée encodée), glyphe]
+  readonly property var sites: [
+    [["yt", "youtube"], "YouTube", "https://www.youtube.com/results?search_query=", 0xF05C3],
+    [["wiki", "wp", "wikipedia", "wikipédia"], "Wikipédia", "https://fr.wikipedia.org/w/index.php?search=", 0xF05AC],
+    [["gh", "github"], "GitHub", "https://github.com/search?q=", 0xF02A4],
+    [["sp", "spotify"], "Spotify", "spotify:search:", 0xF04C7],
+    [["maps", "carte", "plan"], "OpenStreetMap", "https://www.openstreetmap.org/search?query=", 0xF034D],
+    [["g", "google"], "Google", "https://www.google.com/search?q=", 0xF02AD],
+    [["aw", "archwiki"], "ArchWiki", "https://wiki.archlinux.org/index.php?search=", 0xF059F],
+    [["aur"], "AUR", "https://aur.archlinux.org/packages?K=", 0xF059F],
+    [["def", "dico", "wiktionnaire"], "Wiktionnaire", "https://fr.wiktionary.org/w/index.php?search=", 0xF059F]
+  ]
+  function siteFor(q) {
+    var sp = q.indexOf(" ")
+    if (sp <= 0) return null
+    var key = q.slice(0, sp).toLowerCase(), rest = q.slice(sp + 1).trim()
+    if (rest === "") return null
+    for (var i = 0; i < sites.length; i++)
+      if (sites[i][0].indexOf(key) !== -1) return { site: sites[i], q: rest }
+    return null
+  }
+
+  // ---------------------------------------------------------------- récents
+  property var recents: []
+  FileView {
+    id: recentsFile
+    path: root.home + "/.cache/liquid-glass/spotlight-recents.json"
+    printErrors: false
+    atomicWrites: true
+    onLoaded: { try { root.recents = JSON.parse(text()) || [] } catch (e) { root.recents = [] } }
+  }
+  function remember(r) {
+    var e = null
+    if (r.kind === "app") e = { kind: "app", title: r.title, sub: r.sub, id: r.entry.id, iconName: r.entry.icon || "" }
+    else if (r.kind === "cmd") e = { kind: "cmd", title: r.title, sub: r.sub, glyph: r.glyph, argv: r.argv }
+    else if (r.kind === "file") e = { kind: "file", title: r.title, sub: r.sub, glyph: r.glyph, path: r.path }
+    else if (r.kind === "web") e = { kind: "web", title: r.title, sub: r.sub, glyph: r.glyph, url: r.url }
+    if (!e) return
+    var key = e.kind + "|" + e.title + "|" + (e.path || e.url || "")
+    var list = [e]
+    for (var i = 0; i < recents.length && list.length < 8; i++) {
+      var o = recents[i]
+      if (o.kind + "|" + o.title + "|" + (o.path || o.url || "") !== key) list.push(o)
+    }
+    recents = list
+    recentsFile.setText(JSON.stringify(list))
+  }
 
   function fold(s) {
     return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
@@ -75,7 +133,16 @@ Item {
   function rebuild() {
     var q = query.trim()
     var out = []
-    if (q === "") { results = []; selected = 0; return }
+    if (q === "") {
+      // Champ vide : éléments récents.
+      for (var ri = 0; ri < recents.length; ri++) {
+        var rc = recents[ri]
+        var item = { section: "Récents", kind: rc.kind, title: rc.title, sub: rc.sub || "", glyph: rc.glyph || 0xF02DA, argv: rc.argv, path: rc.path, url: rc.url }
+        if (rc.kind === "app") { if (!appLib) continue; item.icon = appLib.iconSource(rc.iconName); item.entry = { id: rc.id, icon: rc.iconName } }
+        out.push(item)
+      }
+      results = out; selected = 0; return
+    }
 
     if (q.charAt(0) === ">") {
       var cmd = q.slice(1).trim()
@@ -83,7 +150,14 @@ Item {
       results = out; selected = 0; return
     }
 
-    var v = Calc.evaluate(q)
+    var site = siteFor(q)
+    if (site) out.push({ section: site.site[1], kind: "web", title: "Rechercher « " + site.q + " »", sub: site.site[1], glyph: site.site[3], url: site.site[2] + encodeURIComponent(site.q) })
+
+    var conv = Units.convert(q)
+    if (conv) out.push({ section: "Conversion", kind: "calc", title: "= " + Calc.format(Math.round(conv.value * 1e4) / 1e4) + " " + conv.unit,
+                         sub: Calc.format(conv.input) + " " + conv.fromUnit + "  ·  Entrée pour copier", glyph: 0xF04E1, value: Calc.plain(Math.round(conv.value * 1e6) / 1e6) })
+
+    var v = conv ? null : Calc.evaluate(q)
     if (v !== null) out.push({ section: "Calculatrice", kind: "calc", title: "= " + Calc.format(v), sub: q + "  ·  Entrée pour copier", glyph: 0xF00EC, value: Calc.plain(v) })
 
     if (appLib) {
@@ -112,7 +186,7 @@ Item {
       out.push({ section: "Fichiers", kind: "file", title: name, sub: dir, glyph: isDir ? 0xF024B : 0xF0214, path: clean })
     }
 
-    out.push({ section: "Web", kind: "web", title: "Rechercher « " + q + " » sur le web", sub: "DuckDuckGo", glyph: 0xF059F, q: q })
+    out.push({ section: "Web", kind: "web", title: "Rechercher « " + q + " » sur le web", sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
     results = out
     if (selected >= out.length) selected = 0
   }
@@ -153,6 +227,7 @@ Item {
     var r = results[i]
     if (!r) return
     dismiss()
+    remember(r)
     if (r.kind === "app") appLib.launch(r.entry.id, r.title)
     else if (r.kind === "cmd") Util.execArgv(r.argv)
     else if (r.kind === "calc") Util.execArgv(["wl-copy", "--", r.value])
@@ -160,7 +235,7 @@ Item {
       if (alt) Util.execArgv(["nautilus", "--select", r.path])
       else Util.execArgv(["xdg-open", r.path])
     }
-    else if (r.kind === "web") Util.execArgv(["xdg-open", "https://duckduckgo.com/?q=" + encodeURIComponent(r.q)])
+    else if (r.kind === "web") Util.execArgv(["xdg-open", r.url])
     else if (r.kind === "run") Util.execArgv(["xdg-terminal-exec", "bash", "-c", r.cmd + "; echo; read -n1 -rsp 'Appuie sur une touche pour fermer…'"])
   }
 
@@ -172,9 +247,12 @@ Item {
 
   // --------------------------------------------------------------- ouverture
   function open(payloadJson) {
-    query = ""
-    results = []
+    // Charge utile optionnelle : {"query": "…"} pré-remplit la recherche.
+    var pre = ""
+    try { var pl = payloadJson ? JSON.parse(payloadJson) : null; if (pl && typeof pl.query === "string") pre = pl.query.slice(0, 200) } catch (e) {}
+    query = pre
     selected = 0
+    rebuild()
     opened = true
     Qt.callLater(function() { input.forceActiveFocus() })
   }

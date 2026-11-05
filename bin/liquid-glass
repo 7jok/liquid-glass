@@ -11,6 +11,8 @@ Commandes :
   liquid-glass set <section.clé> <valeur>
                                      Modifie un réglage (puis applique ce qui est nécessaire)
   liquid-glass status                Résumé de l'état courant
+  liquid-glass show-desktop          Écarte / remet les fenêtres du bureau courant (⌘F3)
+  liquid-glass hotcorner <action>    Action d'un coin actif (mission, desktop, spotlight…)
 
 Fichiers :
   ~/.config/liquid-glass/config.toml   config centrale (source de vérité)
@@ -207,7 +209,39 @@ def desired_mode(cfg: dict) -> str:
     return "light" if light_at <= now < dark_at else "dark"
 
 
+# Fonds jumelés clair ↔ sombre : en changeant de mode, on garde « le même » paysage
+# (Tahoe jour → Tahoe nuit…), comme les fonds dynamiques de macOS.
+WALL_PAIRS = {
+    "01-tahoe-day.jpg": "01-tahoe-night.jpg",
+    "02-big-sur-light.jpg": "02-big-sur-dark.jpg",
+    "03-monterey-light.jpg": "03-monterey-dark.jpg",
+    "08-monterey-morning.jpg": "04-monterey.jpg",
+    "07-big-sur.jpg": "06-big-sur-morning.jpg",
+    "05-yosemite-valley.jpg": "05-el-capitan-dusk.jpg",
+    "09-aurora-day.jpg": "07-aurora-night.jpg",
+    "10-lagoon.jpg": "08-abyss.jpg",
+    "11-dune.jpg": "09-ember.jpg",
+}
+BG_STATE = HOME / ".local/state/omarchy/theme-backgrounds"
+BG_LINK = HOME / ".local/state/omarchy/current/background"
+
+
+def _pair_background(target: str) -> None:
+    """Prépare le fond du thème cible à partir du fond actuel (s'il a un jumeau)."""
+    if current_theme() not in THEMES.values() or target not in THEMES.values():
+        return
+    name = os.path.basename(os.path.realpath(BG_LINK)) if BG_LINK.exists() else ""
+    pairs = {**WALL_PAIRS, **{v: k for k, v in WALL_PAIRS.items()}}
+    twin = pairs.get(name)
+    if not twin:
+        return
+    path = HOME / ".local/state/omarchy/current/theme/backgrounds" / twin
+    BG_STATE.mkdir(parents=True, exist_ok=True)
+    (BG_STATE / target).write_text(f"{path}\n")
+
+
 def set_theme(slug: str) -> None:
+    _pair_background(slug)
     run("omarchy", "theme", "set", slug, quiet=False)
 
 
@@ -306,7 +340,9 @@ def cmd_auto_tick(_args: list[str]) -> None:
 
 
 # Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
-LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock"}
+LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners"}
+# Clés isolées lues directement par le shell (pas de régénération du thème).
+LIVE_KEYS = {"appearance.logo", "appearance.logo_path"}
 
 
 def cmd_set(args: list[str]) -> None:
@@ -317,7 +353,9 @@ def cmd_set(args: list[str]) -> None:
     cfg = load()
     write_json(cfg)
     section = args[0].split(".", 1)[0]
-    if section == "appearance" and args[0].endswith(".mode"):
+    if args[0] in LIVE_KEYS:
+        pass
+    elif section == "appearance" and args[0].endswith(".mode"):
         cmd_mode([args[1]])
     elif section == "dock":
         sync_dock(cfg)  # shell.json est rechargé à chaud par le shell
@@ -347,6 +385,67 @@ def cmd_status(_args: list[str]) -> None:
     print(f"Config        : {CONF}")
 
 
+# --------------------------------------------------------- afficher le bureau
+# Comme ⌘F3 sur macOS : les fenêtres du bureau courant s'écartent (rangées dans un
+# bureau spécial caché), un second appel les remet à leur place.
+DESK_STATE = HOME / ".cache/liquid-glass/show-desktop.json"
+ADDR_RE = re.compile(r"^0x[0-9a-fA-F]+$")
+
+
+def _hypr_json(what: str):
+    return json.loads(run("hyprctl", "-j", what).stdout or "null")
+
+
+def _move(addr: str, workspace: str) -> None:
+    # Adresses et noms validés avant d'entrer dans l'expression Lua.
+    if not ADDR_RE.match(addr) or not re.match(r"^(special:lgdesk|-?\d+)$", workspace):
+        return
+    run("hyprctl", "dispatch",
+        f'hl.dsp.window.move({{ workspace = "{workspace}", follow = false, window = "address:{addr}" }})')
+
+
+def cmd_show_desktop(_args: list[str]) -> None:
+    DESK_STATE.parent.mkdir(parents=True, exist_ok=True)
+    state = json.loads(DESK_STATE.read_text()) if DESK_STATE.exists() else None
+    clients = _hypr_json("clients") or []
+    hidden = {c["address"] for c in clients if c.get("workspace", {}).get("name") == "special:lgdesk"}
+    if state and hidden:
+        for addr, ws in state.get("windows", {}).items():
+            if addr in hidden:
+                _move(addr, str(ws))
+        DESK_STATE.unlink(missing_ok=True)
+        return
+    active = (_hypr_json("activeworkspace") or {}).get("id")
+    moved = {}
+    for c in clients:
+        if c.get("workspace", {}).get("id") == active and ADDR_RE.match(c.get("address", "")):
+            moved[c["address"]] = active
+            _move(c["address"], "special:lgdesk")
+    DESK_STATE.write_text(json.dumps({"workspace": active, "windows": moved}))
+
+
+# --------------------------------------------------------------- coins actifs
+HOT_ACTIONS = {
+    "mission": ["omarchy-shell", "shell", "summon", "liquid-glass.mission", ""],
+    "desktop": [sys.argv[0], "show-desktop"],
+    "spotlight": ["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", ""],
+    "control": ["omarchy-shell", "liquid-glass.control", "toggle"],
+    "karaoke": ["omarchy-shell", "liquid-glass.spotify", "karaoke"],
+    "lock": ["omarchy-system-lock"],
+    "settings": ["omarchy-shell", "liquid-glass.settings", "toggle"],
+}
+
+
+def cmd_hotcorner(args: list[str]) -> None:
+    """Action d'un coin actif — ignorée si la fenêtre active est en plein écran."""
+    if not args or args[0] not in HOT_ACTIONS:
+        sys.exit("usage : liquid-glass hotcorner " + "|".join(HOT_ACTIONS))
+    win = _hypr_json("activewindow") or {}
+    if win.get("fullscreen", 0):
+        return
+    subprocess.Popen(HOT_ACTIONS[args[0]], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+
+
 def cmd_system(args: list[str]) -> None:
     apply_system(args[0] if args else None)
 
@@ -359,6 +458,8 @@ COMMANDS = {
     "set": cmd_set,
     "get": cmd_get,
     "status": cmd_status,
+    "show-desktop": cmd_show_desktop,
+    "hotcorner": cmd_hotcorner,
 }
 
 

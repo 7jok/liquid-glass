@@ -32,6 +32,7 @@ Item {
     ["Fenêtres & bureaux", [
       ["⌘ ↑", "Mission Control"],
       ["4 doigts ↑", "Mission Control (pavé)"],
+      ["⌘ F3", "Afficher le bureau"],
       ["⌘ ← · →", "Bureau précédent · suivant"],
       ["⌘ 1…0", "Aller au bureau"],
       ["⌘ ⌃ ⇧ 1…0", "Envoyer la fenêtre au bureau"],

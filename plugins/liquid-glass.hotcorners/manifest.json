@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.hotcorners",
+  "name": "Liquid Glass — Coins actifs",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Coins actifs façon macOS : Mission Control, afficher le bureau, Spotlight…",
+  "kinds": ["service"],
+  "entryPoints": { "service": "HotCorners.qml" }
+}

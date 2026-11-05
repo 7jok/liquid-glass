@@ -79,6 +79,7 @@ say "Thèmes Liquid Glass (clair + sombre)"
 for t in liquid-glass liquid-glass-dark; do
   if ! compgen -G "$REPO/themes/$t/backgrounds/*.jpg" >/dev/null; then "$REPO/scripts/gen-wallpapers.sh"; break; fi
 done
+[[ -e $REPO/themes/liquid-glass/backgrounds/01-tahoe-day.jpg ]] || "$REPO/scripts/fetch-wallpapers.sh" || warn "fonds Mac non téléchargés (hors ligne ?)"
 link "$REPO/themes/liquid-glass" "$CFG/omarchy/themes/liquid-glass"
 link "$REPO/themes/liquid-glass-dark" "$CFG/omarchy/themes/liquid-glass-dark"
 ok "thèmes liés dans ~/.config/omarchy/themes"
@@ -168,7 +169,7 @@ print(json.dumps({"iconSize": d.get("icon_size", 42), "magnification": d.get("ma
   def ids: map(.id);
   .plugins |= addids(["liquid-glass.dock","liquid-glass.spotify","liquid-glass.spotlight","liquid-glass.mission",
                       "liquid-glass.switcher","liquid-glass.cheatsheet","liquid-glass.settings","liquid-glass.appearance",
-                      "liquid-glass.lock","liquid-glass.osd"])
+                      "liquid-glass.lock","liquid-glass.osd","liquid-glass.widgets","liquid-glass.hotcorners"])
   | .disabledPlugins |= addstr(["omarchy.dock","omarchy.lock","omarchy.osd"])
   | .cloneSourceRestores |= addstr(["liquid-glass.dock","liquid-glass.lock","liquid-glass.osd"])
   | .dock = ((.dock // {}) + {position: "bottom"} + $dock)

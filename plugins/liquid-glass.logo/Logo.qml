@@ -1,10 +1,16 @@
 import QtQuick
+import QtQuick.Effects
 import Quickshell
+import Quickshell.Io
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
-// Liquid Glass — logo de la barre (goutte de verre) et menu système façon macOS.
+// Liquid Glass — logo de la barre et menu système façon macOS.
+// Logo choisi par [appearance] logo dans config.toml (Réglages → Apparence) :
+//   pomme | arch | tux | omarchy  → glyphes de police, teinte de la barre
+//   orb | goutte                  → images SVG originales (assets/)
+//   custom                        → image de [appearance] logo_path
 // Clic : ouvre le menu. Raccourci : omarchy-shell liquid-glass.logo toggle
 Panel {
   id: root
@@ -14,6 +20,30 @@ Panel {
   // Police de l'interface (Inter si installée ; sinon la sans-serif système).
   readonly property string uiFont: "Inter"
   property int cursor: -1
+
+  // ---- choix du logo (config.json régénéré par `liquid-glass set`)
+  property var cfg: ({})
+  readonly property string logo: (cfg.appearance && cfg.appearance.logo) || "pomme"
+  readonly property string logoPath: (cfg.appearance && cfg.appearance.logo_path) || ""
+  // [police, glyphe, taille relative]
+  readonly property var glyphs: ({
+    "pomme": [Style.font.family, "\uf179", 1.0],
+    "arch": [Style.font.family, "\uf303", 0.95],
+    "tux": [Style.font.family, "\uf31a", 1.0],
+    "omarchy": ["omarchy", "\ue900", 0.85]
+  })
+  readonly property bool isGlyph: glyphs.hasOwnProperty(logo)
+  readonly property string imageSource: logo === "custom" && logoPath !== "" ? "file://" + logoPath
+                                      : (logo === "goutte" || logo === "orb") ? Qt.resolvedUrl("assets/" + logo + ".svg")
+                                      : ""
+  readonly property color tint: root.bar ? root.bar.barForeground : Commons.Color.foreground
+
+  FileView {
+    path: Quickshell.env("HOME") + "/.config/liquid-glass/config.json"
+    watchChanges: true
+    onFileChanged: reload()
+    onLoaded: { try { root.cfg = JSON.parse(text()) } catch (e) {} }
+  }
 
   // [libellé, commande, raccourci affiché] — "" = séparateur.
   readonly property var entries: [
@@ -70,16 +100,36 @@ Panel {
       Behavior on opacity { NumberAnimation { duration: Style.duration(100) } }
     }
 
-    Image {
+    Item {
+      id: mark
       anchors.centerIn: parent
-      source: Qt.resolvedUrl("assets/logo.svg")
-      sourceSize: Qt.size(64, 75)
-      width: Style.space(14)
-      height: Style.space(16.5)
-      smooth: true
-      mipmap: true
+      width: Style.space(16); height: Style.space(17)
       scale: mouse.pressed ? 0.9 : 1
       Behavior on scale { NumberAnimation { duration: Style.duration(90); easing.type: Easing.OutCubic } }
+
+      Text {
+        visible: root.isGlyph
+        anchors.centerIn: parent
+        anchors.verticalCenterOffset: root.logo === "pomme" ? -Style.space(1) : 0
+        textFormat: Text.PlainText
+        text: root.isGlyph ? root.glyphs[root.logo][1] : ""
+        font.family: root.isGlyph ? root.glyphs[root.logo][0] : Style.font.family
+        font.pixelSize: Style.space(17) * (root.isGlyph ? root.glyphs[root.logo][2] : 1)
+        color: root.tint
+      }
+
+      Image {
+        id: img
+        visible: !root.isGlyph && status === Image.Ready
+        anchors.centerIn: parent
+        source: root.isGlyph ? "" : root.imageSource
+        sourceSize: Qt.size(64, 64)
+        width: root.logo === "goutte" ? Style.space(14) : Style.space(16)
+        height: root.logo === "goutte" ? Style.space(16.5) : Style.space(16)
+        fillMode: Image.PreserveAspectFit
+        smooth: true
+        mipmap: true
+      }
     }
 
     MouseArea {

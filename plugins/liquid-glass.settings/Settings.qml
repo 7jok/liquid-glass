@@ -73,7 +73,7 @@ Item {
   }
 
   readonly property var pages: [
-    [0xF03D8, "Apparence"], [0xF0F5A, "Verre"], [0xF0DE6, "Dock"],
+    [0xF03D8, "Apparence"], [0xF0F5A, "Verre"], [0xF0DE6, "Dock"], [0xF072C, "Widgets"], [0xF0294, "Coins actifs"],
     [0xF04C7, "Spotify"], [0xF0387, "Paroles"], [0xF030C, "Clavier"], [0xF02FD, "À propos"]
   ]
 
@@ -219,7 +219,7 @@ Item {
         Loader {
           id: pageLoader
           width: content.width
-          sourceComponent: [pAppearance, pGlass, pDock, pSpotify, pLyrics, pKeys, pAbout][root.page]
+          sourceComponent: [pAppearance, pGlass, pDock, pWidgets, pCorners, pSpotify, pLyrics, pKeys, pAbout][root.page]
         }
       }
     }
@@ -263,6 +263,14 @@ Item {
             options: [["Inter", "Inter"], ["Geist", "Geist"], ["sans-serif", "Système"]]
             value: root.val("appearance.font_ui", "Inter")
             onPicked: function(v) { root.set("appearance.font_ui", v) }
+          }
+        }
+        Row_ {
+          label: "Logo"
+          Seg {
+            options: [["pomme", "\uf179"], ["arch", "\uf303"], ["tux", "\uf31a"], ["omarchy", "Omarchy"], ["orb", "Bille"], ["goutte", "Goutte"]]
+            value: root.val("appearance.logo", "pomme")
+            onPicked: function(v) { root.set("appearance.logo", v) }
           }
         }
       }
@@ -368,6 +376,96 @@ Item {
           Btn { text: "Afficher  ⌘K"; onClicked: { root.dismiss(); Util.execArgv(["omarchy-shell", "liquid-glass.cheatsheet", "toggle"]) } }
         }
       }
+    }
+  }
+
+  Component {
+    id: pWidgets
+    Column {
+      spacing: Style.space(14)
+      PageTitle { text: "Widgets" }
+      Group {
+        ToggleRow { label: "Widgets sur le bureau"; key: "widgets.enabled"; def: true }
+        Row_ {
+          label: "Position"
+          Seg {
+            options: [["left", "À gauche"], ["right", "À droite"]]
+            value: root.val("widgets.position", "left")
+            onPicked: function(v) { root.set("widgets.position", v) }
+          }
+        }
+        ToggleRow { label: "Masquer sous la pochette en fond"; key: "widgets.hide_on_cover"; def: true }
+      }
+      Group {
+        ToggleRow { label: "Horloge"; key: "widgets.clock"; def: true }
+        ToggleRow { label: "Calendrier"; key: "widgets.calendar"; def: true }
+        ToggleRow { label: "Météo"; key: "widgets.weather"; def: true }
+        ToggleRow { label: "Batterie"; key: "widgets.battery"; def: true }
+        ToggleRow { label: "Lecture en cours (palette Spotify)"; key: "widgets.music"; def: true }
+      }
+      Group {
+        Row_ {
+          label: "Ville de la météo"
+          Rectangle {
+            width: Style.space(170); height: Style.space(28); radius: Style.space(8)
+            color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08)
+            border.width: cityInput.activeFocus ? 2 : 0
+            border.color: root.accent
+            TextInput {
+              id: cityInput
+              anchors.fill: parent
+              anchors.leftMargin: Style.space(10); anchors.rightMargin: Style.space(10)
+              verticalAlignment: TextInput.AlignVCenter
+              text: root.val("widgets.weather_city", "")
+              font.family: root.uiFont; font.pixelSize: Style.space(13)
+              color: root.fg
+              selectByMouse: true
+              maximumLength: 60
+              clip: true
+              onEditingFinished: if (text.trim() !== String(root.val("widgets.weather_city", ""))) root.set("widgets.weather_city", text.trim())
+              Keys.onEscapePressed: { text = root.val("widgets.weather_city", ""); keys.forceActiveFocus() }
+              Text {
+                visible: !cityInput.text && !cityInput.activeFocus
+                anchors.verticalCenter: parent.verticalCenter
+                text: "Automatique"
+                font: cityInput.font
+                color: root.fg; opacity: 0.4
+              }
+            }
+          }
+        }
+      }
+      Hint { text: "Visibles sur un bureau vide. Météo : Open-Meteo, sans compte. Clic sur une couleur de la palette = copie." }
+    }
+  }
+
+  Component {
+    id: pCorners
+    Column {
+      spacing: Style.space(14)
+      PageTitle { text: "Coins actifs" }
+      Group {
+        CornerRow { label: "En haut à gauche"; key: "hotcorners.top_left" }
+        CornerRow { label: "En haut à droite"; key: "hotcorners.top_right" }
+        CornerRow { label: "En bas à gauche"; key: "hotcorners.bottom_left" }
+        CornerRow { label: "En bas à droite"; key: "hotcorners.bottom_right" }
+      }
+      Hint { text: "Pointe dans un coin de l'écran pour déclencher l'action (désactivé quand une fenêtre est en plein écran). ⌘F3 affiche aussi le bureau." }
+    }
+  }
+
+  // Ligne de coin actif : un bouton qui fait défiler les actions.
+  component CornerRow: Row_ {
+    id: cr
+    property string key: ""
+    readonly property var actions: [["", "—"], ["mission", "Mission Control"], ["desktop", "Afficher le bureau"], ["spotlight", "Spotlight"],
+                                    ["control", "Centre de contrôle"], ["karaoke", "Paroles karaoké"], ["lock", "Verrouiller l'écran"], ["settings", "Réglages"]]
+    readonly property string current: String(root.val(key, ""))
+    function idx() { for (var i = 0; i < actions.length; i++) if (actions[i][0] === current) return i; return 0 }
+    Btn {
+      text: cr.actions[cr.idx()][1] + "  ⌄"
+      width: Style.space(190)
+      onClicked: root.set(cr.key, cr.actions[(cr.idx() + 1) % cr.actions.length][0])
     }
   }
 

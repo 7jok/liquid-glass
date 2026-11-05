@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
@@ -79,7 +80,7 @@ PanelWindow {
   // de la croissance des autres, du côté opposé.
   function waveShift(index) {
     if (window.waveStrength <= 0) return 0
-    var count = (window.dock ? window.dock.itemModel.count : 0) + 1
+    var count = (window.dock ? window.dock.itemModel.count : 0) + 2   // + bouton Apps + Corbeille
     var before = 0, after = 0
     for (var i = 0; i < count; i++) {
       if (i < index) before += waveExtra(i)
@@ -89,7 +90,7 @@ PanelWindow {
   }
   readonly property real waveTotal: {
     if (window.waveStrength <= 0) return 0
-    var count = (window.dock ? window.dock.itemModel.count : 0) + 1
+    var count = (window.dock ? window.dock.itemModel.count : 0) + 2
     var total = 0
     for (var i = 0; i < count; i++) total += waveExtra(i)
     return total
@@ -369,7 +370,7 @@ PanelWindow {
     Grid {
       id: slots
       anchors.centerIn: parent
-      columns: window.vertical ? 1 : appRepeater.count + 1
+      columns: window.vertical ? 1 : appRepeater.count + 2
 
       AppsSlot {}
 
@@ -379,6 +380,8 @@ PanelWindow {
 
         delegate: AppSlot {}
       }
+
+      TrashSlot {}
     }
   }
 
@@ -455,6 +458,108 @@ PanelWindow {
             color: Commons.Color.bar.text
           }
         }
+      }
+    }
+  }
+
+  // ------------------------------------------------------------- Corbeille
+  // Comme sur macOS : séparateur, icône vide/pleine du thème d'icônes, clic =
+  // ouvrir la corbeille dans Fichiers, fichiers glissés dessus = mis à la corbeille
+  // (gio trash, réversible). Clic droit = vider, après confirmation (2ᵉ clic droit).
+  component TrashSlot: Slot {
+    id: trashSlot
+    readonly property int slotIndex: appRepeater.count + 1
+    property bool full: false
+    property bool armed: false        // premier clic droit : « encore une fois pour vider »
+    property bool dropHover: false
+
+    Process {
+      id: trashProbe
+      command: ["sh", "-c", "find \"$HOME/.local/share/Trash/files\" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null"]
+      stdout: StdioCollector { onStreamFinished: trashSlot.full = text.trim() !== "" }
+    }
+    Timer { interval: 8000; repeat: true; running: true; triggeredOnStart: true; onTriggered: if (!trashProbe.running) trashProbe.running = true }
+    Timer { id: disarm; interval: 3000; onTriggered: trashSlot.armed = false }
+    function refreshSoon() { refresh.restart() }
+    Timer { id: refresh; interval: 700; onTriggered: if (!trashProbe.running) trashProbe.running = true }
+
+    mouse.onClicked: function(event) {
+      window.closeMenu()
+      if (event.button === Qt.RightButton) {
+        if (!trashSlot.full) return
+        if (!trashSlot.armed) { trashSlot.armed = true; disarm.restart(); return }
+        trashSlot.armed = false
+        Quickshell.execDetached(["gio", "trash", "--empty"])
+        trashSlot.refreshSoon()
+        return
+      }
+      Quickshell.execDetached(["nautilus", "trash:///"])
+    }
+
+    DropArea {
+      anchors.fill: parent
+      keys: ["text/uri-list"]
+      onEntered: trashSlot.dropHover = true
+      onExited: trashSlot.dropHover = false
+      onDropped: function(drop) {
+        trashSlot.dropHover = false
+        var argv = ["gio", "trash", "--"]
+        for (var i = 0; i < drop.urls.length; i++) {
+          var u = String(drop.urls[i])
+          if (u.indexOf("file://") === 0) argv.push(decodeURIComponent(u.slice(7)))
+        }
+        if (argv.length > 3) { Quickshell.execDetached(argv); trashSlot.refreshSoon() }
+        drop.accept()
+      }
+    }
+
+    // Séparateur vertical entre les apps et la corbeille.
+    Rectangle {
+      visible: !window.vertical
+      width: 1
+      height: window.iconSize * 0.72
+      anchors.verticalCenter: parent.verticalCenter
+      x: window.waveShift(trashSlot.slotIndex) - window.waveExtra(trashSlot.slotIndex) / 2
+      color: Commons.Color.bar.text
+      opacity: 0.22
+    }
+
+    Image {
+      x: window.iconInset
+      y: window.iconInset
+      width: window.iconSize
+      height: window.iconSize
+      sourceSize: Qt.size(window.iconSize * 2, window.iconSize * 2)
+      source: Quickshell.iconPath(trashSlot.full ? "user-trash-full" : "user-trash", "user-trash")
+      fillMode: Image.PreserveAspectFit
+      asynchronous: true
+      smooth: true
+      mipmap: true
+      transform: Translate {
+        x: window.vertical ? 0 : window.waveShift(trashSlot.slotIndex)
+        y: window.vertical ? window.waveShift(trashSlot.slotIndex) : 0
+      }
+      scale: (trashSlot.dropHover ? 1.15 : 1) * window.waveScale(window.slotCenter(trashSlot.slotIndex))
+      transformOrigin: window.popOrigin
+    }
+
+    // Bulle « Vider la corbeille ? » après un premier clic droit.
+    Rectangle {
+      visible: trashSlot.armed
+      anchors.horizontalCenter: parent.horizontalCenter
+      y: window.position === "top" ? parent.height + 6 : -height - 6
+      width: armedText.implicitWidth + 18
+      height: armedText.implicitHeight + 10
+      radius: height / 2
+      color: Commons.Color.popups.background
+      border.width: 1
+      border.color: Commons.Color.popups.border
+      Text {
+        id: armedText
+        anchors.centerIn: parent
+        text: "Clic droit à nouveau pour vider"
+        font.pixelSize: Style.font.body
+        color: Commons.Color.popups.text
       }
     }
   }

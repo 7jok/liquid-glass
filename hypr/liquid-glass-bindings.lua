@@ -63,6 +63,7 @@ o.bind("SUPER + SHIFT + K", "Omarchy keybindings", "omarchy-menu-keybindings")
 o.bind("SUPER + SHIFT + L", "Toggle light / dark", "liquid-glass mode toggle")
 o.bind("SUPER + CTRL + Q", "Lock screen", "omarchy-system-lock")
 o.bind("SUPER + ALT + M", "Lyrics karaoke", shell("liquid-glass.spotify karaoke"))
+o.bind("SUPER + F3", "Show desktop", "liquid-glass show-desktop")
 
 -- Pavé tactile : 4 doigts vers le haut = Mission Control, vers le bas = fermer.
 hl.gesture({ fingers = 4, direction = "up", action = function()

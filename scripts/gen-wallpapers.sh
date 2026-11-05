@@ -31,17 +31,17 @@ D="$ROOT/themes/liquid-glass-dark/backgrounds"
 mkdir -p "$L" "$D"
 
 # Clair : ciel pâle, bleu glacier, lilas, pêche.
-gen "$L/1-aurora-day.jpg" "#eef2f8" 0.5 \
+gen "$L/09-aurora-day.jpg" "#eef2f8" 0.5 \
   "#8fc3ff 120 300 260 170" "#c9b6ff 520 60 240 160" "#ffd3e6 600 340 220 140" "#a9eee0 300 20 200 120"
-gen "$L/2-lagoon.jpg" "#eaf4f6" 0.5 \
+gen "$L/10-lagoon.jpg" "#eaf4f6" 0.5 \
   "#7fd3e6 80 80 260 180" "#9fb8ff 560 280 280 180" "#e9f6c9 320 380 240 120"
-gen "$L/3-dune.jpg" "#f6f1ea" 0.5 \
+gen "$L/11-dune.jpg" "#f6f1ea" 0.5 \
   "#ffc9a1 100 320 300 160" "#f6a6c1 560 80 240 170" "#c8d3ff 360 160 200 120"
 
 # Sombre : nuit profonde, bleu système, violet, framboise.
-gen "$D/1-aurora-night.jpg" "#0a0f1e" 0.6 \
+gen "$D/07-aurora-night.jpg" "#0a0f1e" 0.6 \
   "#1f4fd1 140 300 260 170" "#6a3fd6 520 60 240 160" "#b8326f 600 360 220 140" "#0a84ff 300 10 180 110"
-gen "$D/2-abyss.jpg" "#06121a" 0.6 \
+gen "$D/08-abyss.jpg" "#06121a" 0.6 \
   "#0e6e8c 80 80 260 180" "#2d3fb8 560 280 280 180" "#1b8a6b 320 400 240 120"
-gen "$D/3-ember.jpg" "#140b10" 0.6 \
+gen "$D/09-ember.jpg" "#140b10" 0.6 \
   "#a8432e 100 320 300 160" "#7b2d8c 560 80 240 170" "#2a3f9e 360 160 200 120"

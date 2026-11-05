@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.widgets",
+  "name": "Liquid Glass — Widgets du bureau",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Widgets façon macOS sur le bureau : horloge, calendrier, météo, batterie, lecture en cours aux couleurs de la pochette",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Widgets.qml" }
+}

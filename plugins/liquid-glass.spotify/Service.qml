@@ -122,8 +122,13 @@ Item {
     printErrors: false
   }
   function writeNowPlaying() {
-    nowPlayingFile.setText(JSON.stringify({ title: title, artist: artist, cover: coverPath }) + "\n")
+    nowPlayingFile.setText(JSON.stringify({
+      title: title, artist: artist, cover: coverPath,
+      palette: palette, coverWallpaper: showingCover, wallLayout: wallMode
+    }) + "\n")
   }
+  // Les widgets de bureau (liquid-glass.widgets) suivent l'affichage de la pochette en fond.
+  onShowingCoverChanged: if (hasTrack) writeNowPlaying()
 
   onTrackKeyChanged: {
     lineIndex = -1
@@ -177,8 +182,8 @@ Item {
         if (!res || res.error) { if (res) console.warn("liquid-glass-spotify:", res.error); return }
         if (svc.requestedKey !== svc.trackKey) return   // morceau déjà changé
         svc.coverPath = res.cover || ""
-        svc.writeNowPlaying()
         svc.palette = res.palette || null
+        svc.writeNowPlaying()
         var ly = res.lyrics || {}
         svc.lyricLines = Array.isArray(ly.lines) ? ly.lines : []
         svc.lyricsSynced = ly.synced === true && svc.lyricLines.length > 0

@@ -1,0 +1,5 @@
+#!/bin/bash
+# Liquid Glass — hook theme-set : applique GTK/icônes/curseur/polices macOS
+# quand un thème Liquid Glass est activé (et retire la surcouche GTK4 sinon).
+# $1 = slug du thème. Rapide, aucune tâche lourde.
+command -v liquid-glass >/dev/null 2>&1 && liquid-glass system "${1:-}" || true

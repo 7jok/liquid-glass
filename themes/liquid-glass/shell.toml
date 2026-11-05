@@ -1,0 +1,137 @@
+# Liquid Glass — surfaces du shell Omarchy. FICHIER GÉNÉRÉ par
+# liquid-glass/scripts/render-theme.py : modifie la config centrale plutôt que ce fichier.
+# Le flou derrière ces surfaces vient des layer rules Hyprland (mode « glassy »).
+
+[bar]
+background       = "#f5f5f7"
+background-alpha = 0.50
+text             = "#1d1d1f"
+active           = "#ff3b30"
+scale-with-font  = true
+size-horizontal  = 28
+size-vertical    = 30
+
+[hyprland]
+active-border            = "rgba(ffffffa6)"
+active-border-foreground = "rgba(ffffffa6)"
+
+[controls]
+normal-color        = "#1d1d1f"
+normal-fill-alpha   = 0.05
+normal-border       = "#1d1d1f"
+normal-border-width = 1
+normal-border-alpha = 0.12
+
+hover-cursor-color        = "#1d1d1f"
+hover-cursor-fill-alpha   = 0.09
+hover-cursor-border       = "#1d1d1f"
+hover-cursor-border-width = 0
+hover-cursor-border-alpha = 0.0
+
+focus-color        = "#007aff"
+focus-fill-alpha   = 0.10
+focus-border       = "#007aff"
+focus-border-width = 1
+focus-border-alpha = 0.55
+
+selected-color        = "#007aff"
+selected-fill-alpha   = 0.85
+selected-border       = "#007aff"
+selected-border-width = 0
+selected-border-alpha = 1.0
+
+pressed-fill-alpha   = 0.18
+selection-fill-alpha = 0.35
+
+[spacing]
+scale = 1.0
+scale-with-font = true
+panel-padding = 16
+popup-padding = 14
+
+[font]
+base-size = 12
+
+[popups]
+background       = "#f5f5f7"
+background-alpha = 0.70
+text             = "#1d1d1f"
+border           = "hyprland.active-border"
+border-alpha     = 1.0
+border-width     = 1
+
+[tooltip]
+background       = "#f5f5f7"
+background-alpha = 0.86
+text             = "#1d1d1f"
+border           = "hyprland.active-border-foreground"
+border-alpha     = 1.0
+
+[notifications]
+background       = "#f5f5f7"
+background-alpha = 0.72
+text             = "#1d1d1f"
+border           = "hyprland.active-border"
+border-alpha     = 1.0
+border-width     = 1
+countdown        = "#007aff"
+
+[launcher]
+background                = "#f5f5f7"
+background-alpha          = 0.72
+text                      = "#1d1d1f"
+border                    = "hyprland.active-border-foreground"
+border-alpha              = 1.0
+scrim                     = "#f5f5f7"
+scrim-alpha               = 0.12
+selected-background       = "#007aff"
+selected-background-alpha = 0.85
+selected-text             = "#ffffff"
+selected-border           = "#007aff"
+selected-border-alpha     = 0.0
+
+[menu]
+background                = "#f5f5f7"
+background-alpha          = 0.72
+text                      = "#1d1d1f"
+border                    = "hyprland.active-border-foreground"
+border-alpha              = 1.0
+scrim                     = "#f5f5f7"
+scrim-alpha               = 0.12
+selected-background       = "#007aff"
+selected-background-alpha = 0.85
+selected-text             = "#ffffff"
+selected-border           = "#007aff"
+selected-border-alpha     = 0.0
+
+[polkit]
+background       = "#f5f5f7"
+background-alpha = 0.80
+text             = "#1d1d1f"
+text-error       = "#ff3b30"
+border           = "hyprland.active-border"
+border-error     = "#ff3b30"
+border-alpha     = 1.0
+scrim            = "#f5f5f7"
+scrim-alpha      = 0.25
+accent           = "#007aff"
+
+[lock]
+background       = "#f5f5f7"
+background-alpha = 0.38
+text             = "#1d1d1f"
+placeholder      = "#949496"
+text-error       = "#ff3b30"
+border           = "rgba(ffffffa6)"
+border-active    = "#007aff"
+border-error     = "#ff3b30"
+border-alpha     = 1.0
+selection        = "#007aff"
+selection-alpha  = 0.45
+
+[image-picker]
+text                    = "#1d1d1f"
+selected-border         = "#007aff"
+selected-border-alpha   = 1.0
+unselected-border       = "#1d1d1f"
+unselected-border-alpha = 0.28

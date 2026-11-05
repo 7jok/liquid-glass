@@ -1,0 +1,340 @@
+#!/usr/bin/env python3
+"""liquid-glass — pilote central du bureau Liquid Glass.
+
+Commandes :
+  liquid-glass apply                 Réapplique toute la config (thèmes, Hyprland, système)
+  liquid-glass mode light|dark|toggle|auto
+                                     Change le mode d'apparence (auto = selon l'heure)
+  liquid-glass auto-tick             (timer) Bascule si le mode auto le demande
+  liquid-glass system [thème]        Applique GTK/icônes/curseur/polices pour le thème
+  liquid-glass get <section.clé>     Lit un réglage
+  liquid-glass set <section.clé> <valeur>
+                                     Modifie un réglage (puis applique ce qui est nécessaire)
+  liquid-glass status                Résumé de l'état courant
+
+Fichiers :
+  ~/.config/liquid-glass/config.toml   config centrale (source de vérité)
+  ~/.config/liquid-glass/config.json   copie JSON lue à chaud par le shell (générée)
+  ~/.config/liquid-glass/hypr-vars.lua variables lues par hypr/liquid-glass.lua (générées)
+"""
+from __future__ import annotations
+
+import datetime as dt
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+HOME = Path.home()
+CONF_DIR = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "liquid-glass"
+CONF = CONF_DIR / "config.toml"
+CONF_JSON = CONF_DIR / "config.json"
+HYPR_VARS = CONF_DIR / "hypr-vars.lua"
+# Le dépôt est retrouvé via le lien symbolique de ce script.
+REPO = Path(os.path.realpath(__file__)).parent.parent
+THEMES = {"light": "liquid-glass", "dark": "liquid-glass-dark"}
+USER_THEMES = HOME / ".config/omarchy/themes"
+STATE_THEME = HOME / ".local/state/omarchy/current/theme.name"
+GTK4_CSS = HOME / ".config/gtk-4.0/gtk.css"
+
+
+# ----------------------------------------------------------------- utilitaires
+def run(*cmd: str, check: bool = False, quiet: bool = True) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        cmd,
+        check=check,
+        text=True,
+        stdout=subprocess.PIPE if quiet else None,
+        stderr=subprocess.PIPE if quiet else None,
+    )
+
+
+def have(cmd: str) -> bool:
+    return shutil.which(cmd) is not None
+
+
+def load() -> dict:
+    if not CONF.exists():
+        CONF_DIR.mkdir(parents=True, exist_ok=True)
+        shutil.copy(REPO / "config/config.toml", CONF)
+    return tomllib.loads(CONF.read_text())
+
+
+def write_json(cfg: dict) -> None:
+    tmp = CONF_JSON.with_suffix(".tmp")
+    tmp.write_text(json.dumps(cfg, indent=2, ensure_ascii=False))
+    tmp.replace(CONF_JSON)  # remplacement atomique : le shell ne lit jamais un fichier à moitié écrit
+
+
+def toml_value(raw: str) -> str:
+    """Formate une valeur saisie en ligne de commande pour TOML."""
+    low = raw.lower()
+    if low in ("true", "false", "on", "off", "yes", "no"):
+        return "true" if low in ("true", "on", "yes") else "false"
+    if re.fullmatch(r"-?\d+(\.\d+)?", raw):
+        return raw
+    if raw.startswith("[") or raw.startswith('"'):
+        return raw
+    return json.dumps(raw, ensure_ascii=False)
+
+
+def set_key(dotted: str, raw: str) -> None:
+    """Édite config.toml en place, en gardant les commentaires."""
+    section, key = dotted.split(".", 1)
+    lines = CONF.read_text().splitlines(keepends=True)
+    value = toml_value(raw)
+    in_sec, sec_end, done = False, None, False
+    for i, line in enumerate(lines):
+        m = re.match(r"^\s*\[([^\]]+)\]", line)
+        if m:
+            if in_sec:
+                sec_end = i
+                break
+            in_sec = m.group(1).strip() == section
+            continue
+        if in_sec:
+            km = re.match(rf"^(\s*{re.escape(key)}\s*=\s*)([^#\n]*?)(\s*#.*)?(\n?)$", line)
+            if km:
+                lines[i] = f"{km.group(1)}{value}{km.group(3) or ''}{km.group(4)}"
+                done = True
+                break
+    if not done:
+        if in_sec or sec_end is not None:
+            idx = sec_end if sec_end is not None else len(lines)
+            lines.insert(idx, f"{key} = {value}\n")
+        else:
+            lines.append(f"\n[{section}]\n{key} = {value}\n")
+    CONF.write_text("".join(lines))
+    tomllib.loads(CONF.read_text())  # valide : lève une erreur si on a cassé le TOML
+
+
+def get_key(cfg: dict, dotted: str):
+    cur = cfg
+    for part in dotted.split("."):
+        cur = cur[part]
+    return cur
+
+
+def current_theme() -> str:
+    try:
+        return STATE_THEME.read_text().strip()
+    except OSError:
+        return ""
+
+
+def first_existing(base: Path, names: list[str]) -> str | None:
+    for n in names:
+        if (base / n).exists():
+            return n
+    return None
+
+
+def notify(title: str, body: str = "") -> None:
+    if have("notify-send"):
+        run("notify-send", "-a", "Liquid Glass", title, body)
+
+
+# ------------------------------------------------------------------- rendu
+def render_hypr_vars(cfg: dict) -> None:
+    g = cfg.get("glass", {})
+    vals = {
+        "blur_size": int(g.get("blur_size", 7)),
+        "blur_passes": int(g.get("blur_passes", 3)),
+        "rounding": int(g.get("rounding", 16)),
+        "gaps_in": int(g.get("gaps_in", 5)),
+        "gaps_out": int(g.get("gaps_out", 10)),
+        "animations": bool(g.get("animations", True)),
+    }
+    body = ["-- FICHIER GÉNÉRÉ par `liquid-glass apply` depuis config.toml. Ne pas éditer.", "return {"]
+    for k, v in vals.items():
+        body.append(f"  {k} = {str(v).lower() if isinstance(v, bool) else v},")
+    wa = float(g.get("window_opacity_active", 0.96))
+    wi = float(g.get("window_opacity_inactive", 0.90))
+    body.append(f"  window_opacity = {{ {wa:.2f}, {wi:.2f} }},")
+    body.append("}")
+    HYPR_VARS.write_text("\n".join(body) + "\n")
+
+
+def render_themes(cfg: dict) -> None:
+    for slug in THEMES.values():
+        tdir = USER_THEMES / slug
+        if tdir.exists():
+            run(sys.executable, str(REPO / "scripts/render-theme.py"), str(tdir), str(CONF), check=True)
+
+
+def desired_mode(cfg: dict) -> str:
+    ap = cfg.get("appearance", {})
+    mode = ap.get("mode", "light")
+    if mode != "auto":
+        return mode
+    now = dt.datetime.now().time()
+    light_at = dt.time.fromisoformat(ap.get("auto_light_at", "07:30"))
+    dark_at = dt.time.fromisoformat(ap.get("auto_dark_at", "19:30"))
+    return "light" if light_at <= now < dark_at else "dark"
+
+
+def set_theme(slug: str) -> None:
+    run("omarchy", "theme", "set", slug, quiet=False)
+
+
+# --------------------------------------------------------- réglages système
+def apply_system(theme: str | None = None) -> None:
+    """GTK, icônes, curseur, polices selon le thème Liquid Glass actif."""
+    theme = theme or current_theme()
+    cfg = load()
+    ours = theme in THEMES.values()
+    dark = theme == THEMES["dark"]
+    themes_dir, icons_dir = Path("/usr/share/themes"), Path("/usr/share/icons")
+
+    if not ours:
+        # Thème Omarchy classique : on retire notre surcouche GTK4, Omarchy gère le reste.
+        _gtk4_block(None)
+        return
+
+    gs = ["gsettings", "set", "org.gnome.desktop.interface"]
+
+    gtk = first_existing(themes_dir, ["MacTahoe-Dark-solid", "MacTahoe-Dark"] if dark else ["MacTahoe-Light-solid", "MacTahoe-Light"])
+    if gtk:
+        run(*gs, "gtk-theme", gtk)
+        _gtk4_block(themes_dir / gtk / "gtk-4.0" / ("gtk-dark.css" if dark else "gtk.css"))
+    icons = first_existing(icons_dir, ["MacTahoe-dark", "MacTahoe"] if dark else ["MacTahoe-light", "MacTahoe"])
+    if icons:
+        run(*gs, "icon-theme", icons)
+    cursor = first_existing(icons_dir, ["MacTahoe-dark-cursors", "MacTahoe-cursors"] if dark else ["MacTahoe-cursors"])
+    if cursor:
+        run(*gs, "cursor-theme", cursor)
+        run(*gs, "cursor-size", "24")
+        if have("hyprctl"):
+            run("hyprctl", "setcursor", cursor, "24")
+
+    font = cfg.get("appearance", {}).get("font_ui", "Inter")
+    if run("fc-list", f":family={font}").stdout.strip():
+        run(*gs, "font-name", f"{font} 11")
+        run(*gs, "document-font-name", f"{font} 11")
+    run(*gs, "color-scheme", "prefer-dark" if dark else "prefer-light")
+
+
+def _gtk4_block(css: Path | None) -> None:
+    """Ajoute/retire l'import du thème GTK4 (libadwaita) dans ~/.config/gtk-4.0/gtk.css.
+
+    Le bloc est délimité par des marqueurs et placé AVANT le bloc omarchy-glass,
+    pour que le flou Omarchy reste prioritaire.
+    """
+    begin, end = "/* liquid-glass begin */", "/* liquid-glass end */"
+    text = GTK4_CSS.read_text() if GTK4_CSS.exists() else ""
+    text = re.sub(re.escape(begin) + r".*?" + re.escape(end) + r"\n?", "", text, flags=re.S)
+    if css and css.exists():
+        text = f'{begin}\n@import url("file://{css}");\n{end}\n' + text
+    GTK4_CSS.parent.mkdir(parents=True, exist_ok=True)
+    GTK4_CSS.write_text(text)
+
+
+# ---------------------------------------------------------------- commandes
+def cmd_apply(_args: list[str]) -> None:
+    cfg = load()
+    write_json(cfg)
+    render_hypr_vars(cfg)
+    render_themes(cfg)
+    want = THEMES[desired_mode(cfg)]
+    # Réappliquer le thème recopie les fichiers rendus dans le thème courant.
+    set_theme(want)
+    run("hyprctl", "reload")
+    errors = run("hyprctl", "configerrors").stdout.strip()
+    if errors:
+        print("Erreurs Hyprland :\n" + errors, file=sys.stderr)
+    print(f"Liquid Glass appliqué ({want}).")
+
+
+def cmd_mode(args: list[str]) -> None:
+    if not args or args[0] not in ("light", "dark", "toggle", "auto"):
+        sys.exit("usage : liquid-glass mode light|dark|toggle|auto")
+    cfg = load()
+    mode = args[0]
+    if mode == "toggle":
+        mode = "light" if current_theme() == THEMES["dark"] else "dark"
+    set_key("appearance.mode", mode)
+    cfg = load()
+    write_json(cfg)
+    want = THEMES[desired_mode(cfg)]
+    if current_theme() != want:
+        set_theme(want)
+    print(f"Mode : {mode} → {want}")
+
+
+def cmd_auto_tick(_args: list[str]) -> None:
+    cfg = load()
+    if cfg.get("appearance", {}).get("mode") != "auto":
+        return
+    want = THEMES[desired_mode(cfg)]
+    if current_theme() != want:
+        set_theme(want)
+
+
+# Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
+LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock"}
+
+
+def cmd_set(args: list[str]) -> None:
+    if len(args) != 2 or "." not in args[0]:
+        sys.exit("usage : liquid-glass set <section.clé> <valeur>")
+    load()
+    set_key(args[0], args[1])
+    cfg = load()
+    write_json(cfg)
+    section = args[0].split(".", 1)[0]
+    if section == "appearance" and args[0].endswith(".mode"):
+        cmd_mode([args[1]])
+    elif section in LIVE_SECTIONS:
+        pass  # pris en compte à chaud
+    elif section == "glass" and args[0].split(".", 1)[1] in ("blur_size", "blur_passes", "rounding", "gaps_in", "gaps_out", "animations", "window_opacity_active", "window_opacity_inactive"):
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
+    else:
+        cmd_apply([])
+
+
+def cmd_get(args: list[str]) -> None:
+    if len(args) != 1:
+        sys.exit("usage : liquid-glass get <section.clé>")
+    v = get_key(load(), args[0])
+    print(json.dumps(v, ensure_ascii=False) if not isinstance(v, str) else v)
+
+
+def cmd_status(_args: list[str]) -> None:
+    cfg = load()
+    print(f"Thème Omarchy : {current_theme()}")
+    print(f"Mode demandé  : {cfg['appearance']['mode']} (→ {desired_mode(cfg)})")
+    print(f"Config        : {CONF}")
+
+
+def cmd_system(args: list[str]) -> None:
+    apply_system(args[0] if args else None)
+
+
+COMMANDS = {
+    "apply": cmd_apply,
+    "mode": cmd_mode,
+    "auto-tick": cmd_auto_tick,
+    "system": cmd_system,
+    "set": cmd_set,
+    "get": cmd_get,
+    "status": cmd_status,
+}
+
+
+def main() -> None:
+    if len(sys.argv) < 2 or sys.argv[1] in ("-h", "--help", "help"):
+        print(__doc__)
+        return
+    fn = COMMANDS.get(sys.argv[1])
+    if not fn:
+        sys.exit(f"commande inconnue : {sys.argv[1]}\n{__doc__}")
+    fn(sys.argv[2:])
+
+
+if __name__ == "__main__":
+    main()

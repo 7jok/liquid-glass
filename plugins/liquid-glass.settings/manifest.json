@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.settings",
+  "name": "Liquid Glass — Réglages",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Réglages Système de Liquid Glass : apparence, verre, dock, Spotify, paroles, clavier",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "Settings.qml" }
+}

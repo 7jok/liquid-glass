@@ -105,7 +105,16 @@ o.window({ tag = "terminal" }, { opacity = "1.0 1.0" })
 -- et derrière les surfaces Liquid Glass (dock, centre de contrôle, Spotlight…).
 -- ---------------------------------------------------------------------------
 hl.layer_rule({
-  match = { namespace = "^(omarchy-dock|omarchy-launcher|omarchy-lock.*|liquid-glass-.*)$" },
+  -- Pas les paroles du bureau ni le visualiseur : flouter derrière du texte n'a pas de sens.
+  match = { namespace = "^(omarchy-dock|omarchy-launcher|omarchy-lock.*|liquid-glass-(spotlight|mission|switcher|karaoke|lyrics-widget|cheatsheet|settings))$" },
   blur = true,
   ignore_alpha = 0.05,
 })
+
+-- ---------------------------------------------------------------------------
+-- Raccourcis façon macOS (désactivables : [keys] macos_shortcuts = false).
+-- ---------------------------------------------------------------------------
+if val("keybindings", true) then
+  local ok_keys, err = pcall(require, "liquid-glass-bindings")
+  if not ok_keys then hl.exec_cmd(o.notify("Liquid Glass : raccourcis non chargés — " .. tostring(err))) end
+end

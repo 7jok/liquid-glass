@@ -41,7 +41,7 @@ opacity_dark = 0.76
 
 [dock]
 # Taille des icônes (px), facteur de grossissement au survol, masquage auto.
-icon_size = 48
+icon_size = 42
 magnification = 1.6
 autohide = false
 # Visible sur tous les bureaux (true) ou seulement les bureaux flottants (false).
@@ -67,3 +67,8 @@ bar = true            # ligne actuelle dans la barre du haut
 # Visualiseur cava en bas du fond d'écran (coûteux sur iGPU : off par défaut).
 enabled = false
 bars = 64
+
+[keys]
+# Raccourcis façon macOS (⌘Espace Spotlight, ⌘Q quitter, ⌘Tab, ⌘⇧3/4/5…).
+# false = garder uniquement les raccourcis Omarchy. Voir README pour la liste.
+macos_shortcuts = true

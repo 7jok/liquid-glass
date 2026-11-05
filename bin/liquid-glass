@@ -152,11 +152,41 @@ def render_hypr_vars(cfg: dict) -> None:
     body = ["-- FICHIER GÉNÉRÉ par `liquid-glass apply` depuis config.toml. Ne pas éditer.", "return {"]
     for k, v in vals.items():
         body.append(f"  {k} = {str(v).lower() if isinstance(v, bool) else v},")
+    vals_keys = bool(cfg.get("keys", {}).get("macos_shortcuts", True))
+    body.append(f"  keybindings = {str(vals_keys).lower()},")
     wa = float(g.get("window_opacity_active", 0.96))
     wi = float(g.get("window_opacity_inactive", 0.90))
     body.append(f"  window_opacity = {{ {wa:.2f}, {wi:.2f} }},")
     body.append("}")
     HYPR_VARS.write_text("\n".join(body) + "\n")
+
+
+SHELL_JSON = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "omarchy/shell.json"
+
+
+def sync_dock(cfg: dict) -> None:
+    """Recopie [dock] dans le sous-arbre « dock » de shell.json (rechargé à chaud par le shell).
+    Écriture atomique ; les autres clés de shell.json ne sont pas touchées."""
+    if not SHELL_JSON.exists():
+        return
+    d = cfg.get("dock", {})
+    try:
+        data = json.loads(SHELL_JSON.read_text())
+    except (OSError, json.JSONDecodeError):
+        print("shell.json illisible : réglages du dock non synchronisés.", file=sys.stderr)
+        return
+    dock = data.get("dock") if isinstance(data.get("dock"), dict) else {}
+    new = dict(dock)
+    new["iconSize"] = int(d.get("icon_size", 48))
+    new["magnification"] = float(d.get("magnification", 1.6))
+    new["autohide"] = bool(d.get("autohide", False))
+    new["alwaysVisible"] = bool(d.get("always_visible", True))
+    if new == dock:
+        return
+    data["dock"] = new
+    tmp = SHELL_JSON.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(SHELL_JSON)
 
 
 def render_themes(cfg: dict) -> None:
@@ -239,6 +269,7 @@ def cmd_apply(_args: list[str]) -> None:
     write_json(cfg)
     render_hypr_vars(cfg)
     render_themes(cfg)
+    sync_dock(cfg)
     want = THEMES[desired_mode(cfg)]
     # Réappliquer le thème recopie les fichiers rendus dans le thème courant.
     set_theme(want)
@@ -288,8 +319,13 @@ def cmd_set(args: list[str]) -> None:
     section = args[0].split(".", 1)[0]
     if section == "appearance" and args[0].endswith(".mode"):
         cmd_mode([args[1]])
+    elif section == "dock":
+        sync_dock(cfg)  # shell.json est rechargé à chaud par le shell
     elif section in LIVE_SECTIONS:
-        pass  # pris en compte à chaud
+        pass  # config.json est relu à chaud par le service Spotify
+    elif section == "keys":
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
     elif section == "glass" and args[0].split(".", 1)[1] in ("blur_size", "blur_passes", "rounding", "gaps_in", "gaps_out", "animations", "window_opacity_active", "window_opacity_inactive"):
         render_hypr_vars(cfg)
         run("hyprctl", "reload")

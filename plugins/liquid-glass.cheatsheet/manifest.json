@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.cheatsheet",
+  "name": "Liquid Glass — Aide-mémoire",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Aide-mémoire des raccourcis façon macOS (⌘K)",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "CheatSheet.qml" }
+}

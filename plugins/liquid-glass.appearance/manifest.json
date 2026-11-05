@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.appearance",
+  "name": "Liquid Glass — Mode automatique",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Bascule clair/sombre à heure fixe quand appearance.mode = \"auto\"",
+  "kinds": ["service"],
+  "entryPoints": { "service": "AutoMode.qml" }
+}

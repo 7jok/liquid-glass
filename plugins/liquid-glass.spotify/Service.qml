@@ -131,7 +131,8 @@ Item {
     }) + "\n")
   }
   // Les widgets de bureau (liquid-glass.widgets) suivent l'affichage de la pochette en fond.
-  onShowingCoverChanged: if (hasTrack) writeNowPlaying()
+  // Toujours écrit, même sans morceau : sinon les widgets restent masqués quand le lecteur se ferme.
+  onShowingCoverChanged: writeNowPlaying()
 
   onTrackKeyChanged: {
     lineIndex = -1

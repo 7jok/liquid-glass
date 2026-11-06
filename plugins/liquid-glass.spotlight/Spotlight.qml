@@ -36,6 +36,35 @@ Item {
   function g(cp) { return String.fromCodePoint(cp) }
 
   property string query: ""
+  // Mode filtré (boutons à droite de la barre, Ctrl+1…5) : "" = tout.
+  property string mode: ""
+  // [id, nom, glyphe, indication du champ]
+  readonly property var modes: [
+    ["apps", "Applications", 0xF003B, "Rechercher des applications"],
+    ["files", "Fichiers", 0xF024B, "Rechercher des fichiers"],
+    ["actions", "Actions", 0xF140B, "Rechercher des actions"],
+    ["clipboard", "Presse-papiers", 0xF014F, "Rechercher dans le presse-papiers"],
+    ["music", "Musique", 0xF0387, "Rechercher de la musique"]
+  ]
+  function modeInfo(id) { for (var i = 0; i < modes.length; i++) if (modes[i][0] === id) return modes[i]; return null }
+  function setMode(id) {
+    mode = (mode === id) ? "" : id
+    selected = 0
+    fileHits = []
+    rebuild()
+    if (query.trim().length >= 2 || mode === "files") fileTimer.restart()
+    input.forceActiveFocus()
+  }
+  onModeChanged: if (mode === "clipboard") clipFile.reload()
+
+  // Historique du presse-papiers d'Omarchy (texte et images).
+  property var clipHistory: []
+  FileView {
+    id: clipFile
+    path: root.home + "/.local/state/omarchy/clipboard-history.json"
+    printErrors: false
+    onLoaded: { try { root.clipHistory = JSON.parse(text()) || [] } catch (e) { root.clipHistory = [] } }
+  }
   property var results: []
   property int selected: 0
   property var fileHits: []
@@ -103,6 +132,7 @@ Item {
     onLoaded: { try { root.recents = JSON.parse(text()) || [] } catch (e) { root.recents = [] } }
   }
   function remember(r) {
+    if (r.kind === "clip") return
     var e = null
     if (r.kind === "app") e = { kind: "app", title: r.title, sub: r.sub, id: r.entry.id, iconName: r.entry.icon || "" }
     else if (r.kind === "cmd") e = { kind: "cmd", title: r.title, sub: r.sub, glyph: r.glyph, argv: r.argv }
@@ -133,6 +163,7 @@ Item {
   function rebuild() {
     var q = query.trim()
     var out = []
+    if (mode !== "") { results = rebuildMode(q); if (selected >= results.length) selected = 0; return }
     if (q === "") {
       // Champ vide : éléments récents.
       for (var ri = 0; ri < recents.length; ri++) {
@@ -191,11 +222,68 @@ Item {
     if (selected >= out.length) selected = 0
   }
 
+  // Résultats d'un mode : une seule catégorie, et du contenu même champ vide.
+  function rebuildMode(q) {
+    var out = [], i
+    if (mode === "apps") {
+      if (!appLib) return out
+      var apps = appLib.sortedEntries(q) || []
+      for (i = 0; i < apps.length && i < 60; i++) {
+        var e = apps[i].entry || apps[i]
+        out.push({ section: q === "" ? "Toutes les applications" : "Applications", kind: "app", title: appLib.entryName(e), sub: appLib.entrySubtext(e) || "", icon: appLib.iconSource(e.icon), entry: e })
+      }
+    } else if (mode === "files") {
+      for (i = 0; i < fileHits.length; i++) {
+        var path = fileHits[i], isDir = path.charAt(path.length - 1) === "/"
+        var clean = isDir ? path.slice(0, -1) : path
+        out.push({ section: q === "" ? "Modifiés récemment" : "Fichiers", kind: "file", title: clean.slice(clean.lastIndexOf("/") + 1),
+                   sub: clean.slice(0, clean.lastIndexOf("/")).replace(home, "~"), glyph: isDir ? 0xF024B : 0xF0214, path: clean })
+      }
+    } else if (mode === "actions") {
+      for (i = 0; i < commands.length; i++) {
+        var cm = commands[i]
+        if (q === "" || matches(cm[0] + " " + cm[1] + " " + cm[4], q))
+          out.push({ section: cm[1], kind: "cmd", title: cm[0], sub: cm[1], glyph: cm[2], argv: cm[3] })
+      }
+      out.sort(function(a, b) { return a.section < b.section ? -1 : (a.section > b.section ? 1 : 0) })
+    } else if (mode === "clipboard") {
+      for (i = 0; i < clipHistory.length && out.length < 40; i++) {
+        var c = clipHistory[i]
+        if (c.type === "image") {
+          if (q !== "" && !matches("image capture " + (c.capturedAt || ""), q)) continue
+          out.push({ section: "Presse-papiers", kind: "clip", title: "Image", sub: c.capturedAt || c.mime || "", glyph: 0xF02E9, image: "file://" + c.path, path: c.path, mime: c.mime || "image/png" })
+        } else if (c.text) {
+          if (q !== "" && !matches(c.text, q)) continue
+          var one = String(c.text).replace(/\s+/g, " ").trim()
+          out.push({ section: "Presse-papiers", kind: "clip", title: one.slice(0, 120), sub: c.text.length + " caractères  ·  Entrée pour copier", glyph: 0xF0219, text: c.text })
+        }
+      }
+    } else if (mode === "music") {
+      var mcmds = [
+        ["Lecture / Pause", 0xF040A, ["omarchy-shell", "liquid-glass.spotify", "playPause"], "play pause"],
+        ["Morceau suivant", 0xF04AD, ["omarchy-shell", "liquid-glass.spotify", "next"], "next suivant"],
+        ["Morceau précédent", 0xF04AE, ["omarchy-shell", "liquid-glass.spotify", "previous"], "previous précédent"],
+        ["Paroles en karaoké", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "karaoke"], "lyrics paroles karaoke"],
+        ["Paroles sur le bureau", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "desktop"], "lyrics paroles bureau"],
+        ["Ouvrir Spotify", 0xF04C7, ["omarchy-launch-or-focus", "spotify", "spotify"], "spotify ouvrir"]
+      ]
+      if (q !== "") {
+        out.push({ section: "Rechercher", kind: "web", title: "« " + q + " » dans Spotify", sub: "Spotify", glyph: 0xF04C7, url: "spotify:search:" + encodeURIComponent(q) })
+        out.push({ section: "Rechercher", kind: "web", title: "« " + q + " » sur YouTube Music", sub: "music.youtube.com", glyph: 0xF05C3, url: "https://music.youtube.com/search?q=" + encodeURIComponent(q) })
+        out.push({ section: "Rechercher", kind: "web", title: "Paroles de « " + q + " »", sub: "LRCLIB", glyph: 0xF0387, url: "https://lrclib.net/search/" + encodeURIComponent(q) })
+      }
+      for (i = 0; i < mcmds.length; i++)
+        if (q === "" || matches(mcmds[i][0] + " " + mcmds[i][3], q))
+          out.push({ section: "Lecteur", kind: "cmd", title: mcmds[i][0], sub: "Musique", glyph: mcmds[i][1], argv: mcmds[i][2] })
+    }
+    return out
+  }
+
   onQueryChanged: {
     selected = 0
     fileHits = []
     rebuild()
-    if (query.trim().length >= 2 && query.trim().charAt(0) !== ">") fileTimer.restart()
+    if (mode === "files" || (mode === "" && query.trim().length >= 2 && query.trim().charAt(0) !== ">")) fileTimer.restart()
     else { fileTimer.stop(); fdProc.running = false }
   }
 
@@ -205,8 +293,13 @@ Item {
     onTriggered: {
       if (fdProc.running) fdProc.running = false
       fdProc.forQuery = root.query
-      fdProc.command = ["fd", "--fixed-strings", "--ignore-case", "--max-results", "8",
-                        "--max-depth", "7", "--exclude", "node_modules", "--", root.query.trim(), root.home]
+      var q = root.query.trim(), n = root.mode === "files" ? "40" : "8"
+      if (q === "" && root.mode === "files")
+        fdProc.command = ["fd", "--type", "f", "--changed-within", "14d", "--max-results", n, "--max-depth", "4",
+                          "--exclude", "node_modules", "--exclude", ".*", ".", root.home]
+      else
+        fdProc.command = ["fd", "--fixed-strings", "--ignore-case", "--max-results", n,
+                          "--max-depth", "7", "--exclude", "node_modules", "--", q, root.home]
       fdProc.running = true
     }
   }
@@ -217,7 +310,7 @@ Item {
       onStreamFinished: {
         if (fdProc.forQuery !== root.query) return
         var lines = text.split("\n").filter(function(l) { return l !== "" })
-        root.fileHits = lines.slice(0, 8)
+        root.fileHits = lines.slice(0, root.mode === "files" ? 40 : 8)
         root.rebuild()
       }
     }
@@ -236,6 +329,10 @@ Item {
       else Util.execArgv(["xdg-open", r.path])
     }
     else if (r.kind === "web") Util.execArgv(["xdg-open", r.url])
+    else if (r.kind === "clip") {
+      if (r.text !== undefined) Util.execArgv(["wl-copy", "--", r.text])
+      else Util.execArgv(["sh", "-c", "wl-copy --type \"$1\" < \"$2\"", "_", r.mime, r.path])
+    }
     else if (r.kind === "run") Util.execArgv(["xdg-terminal-exec", "bash", "-c", r.cmd + "; echo; read -n1 -rsp 'Appuie sur une touche pour fermer…'"])
   }
 
@@ -248,9 +345,15 @@ Item {
   // --------------------------------------------------------------- ouverture
   function open(payloadJson) {
     // Charge utile optionnelle : {"query": "…"} pré-remplit la recherche.
-    var pre = ""
-    try { var pl = payloadJson ? JSON.parse(payloadJson) : null; if (pl && typeof pl.query === "string") pre = pl.query.slice(0, 200) } catch (e) {}
+    var pre = "", m = ""
+    try {
+      var pl = payloadJson ? JSON.parse(payloadJson) : null
+      if (pl && typeof pl.query === "string") pre = pl.query.slice(0, 200)
+      if (pl && typeof pl.mode === "string" && modeInfo(pl.mode)) m = pl.mode
+    } catch (e) {}
+    mode = m
     query = pre
+    if (m === "files") fileTimer.restart()
     selected = 0
     rebuild()
     opened = true
@@ -264,6 +367,9 @@ Item {
   function toggle() { if (opened) dismiss(); else open("") }
 
   // --------------------------------------------------------------- fenêtre
+  // Façon macOS Tahoe : une pilule de recherche, à sa droite un groupe de cinq
+  // boutons ronds (Applications, Fichiers, Actions, Presse-papiers, Musique),
+  // et les résultats dans un panneau de verre séparé, juste dessous.
   OverlayWindow {
     id: win
     shown: root.opened
@@ -273,28 +379,33 @@ Item {
     Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.03) }
     MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
 
-    BorderSurface {
-      id: card
-      width: Math.min(Style.space(680), win.width - 48)
-      height: Style.space(60) + (root.results.length > 0 ? Math.min(list.contentHeight, Style.space(430)) + Style.space(10) : 0)
-      x: Math.round((win.width - width) / 2)
-      y: Math.round(win.height * 0.22)
-      radius: Style.space(22)
-      color: Commons.Color.menu.background
-      borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
-      Behavior on height { NumberAnimation { duration: Style.duration(140); easing.type: Easing.OutCubic } }
+    readonly property real barH: Style.space(56)
+    readonly property real btn: Style.space(46)
+    readonly property real gap: Style.space(10)
+    readonly property real groupW: root.modes.length * btn + (root.modes.length - 1) * Style.space(4) + Style.space(10)
+    readonly property real totalW: Math.min(Style.space(860), win.width - 48)
+    readonly property real pillW: totalW - groupW - gap
 
+    Item {
+      id: stage
+      width: win.totalW
+      height: win.barH
+      x: Math.round((win.width - width) / 2)
+      y: Math.round(win.height * 0.2)
       scale: root.opened ? 1 : 0.96
       opacity: root.opened ? 1 : 0
       Behavior on scale { SpringAnimation { spring: 4; damping: 0.42; epsilon: 0.002 } }
 
-      MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
+      // ---------------------------------------------------- pilule de recherche
+      BorderSurface {
+        id: pill
+        width: win.pillW
+        height: win.barH
+        radius: height / 2
+        color: Commons.Color.menu.background
+        borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
+        MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
 
-      // Champ de recherche
-      Item {
-        id: header
-        width: parent.width
-        height: Style.space(60)
         Text {
           id: lens
           x: Style.space(20)
@@ -302,19 +413,39 @@ Item {
           textFormat: Text.PlainText
           text: root.g(0xF0349)
           font.family: root.iconFont
-          font.pixelSize: Style.space(22)
+          font.pixelSize: Style.space(21)
           color: root.fg
           opacity: 0.55
         }
+
+        // Pastille du mode actif (clic = retour à « tout »).
+        Rectangle {
+          id: chip
+          visible: root.mode !== ""
+          anchors.left: lens.right; anchors.leftMargin: Style.space(10)
+          anchors.verticalCenter: parent.verticalCenter
+          width: visible ? chipRow.implicitWidth + Style.space(18) : 0
+          height: Style.space(28); radius: height / 2
+          color: root.accent
+          Row {
+            id: chipRow
+            anchors.centerIn: parent
+            spacing: Style.space(6)
+            Text { anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: root.mode !== "" ? root.g(root.modeInfo(root.mode)[2]) : ""; font.family: root.iconFont; font.pixelSize: Style.space(13); color: "white" }
+            Text { anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: root.mode !== "" ? root.modeInfo(root.mode)[1] : ""; font.family: root.uiFont; font.pixelSize: Style.space(12.5); font.weight: Font.DemiBold; color: "white" }
+          }
+          MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.setMode(root.mode) }
+        }
+
         TextInput {
           id: input
-          anchors.left: lens.right
+          anchors.left: chip.visible ? chip.right : lens.right
           anchors.leftMargin: Style.space(12)
           anchors.right: parent.right
-          anchors.rightMargin: Style.space(20)
+          anchors.rightMargin: Style.space(22)
           anchors.verticalCenter: parent.verticalCenter
           font.family: root.uiFont
-          font.pixelSize: Style.space(24)
+          font.pixelSize: Style.space(22)
           font.weight: Font.Light
           color: root.fg
           selectionColor: root.accent
@@ -323,18 +454,26 @@ Item {
           text: root.query
           onTextEdited: root.query = text
           Keys.onPressed: function(ev) {
-            if (ev.key === Qt.Key_Escape) { if (root.query !== "") root.query = ""; else root.dismiss(); ev.accepted = true }
+            var ctrl = (ev.modifiers & Qt.ControlModifier) !== 0
+            if (ctrl && ev.key >= Qt.Key_1 && ev.key <= Qt.Key_5) { root.setMode(root.modes[ev.key - Qt.Key_1][0]); ev.accepted = true }
+            else if (ev.key === Qt.Key_Escape) {
+              if (root.query !== "") root.query = ""
+              else if (root.mode !== "") root.setMode(root.mode)
+              else root.dismiss()
+              ev.accepted = true
+            }
+            else if (ev.key === Qt.Key_Backspace && root.query === "" && root.mode !== "") { root.setMode(root.mode); ev.accepted = true }
             else if (ev.key === Qt.Key_Down || (ev.key === Qt.Key_Tab)) { root.move(1); ev.accepted = true }
             else if (ev.key === Qt.Key_Up || ev.key === Qt.Key_Backtab) { root.move(-1); ev.accepted = true }
             else if (ev.key === Qt.Key_Return || ev.key === Qt.Key_Enter) {
-              root.activate(root.selected, (ev.modifiers & Qt.ControlModifier) !== 0); ev.accepted = true
+              root.activate(root.selected, ctrl); ev.accepted = true
             }
           }
           Text {
             anchors.verticalCenter: parent.verticalCenter
             visible: input.text === ""
             textFormat: Text.PlainText
-            text: "Recherche Spotlight"
+            text: root.mode !== "" ? root.modeInfo(root.mode)[3] : "Recherche Spotlight"
             font: input.font
             color: root.fg
             opacity: 0.38
@@ -342,123 +481,190 @@ Item {
         }
       }
 
-      Rectangle {
-        visible: root.results.length > 0
-        anchors.top: header.bottom
-        x: Style.space(14)
-        width: parent.width - Style.space(28)
-        height: 1
-        color: root.fg
-        opacity: 0.1
+      // ---------------------------------------------------- les cinq boutons
+      BorderSurface {
+        id: group
+        anchors.left: pill.right
+        anchors.leftMargin: win.gap
+        width: win.groupW
+        height: win.barH
+        radius: height / 2
+        color: Commons.Color.menu.background
+        borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
+        MouseArea { anchors.fill: parent }
+
+        Row {
+          anchors.centerIn: parent
+          spacing: Style.space(4)
+          Repeater {
+            model: root.modes
+            delegate: Item {
+              id: mb
+              required property var modelData
+              required property int index
+              readonly property bool on: root.mode === modelData[0]
+              width: win.btn; height: win.btn
+              Rectangle {
+                anchors.centerIn: parent
+                width: win.btn - Style.space(6); height: width; radius: width / 2
+                color: mb.on ? root.accent : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, mbMouse.containsMouse ? 0.12 : 0.0)
+                Behavior on color { ColorAnimation { duration: Style.duration(120) } }
+                scale: mbMouse.pressed ? 0.9 : 1
+                Behavior on scale { NumberAnimation { duration: Style.duration(90) } }
+              }
+              Text {
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: root.g(mb.modelData[2])
+                font.family: root.iconFont
+                font.pixelSize: Style.space(18)
+                color: mb.on ? "#ffffff" : root.fg
+                opacity: mb.on ? 1 : 0.8
+              }
+              MouseArea { id: mbMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.setMode(mb.modelData[0]) }
+
+              // Info-bulle : nom + raccourci.
+              Rectangle {
+                visible: mbMouse.containsMouse
+                anchors.horizontalCenter: parent.horizontalCenter
+                anchors.top: parent.bottom
+                anchors.topMargin: Style.space(10)
+                width: tipText.implicitWidth + Style.space(16); height: Style.space(24); radius: Style.space(7)
+                color: Commons.Color.tooltip.background
+                z: 10
+                Text { id: tipText; anchors.centerIn: parent; textFormat: Text.PlainText; text: mb.modelData[1] + "   Ctrl " + (mb.index + 1); font.family: root.uiFont; font.pixelSize: Style.space(11.5); color: Commons.Color.tooltip.text }
+              }
+            }
+          }
+        }
       }
 
-      ListView {
-        id: list
-        anchors.top: header.bottom
-        anchors.topMargin: Style.space(6)
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: Style.space(4)
-        x: Style.space(8)
-        width: parent.width - Style.space(16)
+      // ---------------------------------------------------- résultats
+      BorderSurface {
+        id: panel
+        anchors.top: pill.bottom
+        anchors.topMargin: win.gap
+        width: root.mode === "apps" && root.query.trim() === "" ? win.totalW : win.pillW
+        height: root.results.length > 0 ? Math.min(list.contentHeight, Style.space(430)) + Style.space(14) : 0
+        visible: height > 1
+        radius: Style.space(22)
+        color: Commons.Color.menu.background
+        borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
         clip: true
-        model: root.results
-        boundsBehavior: Flickable.StopAtBounds
-        delegate: Item {
-          id: row
-          required property var modelData
-          required property int index
-          readonly property bool hot: index === root.selected
-          // En-tête de section dessiné par la première ligne de chaque groupe
-          // (ListView.section ne fonctionne pas avec un modèle tableau JS).
-          readonly property bool firstOfSection: index === 0 || root.results[index - 1].section !== modelData.section
-          readonly property real headerH: firstOfSection ? Style.space(22) : 0
-          width: list.width
-          height: Style.space(42) + headerH
+        Behavior on height { NumberAnimation { duration: Style.duration(140); easing.type: Easing.OutCubic } }
+        Behavior on width { NumberAnimation { duration: Style.duration(160); easing.type: Easing.OutCubic } }
+        MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
 
-          Text {
-            visible: row.firstOfSection
-            x: Style.space(12)
-            y: Style.space(5)
-            textFormat: Text.PlainText
-            text: row.modelData.section
-            font.family: root.uiFont
-            font.pixelSize: Style.space(11)
-            font.weight: Font.DemiBold
-            color: root.fg
-            opacity: 0.45
-          }
+        ListView {
+          id: list
+          anchors.fill: parent
+          anchors.topMargin: Style.space(7)
+          anchors.bottomMargin: Style.space(7)
+          anchors.leftMargin: Style.space(8)
+          anchors.rightMargin: Style.space(8)
+          clip: true
+          model: root.results
+          boundsBehavior: Flickable.StopAtBounds
+          delegate: Item {
+            id: row
+            required property var modelData
+            required property int index
+            readonly property bool hot: index === root.selected
+            // En-tête de section dessiné par la première ligne de chaque groupe
+            // (ListView.section ne fonctionne pas avec un modèle tableau JS).
+            readonly property bool firstOfSection: index === 0 || root.results[index - 1].section !== modelData.section
+            readonly property real headerH: firstOfSection ? Style.space(22) : 0
+            readonly property bool thumb: modelData.kind === "clip" && !!modelData.image
+            readonly property real rowH: thumb ? Style.space(58) : Style.space(42)
+            width: list.width
+            height: rowH + headerH
 
-          Rectangle {
-            anchors.fill: parent
-            anchors.topMargin: row.headerH
-            radius: Style.space(10)
-            color: root.accent
-            opacity: row.hot ? 0.95 : (rowMouse.containsMouse ? 0.12 : 0)
-            Behavior on opacity { NumberAnimation { duration: Style.duration(70) } }
-          }
+            Text {
+              visible: row.firstOfSection
+              x: Style.space(12)
+              y: Style.space(5)
+              textFormat: Text.PlainText
+              text: row.modelData.section
+              font.family: root.uiFont
+              font.pixelSize: Style.space(11)
+              font.weight: Font.DemiBold
+              color: root.fg
+              opacity: 0.45
+            }
 
-          Item {
-            id: ico
-            x: Style.space(10)
-            y: row.headerH + (Style.space(42) - height) / 2
-            width: Style.space(28); height: width
-            Image {
+            Rectangle {
               anchors.fill: parent
-              visible: row.modelData.kind === "app"
-              source: row.modelData.kind === "app" ? row.modelData.icon : ""
-              sourceSize: Qt.size(64, 64)
-              smooth: true
-              asynchronous: true
+              anchors.topMargin: row.headerH
+              radius: Style.space(10)
+              color: root.accent
+              opacity: row.hot ? 0.95 : (rowMouse.containsMouse ? 0.12 : 0)
+              Behavior on opacity { NumberAnimation { duration: Style.duration(70) } }
             }
-            Text {
-              anchors.centerIn: parent
-              visible: row.modelData.kind !== "app"
-              textFormat: Text.PlainText
-              text: row.modelData.glyph ? root.g(row.modelData.glyph) : ""
-              font.family: root.iconFont
-              font.pixelSize: Style.space(19)
-              color: row.hot ? "#ffffff" : root.fg
-              opacity: row.hot ? 1 : 0.75
-            }
-          }
 
-          Column {
-            anchors.left: ico.right
-            anchors.leftMargin: Style.space(12)
-            anchors.right: parent.right
-            anchors.rightMargin: Style.space(14)
-            anchors.verticalCenter: ico.verticalCenter
-            spacing: 1
-            Text {
-              width: parent.width
-              textFormat: Text.PlainText
-              text: row.modelData.title
-              elide: Text.ElideRight
-              font.family: root.uiFont
-              font.pixelSize: row.modelData.kind === "calc" ? Style.space(17) : Style.space(14)
-              font.weight: row.modelData.kind === "calc" ? Font.DemiBold : Font.Medium
-              color: row.hot ? "#ffffff" : root.fg
+            Item {
+              id: ico
+              x: Style.space(10)
+              y: row.headerH + (row.rowH - height) / 2
+              width: row.thumb ? Style.space(64) : Style.space(28); height: row.thumb ? Style.space(44) : width
+              Image {
+                anchors.fill: parent
+                visible: row.modelData.kind === "app" || row.thumb
+                source: row.modelData.kind === "app" ? row.modelData.icon : (row.thumb ? row.modelData.image : "")
+                sourceSize: row.thumb ? Qt.size(160, 110) : Qt.size(64, 64)
+                fillMode: row.thumb ? Image.PreserveAspectCrop : Image.PreserveAspectFit
+                smooth: true
+                asynchronous: true
+              }
+              Text {
+                anchors.centerIn: parent
+                visible: row.modelData.kind !== "app" && !row.thumb
+                textFormat: Text.PlainText
+                text: row.modelData.glyph ? root.g(row.modelData.glyph) : ""
+                font.family: root.iconFont
+                font.pixelSize: Style.space(19)
+                color: row.hot ? "#ffffff" : root.fg
+                opacity: row.hot ? 1 : 0.75
+              }
             }
-            Text {
-              width: parent.width
-              visible: text !== ""
-              textFormat: Text.PlainText
-              text: row.modelData.sub || ""
-              elide: Text.ElideMiddle
-              font.family: root.uiFont
-              font.pixelSize: Style.space(11.5)
-              color: row.hot ? "#ffffff" : root.fg
-              opacity: row.hot ? 0.8 : 0.5
-            }
-          }
 
-          MouseArea {
-            id: rowMouse
-            anchors.fill: parent
-            anchors.topMargin: row.headerH
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: function(m) { root.activate(row.index, (m.modifiers & Qt.ControlModifier) !== 0) }
+            Column {
+              anchors.left: ico.right
+              anchors.leftMargin: Style.space(12)
+              anchors.right: parent.right
+              anchors.rightMargin: Style.space(14)
+              anchors.verticalCenter: ico.verticalCenter
+              spacing: 1
+              Text {
+                width: parent.width
+                textFormat: Text.PlainText
+                text: row.modelData.title
+                elide: Text.ElideRight
+                font.family: row.modelData.kind === "clip" && !row.thumb ? Style.font.family : root.uiFont
+                font.pixelSize: row.modelData.kind === "calc" ? Style.space(17) : Style.space(14)
+                font.weight: row.modelData.kind === "calc" ? Font.DemiBold : Font.Medium
+                color: row.hot ? "#ffffff" : root.fg
+              }
+              Text {
+                width: parent.width
+                visible: text !== ""
+                textFormat: Text.PlainText
+                text: row.modelData.sub || ""
+                elide: Text.ElideMiddle
+                font.family: root.uiFont
+                font.pixelSize: Style.space(11.5)
+                color: row.hot ? "#ffffff" : root.fg
+                opacity: row.hot ? 0.8 : 0.5
+              }
+            }
+
+            MouseArea {
+              id: rowMouse
+              anchors.fill: parent
+              anchors.topMargin: row.headerH
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: function(m) { root.activate(row.index, (m.modifiers & Qt.ControlModifier) !== 0) }
+            }
           }
         }
       }

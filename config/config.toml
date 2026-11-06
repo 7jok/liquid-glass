@@ -90,8 +90,15 @@ battery = true
 music = true
 # Ville de la météo ("" = celle du fuseau horaire). Données : Open-Meteo, sans clé.
 weather_city = ""
-# Masquer les widgets quand la pochette sert de fond d'écran.
+# Masquer les widgets quand la pochette sert de fond d'écran (pas la carte musique).
 hide_on_cover = true
+# Carte musique libre : glisser-la sur le bureau (elle s'aimante à 9 positions),
+# survol → pastille S · M · L pour la taille.
+# Positions : top-left | top-center | top-right | middle-left | center | middle-right
+#             | bottom-left | bottom-center | bottom-right
+music_position = "bottom-left"
+# small (pochette + titre) | medium (+ progression, palette) | large (+ paroles)
+music_size = "medium"
 
 [lock]
 # Écran de verrouillage façon macOS Tahoe (relu à chaud).

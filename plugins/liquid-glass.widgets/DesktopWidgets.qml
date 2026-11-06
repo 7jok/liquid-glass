@@ -29,6 +29,13 @@ PanelWindow {
   // Hors des cartes (coins arrondis, trous du Flow), les clics traversent.
   mask: Region { item: flow }
 
+  // La carte musique (MusicWindow) se place sous cette colonne si on la met en haut du même côté.
+  Binding {
+    target: win.service
+    property: "flowBottom"
+    value: win.shown && flow.implicitHeight > 1 ? Style.space(14) + flow.implicitHeight : 0
+  }
+
   Flow {
     id: flow
     width: win.unit * 2 + win.gap
@@ -43,6 +50,5 @@ PanelWindow {
     CalendarWidget { visible: !!win.service && win.service.showCalendar; svc: win.service; width: win.unit; height: win.unit }
     WeatherWidget { visible: !!win.service && win.service.showWeather; svc: win.service; width: win.unit; height: win.unit }
     BatteryWidget { id: bat; visible: !!win.service && win.service.showBattery && bat.present; svc: win.service; width: win.unit; height: win.unit }
-    MusicWidget { visible: !!win.service && win.service.showMusic && win.service.hasTrack; svc: win.service; width: win.unit * 2 + win.gap; height: win.unit }
   }
 }

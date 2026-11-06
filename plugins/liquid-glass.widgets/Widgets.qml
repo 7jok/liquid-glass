@@ -30,6 +30,16 @@ Item {
   readonly property bool showBattery: opt("battery", true) !== false
   readonly property bool showMusic: opt("music", true) !== false
   readonly property bool hideOnCover: opt("hide_on_cover", true) !== false
+  // Widget musique libre : position (9 ancres) et taille (small | medium | large).
+  readonly property string musicPosition: String(opt("music_position", "bottom-left"))
+  readonly property string musicSize: String(opt("music_size", "medium"))
+  // Bas de la colonne des widgets fixes (posé par DesktopWidgets), pour ne pas la chevaucher.
+  property real flowBottom: 0
+
+  // Écrit une option [widgets] (relue à chaud via config.json).
+  function setOption(key, value) {
+    Quickshell.execDetached(["liquid-glass", "set", "widgets." + key, String(value)])
+  }
   readonly property string uiFont: (cfg.appearance && cfg.appearance.font_ui) || "Inter"
   readonly property bool dark: Commons.Color.background.hslLightness < 0.5
 
@@ -145,6 +155,16 @@ Item {
     model: svc.enabled && Quickshell.screens.length ? [Quickshell.screens[0]] : []
     delegate: Component {
       DesktopWidgets {
+        required property var modelData
+        screen: modelData
+        service: svc
+      }
+    }
+  }
+  Variants {
+    model: svc.enabled && Quickshell.screens.length ? [Quickshell.screens[0]] : []
+    delegate: Component {
+      MusicWindow {
         required property var modelData
         screen: modelData
         service: svc

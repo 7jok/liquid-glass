@@ -362,6 +362,20 @@ Item {
           contentHeight: navCol.implicitHeight
           clip: true
           boundsBehavior: Flickable.DragOverBounds
+          Behavior on contentY { enabled: !nav.dragging && !nav.flicking; NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+
+          // Fait défiler la barre latérale pour garder l'entrée active visible.
+          property Item activeItem: null
+          onHeightChanged: Qt.callLater(reveal, activeItem)
+          onContentHeightChanged: Qt.callLater(reveal, activeItem)
+          function reveal(item) {
+            if (!item || nav.height < Style.space(120) || navCol.implicitHeight <= 0) return
+            var p = item.mapToItem(navCol, 0, 0)
+            var maxY = Math.max(0, navCol.implicitHeight - nav.height)
+            var pad = Style.space(12)
+            if (p.y < nav.contentY + pad) nav.contentY = Math.max(0, p.y - pad)
+            else if (p.y + item.height > nav.contentY + nav.height - pad) nav.contentY = Math.min(maxY, p.y + item.height - nav.height + pad)
+          }
 
           Column {
             id: navCol
@@ -396,6 +410,8 @@ Item {
                 Rectangle {
                   id: navItem
                   readonly property bool current: root.page === navEntry.modelData[0]
+                  onCurrentChanged: if (current) { nav.activeItem = navItem; Qt.callLater(nav.reveal, navItem) }
+                  Component.onCompleted: if (current) { nav.activeItem = navItem; Qt.callLater(nav.reveal, navItem) }
                   width: parent.width
                   height: Style.space(30)
                   radius: Style.space(9)

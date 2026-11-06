@@ -36,11 +36,20 @@ Tile {
         textFormat: Text.PlainText
         text: Qt.formatTime(w.now, "H:mm")
         font.family: w.font
-        font.pixelSize: Math.round(w.height * (text.length > 4 ? 0.36 : 0.42))
+        // Taille qui tient dans la largeur de la tuile (mesurée à 100 px).
+        font.pixelSize: Math.max(10, Math.round(Math.min(w.height * 0.42, 100 * (w.width - 30) / Math.max(1, dMeasure.implicitWidth))))
         font.weight: Font.DemiBold
         font.letterSpacing: -2
         font.features: { "tnum": 1 }
         visible: false
+      }
+      Text {
+        id: dMeasure
+        visible: false
+        textFormat: Text.PlainText
+        text: dText.text
+        font.family: w.font; font.pixelSize: 100; font.weight: Font.DemiBold
+        font.letterSpacing: -2; font.features: { "tnum": 1 }
       }
       Item {
         id: dMask

@@ -127,8 +127,10 @@ Tile {
 
     Item {
       id: art
-      readonly property real side: w.small ? Math.round(w.width * 0.44) : (w.large ? header.height : header.height)
+      readonly property real side: w.small ? Math.round(w.width * 0.44)
+                                   : (w.large ? Math.min(header.height, Math.round(header.width * 0.55)) : header.height)
       width: side; height: side
+      y: w.large ? Math.round((header.height - side) / 2) : 0
       Image {
         id: artImg
         anchors.fill: parent

@@ -78,7 +78,7 @@ Item {
           font.weight: Font.Bold
           font.letterSpacing: -0.4
           color: col.textColor
-          transformOrigin: col.horizontalAlignment === Text.AlignHCenter ? Item.Center : Item.Left
+          transformOrigin: col.horizontalAlignment === Text.AlignHCenter ? Item.Center : (col.horizontalAlignment === Text.AlignRight ? Item.Right : Item.Left)
           scale: row.current ? 1 : 0.84
           Behavior on scale { SpringAnimation { spring: 3; damping: 0.4; epsilon: 0.002 } }
 

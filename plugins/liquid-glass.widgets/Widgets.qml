@@ -30,8 +30,11 @@ Item {
   readonly property bool showBattery: opt("battery", true) !== false
   readonly property bool showMusic: opt("music", true) !== false
   readonly property bool hideOnCover: opt("hide_on_cover", true) !== false
-  // Widget musique libre : position (9 ancres) et taille (small | medium | large).
+  // Widget musique libre : position en fractions de l'écran (-1 = pas encore
+  // posé, on part de l'ancienne ancre music_position) et taille.
   readonly property string musicPosition: String(opt("music_position", "bottom-left"))
+  readonly property real musicX: Number(opt("music_x", -1))
+  readonly property real musicY: Number(opt("music_y", -1))
   readonly property string musicSize: String(opt("music_size", "medium"))
   // Bas de la colonne des widgets fixes (posé par DesktopWidgets), pour ne pas la chevaucher.
   property real flowBottom: 0
@@ -39,6 +42,12 @@ Item {
   // Écrit une option [widgets] (relue à chaud via config.json).
   function setOption(key, value) {
     Quickshell.execDetached(["liquid-glass", "set", "widgets." + key, String(value)])
+  }
+  // Plusieurs options d'un coup (une seule écriture de config.toml).
+  function setOptions(obj) {
+    var a = ["liquid-glass", "set"]
+    for (var k in obj) a.push("widgets." + k, String(obj[k]))
+    Quickshell.execDetached(a)
   }
   readonly property string uiFont: (cfg.appearance && cfg.appearance.font_ui) || "Inter"
   readonly property bool dark: Commons.Color.background.hslLightness < 0.5

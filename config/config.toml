@@ -22,6 +22,8 @@ logo = "pomme"
 logo_path = ""
 
 [glass]
+# Style du verre : clear (très transparent) | standard | tinted (teinté, plus opaque).
+style = "standard"
 # Flou Hyprland : taille et nombre de passes (plus = plus flou, plus coûteux).
 blur_size = 7
 blur_passes = 3
@@ -54,7 +56,7 @@ always_visible = true
 [spotify]
 # Fond d'écran dynamique : off | cover (pochette nette sur fond flou)
 #                          | blur (pochette floutée plein écran) | gradient
-wallpaper = "cover"
+wallpaper = "off"
 # Retour au fond normal après N minutes de pause (0 = jamais).
 restore_after_minutes = 5
 # Couleurs dynamiques extraites de la pochette (bordures, barre, dock, terminal).
@@ -62,7 +64,7 @@ dynamic_colors = true
 
 [lyrics]
 # Paroles synchronisées (LRCLIB). Chaque mode s'active indépendamment.
-desktop = true        # en grand sur le bureau, derrière les fenêtres
+desktop = false       # en grand sur le bureau, derrière les fenêtres
 widget = false        # petit widget flottant déplaçable
 bar = true            # ligne actuelle dans la barre du haut
 # Le mode karaoké plein écran s'ouvre avec SUPER+ALT+M (⌘⌥M).
@@ -92,12 +94,17 @@ music = true
 weather_city = ""
 # Masquer les widgets quand la pochette sert de fond d'écran (pas la carte musique).
 hide_on_cover = true
-# Carte musique libre : glisser-la sur le bureau (elle s'aimante à 9 positions),
-# survol → pastille S · M · L pour la taille.
-# Positions : top-left | top-center | top-right | middle-left | center | middle-right
-#             | bottom-left | bottom-center | bottom-right
+# Carte musique libre : glisser-la n'importe où (elle glisse avec de l'inertie
+# et rebondit sur les bords), survol → pastille S · M · L pour la taille,
+# bulle → paroles dans la carte.
+# Position de départ tant qu'elle n'a pas été déplacée :
+#   top-left | top-center | top-right | middle-left | center | middle-right
+#   | bottom-left | bottom-center | bottom-right
 music_position = "bottom-left"
-# small (pochette + titre) | medium (+ progression, palette) | large (+ paroles)
+# Position libre (fractions de l'écran ; -1 = d'après music_position).
+music_x = -1
+music_y = -1
+# small (pochette + titre) | medium (+ progression, commandes) | large (grande pochette)
 music_size = "medium"
 
 [lock]
@@ -110,12 +117,24 @@ clock_font = ""
 # Notifications récentes en haut à droite :
 # full (titre + texte) | summary (appli + titre) | count (nombre) | off
 notifications = "summary"
-# Pendant la lecture : art (pochette nette + fond flou) | wallpaper (fond Spotify)
-#                      | blur (pochette floutée) | off (fond normal)
+# Widget musique au-dessus de l'avatar. Sa bulle l'agrandit : grande pochette,
+# paroles à côté, et le fond devient : art / blur (pochette floutée)
+# | wallpaper (fond Spotify) | off (fond normal).
 music_background = "art"
-music_card = true     # carte « lecture en cours » sous l'horloge
-lyrics = true         # paroles synchronisées à droite
+music_card = true     # widget « lecture en cours »
+lyrics = true         # paroles synchronisées quand le widget est agrandi
+# Position libre du widget (fractions de l'écran, -1 = au-dessus de l'avatar).
+# Glisser le widget l'enregistre ; double-clic = retour à la place par défaut.
+music_x = -1
+music_y = -1
+wallpaper_blur = false  # fond d'écran flouté (false = net, comme macOS)
 status = true         # batterie en haut à droite
+
+[control]
+# Boutons ronds du Centre de contrôle, dans l'ordre (4 par ligne).
+# Disponibles : nightshift awake screenshot record glass lyrics karaoke mission
+#               desktop lock calculator clipboard emoji settings
+buttons = ["nightshift", "awake", "screenshot", "record", "glass", "lyrics", "mission", "settings"]
 
 [hotcorners]
 # Coins actifs : pointer dans un coin de l'écran déclenche une action.

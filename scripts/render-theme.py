@@ -53,7 +53,10 @@ def render(theme_dir: Path, config: dict) -> None:
     c = tomllib.loads((theme_dir / "colors.toml").read_text())
     light = c.get("mode", "dark") == "light"
     glass = config.get("glass", {})
-    k = float(glass.get("opacity", 1.0))  # multiplicateur global d'opacité
+    # Multiplicateur global d'opacité × style du verre (comme le réglage
+    # « Liquid Glass » de macOS 26.1) : clear = très transparent, tinted = plus opaque.
+    style_k = {"clear": 0.7, "standard": 1.0, "tinted": 1.45}.get(str(glass.get("style", "standard")), 1.0)
+    k = float(glass.get("opacity", 1.0)) * style_k
 
     def a(light_val: float, dark_val: float) -> str:
         return f"{clamp((light_val if light else dark_val) * k):.2f}"

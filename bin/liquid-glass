@@ -13,6 +13,9 @@ Commandes :
   liquid-glass status                Résumé de l'état courant
   liquid-glass show-desktop          Écarte / remet les fenêtres du bureau courant (⌘F3)
   liquid-glass hotcorner <action>    Action d'un coin actif (mission, desktop, spotlight…)
+  liquid-glass focus [off|dnd|work|personal|sleep|toggle|status]
+                                     Mode de concentration (Ne pas déranger ; Sommeil
+                                     ajoute la lumière nocturne)
 
 Fichiers :
   ~/.config/liquid-glass/config.toml   config centrale (source de vérité)
@@ -89,6 +92,13 @@ def set_key(dotted: str, raw: str) -> None:
     section, key = dotted.split(".", 1)
     lines = CONF.read_text().splitlines(keepends=True)
     value = toml_value(raw)
+    # « off » pour une clé texte (ex. spotify.wallpaper) reste du texte.
+    try:
+        cur = tomllib.loads("".join(lines)).get(section, {}).get(key)
+    except Exception:
+        cur = None
+    if isinstance(cur, str) and not raw.startswith('"'):
+        value = json.dumps(raw, ensure_ascii=False)
     in_sec, sec_end, done = False, None, False
     for i, line in enumerate(lines):
         m = re.match(r"^\s*\[([^\]]+)\]", line)
@@ -340,18 +350,23 @@ def cmd_auto_tick(_args: list[str]) -> None:
 
 
 # Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
-LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock"}
+LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock", "control"}
 # Clés isolées lues directement par le shell (pas de régénération du thème).
 LIVE_KEYS = {"appearance.logo", "appearance.logo_path"}
 
 
 def cmd_set(args: list[str]) -> None:
-    if len(args) != 2 or "." not in args[0]:
-        sys.exit("usage : liquid-glass set <section.clé> <valeur>")
+    if len(args) < 2 or len(args) % 2 or any("." not in k for k in args[0::2]):
+        sys.exit("usage : liquid-glass set <section.clé> <valeur> [<section.clé> <valeur>…]")
     load()
-    set_key(args[0], args[1])
+    pairs = list(zip(args[0::2], args[1::2]))
+    for k, v in pairs:
+        set_key(k, v)
     cfg = load()
     write_json(cfg)
+    # Plusieurs paires : uniquement des clés « à chaud » (pas d'effet de bord à rejouer).
+    if len(pairs) > 1:
+        return
     section = args[0].split(".", 1)[0]
     if args[0] in LIVE_KEYS:
         pass
@@ -374,7 +389,10 @@ def cmd_set(args: list[str]) -> None:
 def cmd_get(args: list[str]) -> None:
     if len(args) != 1:
         sys.exit("usage : liquid-glass get <section.clé>")
-    v = get_key(load(), args[0])
+    try:
+        v = get_key(load(), args[0])
+    except (KeyError, TypeError):
+        sys.exit(f"{args[0]} : clé absente de config.toml")
     print(json.dumps(v, ensure_ascii=False) if not isinstance(v, str) else v)
 
 
@@ -450,7 +468,45 @@ def cmd_system(args: list[str]) -> None:
     apply_system(args[0] if args else None)
 
 
+# ------------------------------------------------------------- concentration
+FOCUS_STATE = HOME / ".cache/liquid-glass/focus"
+FOCUS_MODES = {"dnd": "Ne pas déranger", "work": "Travail", "personal": "Personnel", "sleep": "Sommeil"}
+
+
+def _nightlight_on() -> bool:
+    try:
+        return json.loads(run("omarchy-shell", "nightlight", "status").stdout or "{}").get("enabled") is True
+    except json.JSONDecodeError:
+        return False
+
+
+def cmd_focus(args: list[str]) -> None:
+    """Concentration façon macOS : chaque mode coupe les notifications ;
+    « Sommeil » allume aussi la lumière nocturne (et l'éteint en sortant)."""
+    prev = FOCUS_STATE.read_text().strip() if FOCUS_STATE.exists() else "off"
+    # Ne pas déranger a pu être coupé ailleurs (centre de notifications) : on resynchronise.
+    if prev != "off" and run("omarchy-shell", "notifications", "isDnd").stdout.strip() == "off":
+        prev = "off"
+    mode = args[0] if args else "status"
+    if mode == "status":
+        print(json.dumps({"mode": prev, "label": FOCUS_MODES.get(prev, "")}, ensure_ascii=False))
+        return
+    if mode == "toggle":
+        mode = "off" if prev != "off" else "dnd"
+    if mode != "off" and mode not in FOCUS_MODES:
+        sys.exit(f"mode inconnu : {mode} (off, {', '.join(FOCUS_MODES)})")
+    run("omarchy-shell", "notifications", "setDnd", "off" if mode == "off" else "on")
+    if mode == "sleep" and not _nightlight_on():
+        run("omarchy-shell", "nightlight", "toggle")
+    elif prev == "sleep" and mode != "sleep" and _nightlight_on():
+        run("omarchy-shell", "nightlight", "toggle")
+    FOCUS_STATE.parent.mkdir(parents=True, exist_ok=True)
+    FOCUS_STATE.write_text(mode + "\n")
+    print(json.dumps({"mode": mode, "label": FOCUS_MODES.get(mode, "")}, ensure_ascii=False))
+
+
 COMMANDS = {
+    "focus": cmd_focus,
     "apply": cmd_apply,
     "mode": cmd_mode,
     "auto-tick": cmd_auto_tick,

@@ -14,12 +14,13 @@ import qs.Ui
 // (propriétés, signaux, TextInput et ses gestionnaires, empreinte) sont celles
 // d'Omarchy, inchangées ; Service.qml (PAM) n'est pas modifié.
 //
-// De haut en bas, au centre : la date, la grande horloge en verre, la carte
-// « lecture en cours » (Spotify), puis en bas l'avatar, le nom et le petit champ
-// du mot de passe avec son indication.
+// De haut en bas, au centre : la date, la grande horloge en verre, puis en bas
+// le widget musique (LockMusic), l'avatar, le nom et le petit champ du mot de
+// passe avec son indication. Fond d'écran net.
 // En haut à droite : batterie, puis les notifications récentes (aperçu réglable).
-// Pendant la lecture : la pochette devient le fond (pochette nette à gauche sur
-// un fond flou de ses couleurs) et les paroles synchronisées défilent à droite.
+// Bulle des paroles du widget : il s'agrandit (grande pochette + commandes),
+// la pochette floutée devient le fond et les paroles défilent à côté.
+// Le widget se déplace librement, avec inertie.
 // Réglages : section [lock] de ~/.config/liquid-glass/config.toml.
 // ============================================================================
 Item {
@@ -122,6 +123,8 @@ Item {
   readonly property bool showLyrics: lopt("lyrics", true) !== false
   readonly property bool showMusicCard: lopt("music_card", true) !== false
   readonly property bool showStatus: lopt("status", true) !== false
+  // Fond d'écran net (comme macOS) ou flouté.
+  readonly property bool wallpaperBlur: lopt("wallpaper_blur", false) === true
   // glass (verre dégradé) | bold | light
   readonly property string clockStyle: String(lopt("clock_style", "glass"))
   readonly property bool clock24: lopt("clock_24h", true) !== false
@@ -161,14 +164,16 @@ Item {
   readonly property color tintA: palette && palette.colors && palette.colors.length > 1 ? palette.colors[1] : "#1c1c1e"
   readonly property color tintB: palette && palette.accent ? palette.accent : "#3a3a3c"
   // Le fond « musique » ne remplace le fond d'écran que pendant la lecture.
-  readonly property bool musicScene: musicPlaying && musicBackground !== "off" && coverSource !== ""
+  // Widget agrandi (bulle des paroles) : la pochette floutée devient le fond.
+  property bool musicExpanded: false
+  readonly property bool musicScene: musicActive && musicExpanded && musicBackground !== "off" && coverSource !== ""
   readonly property bool artMode: musicScene && musicBackground === "art"
 
   // Position extrapolée (MPRIS ne pousse pas la position) et ligne de paroles.
   property real position: 0
   readonly property real trackLength: player && player.lengthSupported ? player.length : 0
   readonly property var lyricLines: npMatches && Array.isArray(nowPlaying.lyrics) ? nowPlaying.lyrics : []
-  readonly property bool lyricsShown: showLyrics && musicScene && lyricLines.length > 0
+  readonly property bool lyricsShown: showLyrics && musicExpanded && lyricLines.length > 0
   property int lineIndex: -1
   function updatePosition() {
     if (!player) return
@@ -186,6 +191,7 @@ Item {
     onTriggered: root.updatePosition()
   }
   function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2) }
+  readonly property var lyricsModelRef: lyricsModel
   QtObject {
     id: lyricsModel
     readonly property var lyricLines: root.lyricLines
@@ -279,7 +285,7 @@ Item {
       anchors.fill: wallpaper
       source: wallpaper
       autoPaddingEnabled: false
-      blurEnabled: root.loadBackground && wallpaper.ready
+      blurEnabled: root.loadBackground && wallpaper.ready && root.wallpaperBlur
       blur: 1.0
       blurMax: 128
       blurMultiplier: 1.25
@@ -332,9 +338,9 @@ Item {
     Rectangle {
       anchors.fill: parent
       gradient: Gradient {
-        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.20) }
-        GradientStop { position: 0.45; color: Qt.rgba(0, 0, 0, 0.05) }
-        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.26) }
+        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.14) }
+        GradientStop { position: 0.4; color: Qt.rgba(0, 0, 0, 0.0) }
+        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.18) }
       }
     }
 
@@ -343,97 +349,6 @@ Item {
       hoverEnabled: true
       onClicked: { root.wakeRequested(); root.forcePasswordFocus() }
       onPositionChanged: root.wakeRequested()
-    }
-
-    // ---- Mode « art » : la pochette nette, en grand, à gauche.
-    Item {
-      id: bigArt
-      readonly property real side: Math.round(Math.min(root.height * 0.42, root.width * 0.24))
-      width: side; height: side
-      x: Math.round(Math.max(24, (root.width / 2 - 200 - side) / 2))
-      y: Math.round(root.height * 0.47 - side / 2)
-      opacity: root.artMode ? 1 : 0
-      scale: root.artMode ? 1 : 0.9
-      visible: opacity > 0.01
-      Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
-      Behavior on scale { NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
-      Image {
-        id: bigArtImg
-        anchors.fill: parent
-        source: root.loadBackground ? root.coverSource : ""
-        sourceSize: Qt.size(640, 640)
-        fillMode: Image.PreserveAspectCrop
-        asynchronous: true
-        visible: false
-      }
-      Rectangle { id: bigArtMask; anchors.fill: parent; radius: 18; visible: false; layer.enabled: true }
-      MultiEffect {
-        anchors.fill: parent
-        source: bigArtImg
-        maskEnabled: true
-        maskSource: bigArtMask
-        shadowEnabled: true
-        shadowOpacity: 0.55
-        shadowBlur: 1.0
-        shadowVerticalOffset: 10
-        visible: bigArtImg.status === Image.Ready
-      }
-      // Liseré de verre.
-      Rectangle { anchors.fill: parent; radius: 18; color: "transparent"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.22) }
-      Text {
-        anchors.top: parent.bottom; anchors.topMargin: 14
-        width: parent.width
-        horizontalAlignment: Text.AlignHCenter
-        textFormat: Text.PlainText
-        elide: Text.ElideRight
-        text: root.player ? (root.player.trackAlbum || "") : ""
-        font.family: root.uiFont; font.pixelSize: 12; font.weight: Font.Medium
-        color: "white"; opacity: 0.7
-      }
-    }
-
-    // ---- Paroles synchronisées, à droite.
-    Item {
-      id: lyricsArea
-      x: Math.round(root.width / 2 + 230)
-      width: Math.max(0, root.width - x - 40)
-      y: Math.round(root.height * 0.34)
-      height: Math.round(root.height * 0.5)
-      clip: true
-      opacity: root.lyricsShown && width > 160 ? 1 : 0
-      visible: opacity > 0.01
-      Behavior on opacity { NumberAnimation { duration: 500 } }
-      layer.enabled: true
-      layer.effect: MultiEffect {
-        maskEnabled: true
-        maskSource: lyricsFade
-        maskThresholdMin: 0.0
-        maskSpreadAtMin: 0.0
-      }
-      LyricsColumn {
-        anchors.fill: parent
-        service: lyricsModel
-        fontFamily: root.uiFont
-        fontSize: Math.round(Math.max(18, Math.min(30, root.height * 0.036)))
-        visibleRadius: 4
-        blurPerLine: 0.25
-      }
-    }
-    // Fondu haut/bas des paroles.
-    Item {
-      id: lyricsFade
-      width: lyricsArea.width; height: lyricsArea.height
-      visible: false
-      layer.enabled: true
-      Rectangle {
-        anchors.fill: parent
-        gradient: Gradient {
-          GradientStop { position: 0.0; color: "transparent" }
-          GradientStop { position: 0.22; color: "black" }
-          GradientStop { position: 0.78; color: "black" }
-          GradientStop { position: 1.0; color: "transparent" }
-        }
-      }
     }
 
     // ---------------------------------------------------------- horloge
@@ -473,7 +388,7 @@ Item {
           textFormat: Text.PlainText
           text: Qt.formatTime(clock.date, root.clock24 ? "HH:mm" : "h:mm")
           font.family: root.clockFont
-          font.pixelSize: Math.round(root.height * 0.155)
+          font.pixelSize: Math.round(root.height * 0.13)
           font.weight: root.clockStyle === "light" ? Font.Light : (root.clockStyle === "glass" ? Font.DemiBold : Font.Bold)
           font.letterSpacing: -Math.round(root.height * 0.003)
           font.features: { "tnum": 1 }
@@ -526,111 +441,13 @@ Item {
     }
 
     // ---------------------------------------------------------- lecture en cours
-    Rectangle {
-      id: nowCard
-      readonly property bool shown: root.musicActive && root.showMusicCard
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.top: clockColumn.bottom
-      anchors.topMargin: Math.round(root.height * 0.02)
-      width: 370; height: 118
-      radius: 24
-      opacity: shown ? 1 : 0
-      visible: opacity > 0.01
-      scale: shown ? 1 : 0.94
-      Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
-      Behavior on scale { NumberAnimation { duration: 500; easing.type: Easing.OutBack } }
-      color: Qt.rgba(1, 1, 1, 0.14)
-      border.width: 1
-      border.color: Qt.rgba(1, 1, 1, 0.30)
-      // Reflet du verre sur le haut de la carte.
-      Rectangle {
-        anchors.fill: parent; anchors.margins: 1
-        radius: parent.radius - 1
-        gradient: Gradient {
-          GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.14) }
-          GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.0) }
-        }
-      }
-
-      Item {
-        id: art
-        x: 14; y: 14
-        width: 58; height: 58
-        Image { id: artImg; anchors.fill: parent; source: root.coverSource; sourceSize: Qt.size(128, 128); fillMode: Image.PreserveAspectCrop; visible: false; asynchronous: true }
-        Rectangle { id: artMask; anchors.fill: parent; radius: 11; visible: false; layer.enabled: true }
-        MultiEffect { anchors.fill: parent; source: artImg; maskEnabled: true; maskSource: artMask; visible: artImg.status === Image.Ready }
-        Rectangle { anchors.fill: parent; radius: 11; color: Qt.rgba(1, 1, 1, 0.2); visible: artImg.status !== Image.Ready }
-      }
-      Column {
-        anchors.left: art.right; anchors.leftMargin: 12
-        anchors.right: controls.left; anchors.rightMargin: 8
-        anchors.verticalCenter: art.verticalCenter
-        spacing: 2
-        Text { width: parent.width; textFormat: Text.PlainText; text: root.player ? root.player.trackTitle || "" : ""; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: 14; font.weight: Font.DemiBold; color: "white" }
-        Text { width: parent.width; textFormat: Text.PlainText; text: root.player ? root.player.trackArtist || "" : ""; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: 12; color: "white"; opacity: 0.72 }
-      }
-      Row {
-        id: controls
-        anchors.right: parent.right; anchors.rightMargin: 12
-        anchors.verticalCenter: art.verticalCenter
-        spacing: 0
-        Repeater {
-          model: [
-            [0xF04AE, function() { root.player.previous() }],
-            [-1, function() { root.player.togglePlaying() }],
-            [0xF04AD, function() { root.player.next() }]
-          ]
-          delegate: Item {
-            required property var modelData
-            width: 32; height: 32
-            Rectangle { anchors.fill: parent; radius: 16; color: "white"; opacity: btnMouse.containsMouse ? 0.14 : 0 }
-            Text {
-              anchors.centerIn: parent
-              textFormat: Text.PlainText
-              text: String.fromCodePoint(modelData[0] === -1 ? (root.player && root.player.isPlaying ? 0xF03E4 : 0xF040A) : modelData[0])
-              font.family: Style.font.family; font.pixelSize: modelData[0] === -1 ? 24 : 18
-              color: "white"
-              scale: btnMouse.pressed ? 0.86 : 1
-              Behavior on scale { NumberAnimation { duration: 90 } }
-            }
-            MouseArea { id: btnMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { if (root.player) modelData[1](); root.forcePasswordFocus() } }
-          }
-        }
-      }
-      // Progression + temps.
-      Item {
-        anchors.left: parent.left; anchors.right: parent.right
-        anchors.leftMargin: 16; anchors.rightMargin: 16
-        anchors.bottom: parent.bottom; anchors.bottomMargin: 12
-        height: 26
-        Text { id: elapsed; anchors.left: parent.left; anchors.verticalCenter: bar.verticalCenter; width: 34; textFormat: Text.PlainText; text: root.fmt(root.position); font.family: root.uiFont; font.pixelSize: 10; font.features: { "tnum": 1 }; color: "white"; opacity: 0.7 }
-        Text { id: remain; anchors.right: parent.right; anchors.verticalCenter: bar.verticalCenter; width: 38; horizontalAlignment: Text.AlignRight; textFormat: Text.PlainText; text: root.trackLength > 0 ? "-" + root.fmt(root.trackLength - root.position) : ""; font.family: root.uiFont; font.pixelSize: 10; font.features: { "tnum": 1 }; color: "white"; opacity: 0.7 }
-        Rectangle {
-          id: bar
-          anchors.left: elapsed.right; anchors.right: remain.left
-          anchors.leftMargin: 6; anchors.rightMargin: 6
-          anchors.verticalCenter: parent.verticalCenter
-          height: 5; radius: 2.5
-          color: Qt.rgba(1, 1, 1, 0.22)
-          Rectangle {
-            width: root.trackLength > 0 ? parent.width * Math.min(1, root.position / root.trackLength) : 0
-            height: parent.height; radius: 2.5
-            color: "white"
-            Behavior on width { NumberAnimation { duration: 260 } }
-          }
-          MouseArea {
-            anchors.fill: parent; anchors.margins: -8
-            cursorShape: Qt.PointingHandCursor
-            onClicked: function(m) {
-              if (root.player && root.player.canSeek && root.trackLength > 0) {
-                root.player.position = Math.max(0, Math.min(1, (m.x - 8) / (width - 16))) * root.trackLength
-                root.updatePosition()
-              }
-              root.forcePasswordFocus()
-            }
-          }
-        }
-      }
+    LockMusic {
+      anchors.fill: parent
+      view: root
+      topLimit: clockColumn.y + clockColumn.height
+      bottomLimit: userColumn.y
+      expanded: root.musicExpanded
+      onToggled: root.musicExpanded = !root.musicExpanded
     }
 
     // ---------------------------------------------------------- état (en haut à droite)

@@ -4,29 +4,29 @@ import Quickshell.Wayland
 import qs.Commons
 
 // Widget « lecture en cours » libre sur le bureau.
-// Fenêtre « Bottom » de tout l'écran utile, mais seule la carte reçoit les clics
-// (masque) : le reste du bureau fonctionne normalement.
-//   • glisser la carte : elle s'aimante à la position la plus proche parmi 9
-//     (haut / milieu / bas × gauche / centre / droite), enregistrée dans
-//     widgets.music_position ;
-//   • au survol, une pastille S · M · L change la taille (widgets.music_size).
+// Fenêtre « Bottom » de tout l'écran, mais seule la carte (et sa pastille de
+// taille) reçoit les clics grâce au masque : le reste du bureau fonctionne.
+//   • on le pose où on veut, sans repères ni aimantation ;
+//   • lâché en mouvement, il glisse comme sur une patinoire (inertie, friction
+//     faible) et rebondit sur les bords de l'écran ;
+//   • il s'incline selon la vitesse, gonfle quand on l'attrape, s'écrase en
+//     touchant un bord, et fait un rebond élastique quand on change sa taille ;
+//   • la position est enregistrée en fractions de l'écran (widgets.music_x /
+//     music_y), la taille dans widgets.music_size.
 PanelWindow {
   id: win
   property var service: null
 
   readonly property real unit: Style.space(150)
   readonly property real gap: Style.space(14)
-  readonly property real margin: Style.space(22)
-  // En bas, on laisse la place du dock.
-  readonly property real bottomMargin: Style.space(96)
+  readonly property real margin: Style.space(10)
 
   readonly property string size: service ? service.musicSize : "medium"
   readonly property real cardW: size === "small" ? unit : unit * 2 + gap
   readonly property real cardH: size === "large" ? unit * 2 + gap : unit
 
-  // Reste visible quand la pochette sert de fond : c'est pendant la lecture
-  // qu'on veut la voir (seuls les widgets fixes s'effacent alors).
   readonly property bool shown: !!service && service.showMusic && service.hasTrack
+  property bool lyricsMode: false
 
   color: "transparent"
   anchors { top: true; bottom: true; left: true; right: true }
@@ -41,93 +41,222 @@ PanelWindow {
     Region { item: sizePill }
   }
 
-  // Position enregistrée, ou celle choisie à l'instant (en attendant que la
-  // config relue confirme).
-  property string pending: ""
-  readonly property string anchorName: pending !== "" ? pending : (service ? service.musicPosition : "bottom-left")
-  onAnchorNameChanged: if (service && pending === service.musicPosition) pending = ""
+  // ------------------------------------------------------------ position
+  readonly property real minX: margin
+  readonly property real minY: margin
+  readonly property real maxX: Math.max(minX, width - cardW - margin)
+  readonly property real maxY: Math.max(minY, height - cardH - margin)
+  function clampX(x) { return Math.max(minX, Math.min(maxX, x)) }
+  function clampY(y) { return Math.max(minY, Math.min(maxY, y)) }
 
-  // Les widgets fixes occupent le haut d'un côté : on se place dessous.
-  readonly property real flowBottom: service ? service.flowBottom : 0
-  function anchorX(name, w) {
-    if (name.indexOf("left") !== -1) return margin
-    if (name.indexOf("right") !== -1) return width - w - margin
-    return Math.round((width - w) / 2)
+  // Position = fractions de l'espace libre (fx, fy ∈ [0, 1]) : un widget collé
+  // à droite le reste quand il change de taille ou que l'écran change.
+  // -1 : jamais posé, on part de l'ancienne ancre music_position.
+  function anchorFrac(horizontal) {
+    var n = service ? service.musicPosition : "bottom-left"
+    if (horizontal) return n.indexOf("right") !== -1 ? 1 : (n.indexOf("left") !== -1 ? 0 : 0.5)
+    return n.indexOf("top") === 0 ? 0 : (n.indexOf("bottom") === 0 ? 1 : 0.5)
   }
-  function anchorY(name, h, w) {
-    var x = anchorX(name, w)
-    if (name.indexOf("top") === 0) {
-      var side = service ? service.side : "left"
-      var underFlow = flowBottom > 0 && ((side === "left" && name.indexOf("left") !== -1) || (side === "right" && name.indexOf("right") !== -1))
-      return underFlow ? flowBottom + gap : Style.space(14)
-    }
-    if (name.indexOf("bottom") === 0) return height - h - bottomMargin
-    return Math.round((height - h) / 2)
+  property real fx: service && service.musicX >= 0 ? service.musicX : anchorFrac(true)
+  property real fy: service && service.musicY >= 0 ? service.musicY : anchorFrac(false)
+  Connections {
+    target: win.service
+    function onMusicXChanged() { if (win.service.musicX >= 0 && !drag.active && !glide.running) win.fx = win.service.musicX }
+    function onMusicYChanged() { if (win.service.musicY >= 0 && !drag.active && !glide.running) win.fy = win.service.musicY }
   }
-  readonly property var anchorNames: ["top-left", "top-center", "top-right", "middle-left", "center", "middle-right",
-                                      "bottom-left", "bottom-center", "bottom-right"]
-  function nearest(cx, cy) {
-    var best = anchorNames[0], bd = 1e12
-    for (var i = 0; i < anchorNames.length; i++) {
-      var n = anchorNames[i]
-      var ax = anchorX(n, cardW) + cardW / 2, ay = anchorY(n, cardH, cardW) + cardH / 2
-      var d = (ax - cx) * (ax - cx) + (ay - cy) * (ay - cy)
-      if (d < bd) { bd = d; best = n }
-    }
-    return best
-  }
+  readonly property real restX: minX + Math.max(0, Math.min(1, fx)) * (maxX - minX)
+  readonly property real restY: minY + Math.max(0, Math.min(1, fy)) * (maxY - minY)
 
-  // Repères des 9 positions, visibles pendant le glissement.
-  Repeater {
-    model: drag.active ? win.anchorNames : []
-    delegate: Rectangle {
-      required property string modelData
-      x: win.anchorX(modelData, win.cardW); y: win.anchorY(modelData, win.cardH, win.cardW)
-      width: win.cardW; height: win.cardH
-      radius: Style.space(24)
-      color: Qt.rgba(1, 1, 1, win.nearest(holder.x + holder.width / 2, holder.y + holder.height / 2) === modelData ? 0.18 : 0.06)
-      border.width: 1.5
-      border.color: Qt.rgba(1, 1, 1, 0.35)
-      Behavior on color { ColorAnimation { duration: 120 } }
-    }
+  // Fin de geste : on retient l'endroit, on se raccroche à la liaison, on enregistre.
+  function commit() {
+    fx = maxX > minX ? (holder.x - minX) / (maxX - minX) : 0
+    fy = maxY > minY ? (holder.y - minY) / (maxY - minY) : 0
+    fx = Math.round(Math.max(0, Math.min(1, fx)) * 10000) / 10000
+    fy = Math.round(Math.max(0, Math.min(1, fy)) * 10000) / 10000
+    holder.x = Qt.binding(function() { return win.restX })
+    holder.y = Qt.binding(function() { return win.restY })
+    if (service) service.setOptions({ music_x: fx, music_y: fy })
   }
 
+  // Changement de taille : rebond élastique (la taille change d'un coup, sans
+  // animer largeur/hauteur, pour que masque, contenu et position restent alignés).
+  onSizeChanged: popAnim.restart()
+  SequentialAnimation {
+    id: popAnim
+    NumberAnimation { target: holder; property: "pop"; to: 0.78; duration: 90; easing.type: Easing.InQuad }
+    NumberAnimation { target: holder; property: "pop"; to: 1; duration: 900; easing.type: Easing.OutElastic; easing.amplitude: 1.3; easing.period: 0.32 }
+  }
+
+  // ------------------------------------------------------- glisse (patinoire)
+  property real vx: 0
+  property real vy: 0
+  property var samples: []
+  readonly property real friction: 1.9      // décroissance de la vitesse (1/s) : faible = glisse loin
+  readonly property real restitution: 0.62  // part de la vitesse gardée au rebond
+  readonly property real maxSpeed: 3200
+
+  FrameAnimation {
+    id: glide
+    running: false
+    onTriggered: {
+      var dt = Math.min(0.05, frameTime)
+      var k = Math.exp(-win.friction * dt)
+      win.vx *= k; win.vy *= k
+      var nx = holder.x + win.vx * dt, ny = holder.y + win.vy * dt
+      if (nx < win.minX || nx > win.maxX) {
+        nx = win.clampX(nx)
+        win.vx = -win.vx * win.restitution
+        holder.bump(true, Math.abs(win.vx))
+      }
+      if (ny < win.minY || ny > win.maxY) {
+        ny = win.clampY(ny)
+        win.vy = -win.vy * win.restitution
+        holder.bump(false, Math.abs(win.vy))
+      }
+      holder.x = nx; holder.y = ny
+      if (Math.abs(win.vx) < 6 && Math.abs(win.vy) < 6) {
+        win.vx = 0; win.vy = 0
+        stop()
+        landAnim.restart()
+        win.commit()
+      }
+    }
+  }
+
+  // --------------------------------------------------------------- carte
   Item {
     id: holder
     width: win.cardW; height: win.cardH
-    x: win.anchorX(win.anchorName, width)
-    y: win.anchorY(win.anchorName, height, width)
-    opacity: win.shown ? 1 : 0
-    scale: drag.active ? 1.04 : (win.shown ? 1 : 0.96)
+    x: win.restX
+    y: win.restY
     z: 2
-    Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-    Behavior on scale { NumberAnimation { duration: 220; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
-    Behavior on x { enabled: !drag.active; SpringAnimation { spring: 3.2; damping: 0.36; epsilon: 0.3 } }
-    Behavior on y { enabled: !drag.active; SpringAnimation { spring: 3.2; damping: 0.36; epsilon: 0.3 } }
-    Behavior on width { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
-    Behavior on height { NumberAnimation { duration: 280; easing.type: Easing.OutCubic } }
+    // Repositionnement (taille, écran, config) : glissé avec dépassement.
+    Behavior on x { enabled: !drag.active && !glide.running; NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
+    Behavior on y { enabled: !drag.active && !glide.running; NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
+
+    // Échelles composées : apparition × prise en main × rebond de taille × écrasement.
+    property real appear: win.shown ? 1 : 0.55
+    property real lift: drag.active ? 1.09 : 1
+    property real pop: 1
+    property real squashX: 1
+    property real squashY: 1
+    Behavior on appear { NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 2.6 } }
+    Behavior on lift { NumberAnimation { duration: 380; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
+
+    opacity: win.shown ? 1 : 0
+    Behavior on opacity { NumberAnimation { duration: 320; easing.type: Easing.OutCubic } }
+
+    // Inclinaison selon la vitesse horizontale, avec un ressort mou.
+    readonly property real tiltTarget: Math.max(-12, Math.min(12, (drag.active || glide.running) ? win.vx * 0.006 : 0))
+    rotation: tiltTarget
+    Behavior on rotation { SpringAnimation { spring: 2.6; damping: 0.18; epsilon: 0.05 } }
+
+    transform: Scale {
+      origin.x: holder.width / 2; origin.y: holder.height / 2
+      xScale: holder.appear * holder.lift * holder.pop * holder.squashX
+      yScale: holder.appear * holder.lift * holder.pop * holder.squashY
+    }
+
+    // Choc contre un bord : écrasement dans l'axe du choc, proportionnel à la vitesse.
+    function bump(horizontal, speed) {
+      var s = Math.min(0.22, speed / 6000)
+      if (s < 0.02) return
+      squashAnim.stop()
+      squashX = horizontal ? 1 - s : 1 + s * 0.6
+      squashY = horizontal ? 1 + s * 0.6 : 1 - s
+      squashAnim.restart()
+    }
+    ParallelAnimation {
+      id: squashAnim
+      NumberAnimation { target: holder; property: "squashX"; to: 1; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.4; easing.period: 0.3 }
+      NumberAnimation { target: holder; property: "squashY"; to: 1; duration: 620; easing.type: Easing.OutElastic; easing.amplitude: 1.4; easing.period: 0.3 }
+    }
+    // Arrêt : petit tassement puis rebond.
+    SequentialAnimation {
+      id: landAnim
+      ParallelAnimation {
+        NumberAnimation { target: holder; property: "squashY"; to: 0.93; duration: 90; easing.type: Easing.OutQuad }
+        NumberAnimation { target: holder; property: "squashX"; to: 1.05; duration: 90; easing.type: Easing.OutQuad }
+      }
+      ParallelAnimation {
+        NumberAnimation { target: holder; property: "squashY"; to: 1; duration: 700; easing.type: Easing.OutElastic; easing.amplitude: 1.2; easing.period: 0.3 }
+        NumberAnimation { target: holder; property: "squashX"; to: 1; duration: 700; easing.type: Easing.OutElastic; easing.amplitude: 1.2; easing.period: 0.3 }
+      }
+    }
 
     MusicWidget {
       id: card
       anchors.fill: parent
       svc: win.service
       size: win.size
+      lyricsMode: win.lyricsMode
+      onLyricsToggled: flipAnim.restart()
+      transform: Rotation {
+        id: flip
+        origin.x: card.width / 2; origin.y: card.height / 2
+        axis { x: 0; y: 1; z: 0 }
+        angle: 0
+      }
+    }
+    // Bascule paroles ↔ pochette : la carte se retourne.
+    SequentialAnimation {
+      id: flipAnim
+      NumberAnimation { target: flip; property: "angle"; from: 0; to: 90; duration: 170; easing.type: Easing.InCubic }
+      ScriptAction { script: win.lyricsMode = !win.lyricsMode }
+      NumberAnimation { target: flip; property: "angle"; from: -90; to: 0; duration: 620; easing.type: Easing.OutBack; easing.overshoot: 2.4 }
     }
 
-    // Glisser : sur toute la carte, mais les boutons de la carte gardent leurs clics
-    // (cette zone est sous eux et ne prend que l'appui maintenu).
+    // Glisser n'importe où sur la carte ; les boutons gardent leurs clics
+    // (le glissement ne démarre qu'après le seuil de déplacement).
     DragHandler {
       id: drag
-      target: holder
+      target: null
       cursorShape: Qt.ClosedHandCursor
+      property real sx: 0
+      property real sy: 0
       onActiveChanged: {
-        if (active) return
-        var n = win.nearest(holder.x + holder.width / 2, holder.y + holder.height / 2)
-        win.pending = n
-        // Repart vers l'ancre (le Behavior se réactive à la fin du glissement).
-        holder.x = Qt.binding(function() { return win.anchorX(win.anchorName, holder.width) })
-        holder.y = Qt.binding(function() { return win.anchorY(win.anchorName, holder.height, holder.width) })
-        if (win.service) win.service.setOption("music_position", n)
+        if (active) {
+          glide.stop(); landAnim.stop()
+          sx = holder.x; sy = holder.y
+          win.vx = 0; win.vy = 0
+          win.samples = []
+          return
+        }
+        // Vitesse au lâcher : moyenne sur les ~90 dernières ms.
+        var s = win.samples, now = Date.now()
+        while (s.length > 1 && now - s[0].t > 90) s.shift()
+        if (s.length > 1 && now - s[s.length - 1].t < 60) {
+          var dt = Math.max(0.016, (s[s.length - 1].t - s[0].t) / 1000)
+          win.vx = (s[s.length - 1].x - s[0].x) / dt
+          win.vy = (s[s.length - 1].y - s[0].y) / dt
+          var sp = Math.hypot(win.vx, win.vy)
+          if (sp > win.maxSpeed) { win.vx *= win.maxSpeed / sp; win.vy *= win.maxSpeed / sp }
+        } else {
+          win.vx = 0; win.vy = 0
+        }
+        if (Math.hypot(win.vx, win.vy) > 40) glide.start()
+        else { win.vx = 0; win.vy = 0; landAnim.restart(); win.commit() }
+      }
+      onActiveTranslationChanged: {
+        if (!active) return
+        // Hors des bords, la carte résiste (élastique) au lieu de s'arrêter net.
+        var rx = sx + activeTranslation.x, ry = sy + activeTranslation.y
+        function rubber(v, lo, hi) {
+          if (v < lo) return lo - Math.sqrt(lo - v) * 4
+          if (v > hi) return hi + Math.sqrt(v - hi) * 4
+          return v
+        }
+        holder.x = rubber(rx, win.minX, win.maxX)
+        holder.y = rubber(ry, win.minY, win.maxY)
+        var now = Date.now(), s = win.samples
+        s.push({ t: now, x: rx, y: ry })
+        while (s.length > 12) s.shift()
+        // Vitesse instantanée lissée, pour l'inclinaison pendant le glissement.
+        if (s.length > 1) {
+          var a = s[Math.max(0, s.length - 4)], b = s[s.length - 1]
+          var dt = Math.max(0.008, (b.t - a.t) / 1000)
+          win.vx = win.vx * 0.5 + ((b.x - a.x) / dt) * 0.5
+        }
       }
     }
     HoverHandler { id: hover }
@@ -135,15 +264,17 @@ PanelWindow {
     // Pastille de taille, au survol.
     Rectangle {
       id: sizePill
-      // À cheval sur le bord bas : pas de trou entre la carte et la pastille.
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.verticalCenter: parent.bottom
-      width: pillRow.implicitWidth + 8; height: Style.space(24); radius: height / 2
-      color: Qt.rgba(0, 0, 0, 0.45)
+      width: pillRow.implicitWidth + 8; height: Style.space(26); radius: height / 2
+      color: Qt.rgba(0, 0, 0, 0.5)
       border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.25)
-      opacity: (hover.hovered || pillHover.hovered) && !drag.active ? 1 : 0
+      readonly property bool on: (hover.hovered || pillHover.hovered) && !drag.active && !glide.running
+      opacity: on ? 1 : 0
+      scale: on ? 1 : 0.4
       visible: opacity > 0.01
-      Behavior on opacity { NumberAnimation { duration: 160 } }
+      Behavior on opacity { NumberAnimation { duration: 180 } }
+      Behavior on scale { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 3 } }
       HoverHandler { id: pillHover }
       Row {
         id: pillRow
@@ -154,8 +285,11 @@ PanelWindow {
           delegate: Rectangle {
             required property var modelData
             readonly property bool on: win.size === modelData[0]
-            width: Style.space(26); height: sizePill.height - 6; radius: height / 2
-            color: on ? Qt.rgba(1, 1, 1, 0.85) : "transparent"
+            width: Style.space(28); height: sizePill.height - 6; radius: height / 2
+            color: on ? Qt.rgba(1, 1, 1, 0.88) : (pm.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : "transparent")
+            scale: pm.pressed ? 0.75 : 1
+            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+            Behavior on color { ColorAnimation { duration: 140 } }
             Text {
               anchors.centerIn: parent
               textFormat: Text.PlainText
@@ -163,7 +297,7 @@ PanelWindow {
               font.family: card.font; font.pixelSize: Style.space(11); font.weight: Font.DemiBold
               color: parent.on ? "#1d1d1f" : "white"
             }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (win.service) win.service.setOption("music_size", parent.modelData[0]) }
+            MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: if (win.service) win.service.setOption("music_size", parent.modelData[0]) }
           }
         }
       }

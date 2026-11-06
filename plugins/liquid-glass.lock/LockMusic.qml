@@ -10,8 +10,10 @@ import qs.Commons
 //   • agrandi (bulle) : la pochette se déploie en grand carré, les commandes
 //     passent dans une carte dessous, le fond devient la pochette floutée et
 //     les paroles synchronisées défilent à côté.
-// On le pose où on veut : il glisse avec de l'inertie (patinoire), rebondit
-// sur les bords ; double-clic = retour à sa place par défaut.
+// On le lance où on veut : il glisse avec de l'inertie (patinoire), rebondit
+// sur les bords puis s'aimante sur des axes x / y invisibles (centre, quarts,
+// bords ; au-dessus de l'avatar, entre l'horloge et l'avatar, milieu, bords).
+// Double-clic = retour à sa place par défaut.
 // Position enregistrée dans lock.music_x / lock.music_y (fractions de l'écran).
 Item {
   id: m
@@ -41,6 +43,23 @@ Item {
     ? Math.round(Math.max(topLimit + 8, (topLimit + bottomLimit) / 2 - ch / 2))
     : Math.round(bottomLimit - ch - 18)
 
+  function nearest(v, c) {
+    var best = c[0]
+    for (var i = 1; i < c.length; i++) if (Math.abs(c[i] - v) < Math.abs(best - v)) best = c[i]
+    return best
+  }
+  function clampTo(v, lo, hi) { return Math.round(Math.max(lo, Math.min(hi, v))) }
+  function snapX(v) {
+    return nearest(v, [minX, maxX, defX,
+      clampTo(width * 0.25 - cw / 2, minX, maxX), clampTo(width * 0.75 - cw / 2, minX, maxX)])
+  }
+  function snapY(v) {
+    return nearest(v, [minY, maxY,
+      clampTo(bottomLimit - ch - 18, minY, maxY),
+      clampTo((topLimit + bottomLimit) / 2 - ch / 2, minY, maxY),
+      clampTo((height - ch) / 2, minY, maxY)])
+  }
+
   property real fx: view ? Number(view.lopt("music_x", -1)) : -1
   property real fy: view ? Number(view.lopt("music_y", -1)) : -1
   readonly property bool custom: fx >= 0 && fy >= 0
@@ -53,8 +72,9 @@ Item {
     saver.running = true
   }
   function commit() {
-    fx = maxX > minX ? Math.round((card.x - minX) / (maxX - minX) * 10000) / 10000 : 0
-    fy = maxY > minY ? Math.round((card.y - minY) / (maxY - minY) * 10000) / 10000 : 0
+    var sx = snapX(card.x), sy = snapY(card.y)
+    fx = maxX > minX ? Math.round((sx - minX) / (maxX - minX) * 10000) / 10000 : 0
+    fy = maxY > minY ? Math.round((sy - minY) / (maxY - minY) * 10000) / 10000 : 0
     fx = Math.max(0, Math.min(1, fx)); fy = Math.max(0, Math.min(1, fy))
     card.x = Qt.binding(function() { return m.restX })
     card.y = Qt.binding(function() { return m.restY })
@@ -134,8 +154,8 @@ Item {
     width: m.cw; height: m.ch
     x: m.restX; y: m.restY
     // Morphose compact ↔ agrandi et changements de place : ressort exagéré.
-    Behavior on x { enabled: !drag.active && !glide.running; NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 2.0 } }
-    Behavior on y { enabled: !drag.active && !glide.running; NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 2.0 } }
+    Behavior on x { enabled: !drag.active && !glide.running; NumberAnimation { duration: 720; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
+    Behavior on y { enabled: !drag.active && !glide.running; NumberAnimation { duration: 720; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
     Behavior on width { NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
     Behavior on height { NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
 

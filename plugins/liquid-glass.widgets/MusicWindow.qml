@@ -6,7 +6,9 @@ import qs.Commons
 // Widget « lecture en cours » libre sur le bureau.
 // Fenêtre « Bottom » de tout l'écran, mais seule la carte (et sa pastille de
 // taille) reçoit les clics grâce au masque : le reste du bureau fonctionne.
-//   • on le pose où on veut, sans repères ni aimantation ;
+//   • aucun repère visible : lâché, il s'aimante sur des axes x / y
+//     invisibles (la grille des widgets, alignée sur la colonne de gauche,
+//     sur les bords droit / bas et sur le centre de l'écran) ;
 //   • lâché en mouvement, il glisse comme sur une patinoire (inertie, friction
 //     faible) et rebondit sur les bords de l'écran ;
 //   • il s'incline selon la vitesse, gonfle quand on l'attrape, s'écrase en
@@ -20,6 +22,10 @@ PanelWindow {
   readonly property real unit: Style.space(150)
   readonly property real gap: Style.space(14)
   readonly property real margin: Style.space(10)
+  // Mêmes marges que la colonne des widgets : les axes tombent juste.
+  readonly property real edgeX: Style.space(22)
+  readonly property real edgeY: Style.space(14)
+  readonly property real step: unit + gap
 
   readonly property string size: service ? service.musicSize : "medium"
   readonly property real cardW: size === "small" ? unit : unit * 2 + gap
@@ -42,10 +48,21 @@ PanelWindow {
   }
 
   // ------------------------------------------------------------ position
-  readonly property real minX: margin
-  readonly property real minY: margin
-  readonly property real maxX: Math.max(minX, width - cardW - margin)
-  readonly property real maxY: Math.max(minY, height - cardH - margin)
+  readonly property real minX: edgeX
+  readonly property real minY: edgeY
+  readonly property real maxX: Math.max(minX, width - cardW - edgeX)
+  readonly property real maxY: Math.max(minY, height - cardH - edgeY)
+
+  // Axes d'aimantation sur une dimension : les bords, le centre, et les pas de
+  // la grille comptés depuis chaque bord. Renvoie le plus proche de v.
+  function snapAxis(v, lo, hi) {
+    var c = [lo, hi, Math.round((lo + hi) / 2)]
+    for (var a = lo + step; a < hi - 1; a += step) c.push(a)
+    for (var b = hi - step; b > lo + 1; b -= step) c.push(b)
+    var best = c[0]
+    for (var i = 1; i < c.length; i++) if (Math.abs(c[i] - v) < Math.abs(best - v)) best = c[i]
+    return best
+  }
   function clampX(x) { return Math.max(minX, Math.min(maxX, x)) }
   function clampY(y) { return Math.max(minY, Math.min(maxY, y)) }
 
@@ -69,8 +86,9 @@ PanelWindow {
 
   // Fin de geste : on retient l'endroit, on se raccroche à la liaison, on enregistre.
   function commit() {
-    fx = maxX > minX ? (holder.x - minX) / (maxX - minX) : 0
-    fy = maxY > minY ? (holder.y - minY) / (maxY - minY) : 0
+    var sx = snapAxis(holder.x, minX, maxX), sy = snapAxis(holder.y, minY, maxY)
+    fx = maxX > minX ? (sx - minX) / (maxX - minX) : 0
+    fy = maxY > minY ? (sy - minY) / (maxY - minY) : 0
     fx = Math.round(Math.max(0, Math.min(1, fx)) * 10000) / 10000
     fy = Math.round(Math.max(0, Math.min(1, fy)) * 10000) / 10000
     holder.x = Qt.binding(function() { return win.restX })
@@ -131,8 +149,9 @@ PanelWindow {
     y: win.restY
     z: 2
     // Repositionnement (taille, écran, config) : glissé avec dépassement.
-    Behavior on x { enabled: !drag.active && !glide.running; NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
-    Behavior on y { enabled: !drag.active && !glide.running; NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
+    // Aimantation / repositionnement : il file vers l'axe et le dépasse avant de se caler.
+    Behavior on x { enabled: !drag.active && !glide.running; NumberAnimation { duration: 720; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
+    Behavior on y { enabled: !drag.active && !glide.running; NumberAnimation { duration: 720; easing.type: Easing.OutBack; easing.overshoot: 2.8 } }
 
     // Échelles composées : apparition × prise en main × rebond de taille × écrasement.
     property real appear: win.shown ? 1 : 0.55

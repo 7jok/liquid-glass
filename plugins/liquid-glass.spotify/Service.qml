@@ -123,8 +123,11 @@ Item {
   }
   function writeNowPlaying() {
     nowPlayingFile.setText(JSON.stringify({
-      title: title, artist: artist, cover: coverPath,
-      palette: palette, coverWallpaper: showingCover, wallLayout: wallMode
+      title: title, artist: artist, album: album, cover: coverPath,
+      palette: palette, coverWallpaper: showingCover, wallLayout: wallMode,
+      wallpaper: wallpaperPath,
+      // Paroles synchronisées pour l'écran de verrouillage : [{t, text}].
+      lyrics: lyricsSynced ? lyricLines : []
     }) + "\n")
   }
   // Les widgets de bureau (liquid-glass.widgets) suivent l'affichage de la pochette en fond.
@@ -163,7 +166,9 @@ Item {
     lyricsLoading = true
     helper.command = [
       "liquid-glass-spotify", "track",
-      "--art", artUrl, "--artist", artist, "--title", title, "--album", album,
+      // Une pochette « data: » trop longue ne passerait pas en argument.
+      "--art", artUrl.length > 120000 ? "" : artUrl,
+      "--artist", artist, "--title", title, "--album", album,
       "--length", String(Math.round(length)),
       "--mode", wallMode === "off" ? "off" : wallMode,
       "--layout", (lyricsDesktop && wallMode === "cover") ? "left" : "center",
@@ -183,7 +188,6 @@ Item {
         if (svc.requestedKey !== svc.trackKey) return   // morceau déjà changé
         svc.coverPath = res.cover || ""
         svc.palette = res.palette || null
-        svc.writeNowPlaying()
         var ly = res.lyrics || {}
         svc.lyricLines = Array.isArray(ly.lines) ? ly.lines : []
         svc.lyricsSynced = ly.synced === true && svc.lyricLines.length > 0
@@ -191,6 +195,7 @@ Item {
         var newWall = res.wallpaper || ""
         var wallChanged = newWall !== svc.wallpaperPath
         svc.wallpaperPath = newWall
+        svc.writeNowPlaying()
         svc.syncPosition()
         if (svc.playing) {
           if (svc.wallMode !== "off" && newWall !== "" && (wallChanged || !svc.showingCover)) svc.showCover()

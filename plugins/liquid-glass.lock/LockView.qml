@@ -3,18 +3,24 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Mpris
+import Quickshell.Services.UPower
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
 // ============================================================================
-// Liquid Glass — vue de l'écran de verrouillage façon macOS.
+// Liquid Glass — vue de l'écran de verrouillage façon macOS Tahoe.
 // Clone visuel de omarchy.lock/LockView.qml : la saisie et l'authentification
 // (propriétés, signaux, TextInput et ses gestionnaires, empreinte) sont celles
 // d'Omarchy, inchangées ; Service.qml (PAM) n'est pas modifié.
-// Ajouts purement visuels : date + grande horloge, avatar (~/.face ou initiale),
-// champ « pilule » en verre, et pendant la lecture : pochette floutée en fond
-// + mini-lecteur (lu via MPRIS et ~/.cache/liquid-glass/now-playing.json).
+//
+// De haut en bas, au centre : la date, la grande horloge en verre, la carte
+// « lecture en cours » (Spotify), puis en bas l'avatar, le nom et le petit champ
+// du mot de passe avec son indication.
+// En haut à droite : batterie, puis les notifications récentes (aperçu réglable).
+// Pendant la lecture : la pochette devient le fond (pochette nette à gauche sur
+// un fond flou de ses couleurs) et les paroles synchronisées défilent à droite.
+// Réglages : section [lock] de ~/.config/liquid-glass/config.toml.
 // ============================================================================
 Item {
   id: root
@@ -32,12 +38,11 @@ Item {
   property string passwordText: ""
   property bool syncingPasswordText: false
 
-  readonly property string uiFont: "Inter"
-  readonly property string placeholderText: "Saisir le mot de passe"
-  readonly property int fieldWidth: 250
-  readonly property int fieldHeight: 36
-  readonly property int fieldFontSize: 14
-  readonly property int passwordDotFontSize: 15
+  readonly property string placeholderText: "Mot de passe"
+  readonly property int fieldWidth: 210
+  readonly property int fieldHeight: 32
+  readonly property int fieldFontSize: 13
+  readonly property int passwordDotFontSize: 14
   readonly property int passwordDotLetterSpacing: 3
   readonly property real fingerprintReserve: fingerprintConfigured ? Math.round(fingerprintIcon.implicitWidth + 8) : 0
   readonly property real passwordDotScale: dotMetrics.advanceWidth > 0
@@ -98,6 +103,31 @@ Item {
     text: "●".repeat(passwordInput.text.length)
   }
 
+  // ------------------------------------------------------------ réglages
+  readonly property string home: Quickshell.env("HOME")
+  property var cfg: ({})
+  FileView {
+    path: root.home + "/.config/liquid-glass/config.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.cfg = JSON.parse(text()) } catch (e) {} }
+  }
+  readonly property var lockCfg: cfg.lock || ({})
+  function lopt(k, d) { return lockCfg.hasOwnProperty(k) ? lockCfg[k] : d }
+  // full (titre + texte) | summary (appli + titre) | count (nombre seulement) | off
+  readonly property string notifMode: String(lopt("notifications", "summary"))
+  // art (pochette nette + fond flou) | wallpaper (fond Spotify) | blur | off
+  readonly property string musicBackground: String(lopt("music_background", "art"))
+  readonly property bool showLyrics: lopt("lyrics", true) !== false
+  readonly property bool showMusicCard: lopt("music_card", true) !== false
+  readonly property bool showStatus: lopt("status", true) !== false
+  // glass (verre dégradé) | bold | light
+  readonly property string clockStyle: String(lopt("clock_style", "glass"))
+  readonly property bool clock24: lopt("clock_24h", true) !== false
+  readonly property string uiFont: (cfg.appearance && cfg.appearance.font_ui) || "Inter"
+  readonly property string clockFont: String(lopt("clock_font", "")) || uiFont
+
   // ------------------------------------------------------------ musique
   readonly property var player: {
     var ps = Mpris.players ? Mpris.players.values : []
@@ -110,27 +140,123 @@ Item {
     return playing || spotify
   }
   readonly property bool musicActive: !!player && (player.trackTitle || "") !== ""
+  readonly property bool musicPlaying: musicActive && player.isPlaying
   property var nowPlaying: ({})
   FileView {
-    path: Quickshell.env("HOME") + "/.cache/liquid-glass/now-playing.json"
+    path: root.home + "/.cache/liquid-glass/now-playing.json"
     watchChanges: true
     printErrors: false
     onFileChanged: reload()
     onLoaded: { try { root.nowPlaying = JSON.parse(text()) } catch (e) { root.nowPlaying = ({}) } }
   }
+  // Les données en cache ne valent que pour le morceau affiché.
+  readonly property bool npMatches: musicActive && nowPlaying.title === player.trackTitle
   readonly property string coverSource: {
     if (!musicActive) return ""
-    if (nowPlaying.cover && nowPlaying.title === player.trackTitle) return "file://" + nowPlaying.cover
+    if (npMatches && nowPlaying.cover) return "file://" + nowPlaying.cover
     var art = String(player.trackArtUrl || "")
     return art.indexOf("file://") === 0 ? art : ""
+  }
+  readonly property var palette: npMatches ? (nowPlaying.palette || null) : null
+  readonly property color tintA: palette && palette.colors && palette.colors.length > 1 ? palette.colors[1] : "#1c1c1e"
+  readonly property color tintB: palette && palette.accent ? palette.accent : "#3a3a3c"
+  // Le fond « musique » ne remplace le fond d'écran que pendant la lecture.
+  readonly property bool musicScene: musicPlaying && musicBackground !== "off" && coverSource !== ""
+  readonly property bool artMode: musicScene && musicBackground === "art"
+
+  // Position extrapolée (MPRIS ne pousse pas la position) et ligne de paroles.
+  property real position: 0
+  readonly property real trackLength: player && player.lengthSupported ? player.length : 0
+  readonly property var lyricLines: npMatches && Array.isArray(nowPlaying.lyrics) ? nowPlaying.lyrics : []
+  readonly property bool lyricsShown: showLyrics && musicScene && lyricLines.length > 0
+  property int lineIndex: -1
+  function updatePosition() {
+    if (!player) return
+    if (player.positionSupported) player.positionChanged()
+    position = player.position || 0
+    var t = position + 0.25, lines = lyricLines, i = -1
+    while (i + 1 < lines.length && lines[i + 1].t <= t) i++
+    if (i !== lineIndex) lineIndex = i
+  }
+  Timer {
+    interval: root.lyricsShown ? 250 : 1000
+    repeat: true
+    triggeredOnStart: true
+    running: root.loadBackground && root.musicActive
+    onTriggered: root.updatePosition()
+  }
+  function fmt(s) { s = Math.max(0, Math.floor(s)); return Math.floor(s / 60) + ":" + ("0" + s % 60).slice(-2) }
+  QtObject {
+    id: lyricsModel
+    readonly property var lyricLines: root.lyricLines
+    readonly property int lineIndex: root.lineIndex
+  }
+
+  // ------------------------------------------------------------ notifications
+  // Lues dans l'état du service de notifications d'Omarchy (live + historique),
+  // les plus récentes d'abord, sur les 12 dernières heures.
+  property var liveNotifs: []
+  property var pastNotifs: []
+  FileView {
+    path: root.home + "/.local/state/omarchy/notifications/live.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.liveNotifs = JSON.parse(text()) || [] } catch (e) { root.liveNotifs = [] } }
+  }
+  FileView {
+    path: root.home + "/.local/state/omarchy/notifications/history.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.pastNotifs = JSON.parse(text()) || [] } catch (e) { root.pastNotifs = [] } }
+  }
+  property real nowSec: Date.now() / 1000
+  readonly property var notifications: {
+    if (notifMode === "off") return []
+    var all = [].concat(liveNotifs || [], pastNotifs || [])
+    var seen = {}, out = []
+    for (var i = 0; i < all.length; i++) {
+      var n = all[i]
+      if (!n || !n.ts || seen[n.key]) continue
+      seen[n.key] = true
+      if (nowSec - n.ts > 12 * 3600 || n.transient) continue
+      out.push(n)
+    }
+    out.sort(function(a, b) { return b.ts - a.ts })
+    return out
+  }
+  function ago(ts) {
+    var d = Math.max(0, nowSec - ts)
+    if (d < 60) return "maintenant"
+    if (d < 3600) return "il y a " + Math.floor(d / 60) + " min"
+    return "il y a " + Math.floor(d / 3600) + " h"
+  }
+  function appLabel(n) {
+    var a = String(n.app || n.source || "")
+    if (a === "omarchy-action" || a === "") return "Système"
+    if (a === "omasnap") return "Capture d'écran"
+    return a.charAt(0).toUpperCase() + a.slice(1)
   }
 
   // Avatar : ~/.face s'il existe (sinon l'initiale). Test d'existence sans avertissement.
   property bool hasFace: false
   Process {
-    command: ["test", "-f", Quickshell.env("HOME") + "/.face"]
+    command: ["test", "-f", root.home + "/.face"]
     running: true
     onExited: function(code) { root.hasFace = code === 0 }
+  }
+  // Nom complet (champ GECOS), sinon l'identifiant avec une majuscule.
+  property string fullName: ""
+  Process {
+    command: ["sh", "-c", "getent passwd \"$USER\" | cut -d: -f5 | cut -d, -f1"]
+    running: true
+    stdout: StdioCollector { onStreamFinished: root.fullName = text.trim() }
+  }
+  readonly property string displayName: {
+    if (fullName !== "") return fullName
+    var u = String(Quickshell.env("USER") || "")
+    return u.charAt(0).toUpperCase() + u.slice(1)
   }
 
   // ------------------------------------------------------------ fond
@@ -160,7 +286,7 @@ Item {
       contrast: -0.08
     }
 
-    // Pochette floutée par-dessus le fond pendant la lecture.
+    // ---- Scène musique : pochette floutée plein écran (modes art et blur).
     Image {
       id: coverBg
       anchors.fill: parent
@@ -177,18 +303,38 @@ Item {
       blurEnabled: true
       blur: 1.0
       blurMax: 96
-      saturation: 0.25
-      brightness: -0.12
-      opacity: coverBg.status === Image.Ready ? 1 : 0
-      Behavior on opacity { NumberAnimation { duration: 600 } }
+      saturation: 0.35
+      brightness: -0.14
+      opacity: root.musicScene && root.musicBackground !== "wallpaper" && coverBg.status === Image.Ready ? 1 : 0
+      Behavior on opacity { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
+    }
+    // Mode « wallpaper » : le fond généré par le service Spotify, net.
+    Image {
+      anchors.fill: parent
+      source: root.loadBackground && root.npMatches && root.nowPlaying.wallpaper ? "file://" + root.nowPlaying.wallpaper : ""
+      fillMode: Image.PreserveAspectCrop
+      asynchronous: true
+      opacity: root.musicScene && root.musicBackground === "wallpaper" && status === Image.Ready ? 1 : 0
+      Behavior on opacity { NumberAnimation { duration: 700; easing.type: Easing.OutCubic } }
+    }
+    // Dégradé des couleurs de la pochette, très léger, pour lier le tout.
+    Rectangle {
+      anchors.fill: parent
+      opacity: root.artMode ? 0.35 : 0
+      Behavior on opacity { NumberAnimation { duration: 700 } }
+      gradient: Gradient {
+        orientation: Gradient.Horizontal
+        GradientStop { position: 0.0; color: root.tintA }
+        GradientStop { position: 1.0; color: Qt.rgba(root.tintB.r, root.tintB.g, root.tintB.b, 0.2) }
+      }
     }
     // Léger voile pour que le texte blanc reste lisible sur les fonds clairs.
     Rectangle {
       anchors.fill: parent
       gradient: Gradient {
-        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.18) }
-        GradientStop { position: 0.45; color: Qt.rgba(0, 0, 0, 0.04) }
-        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.22) }
+        GradientStop { position: 0.0; color: Qt.rgba(0, 0, 0, 0.20) }
+        GradientStop { position: 0.45; color: Qt.rgba(0, 0, 0, 0.05) }
+        GradientStop { position: 1.0; color: Qt.rgba(0, 0, 0, 0.26) }
       }
     }
 
@@ -199,14 +345,105 @@ Item {
       onPositionChanged: root.wakeRequested()
     }
 
+    // ---- Mode « art » : la pochette nette, en grand, à gauche.
+    Item {
+      id: bigArt
+      readonly property real side: Math.round(Math.min(root.height * 0.42, root.width * 0.24))
+      width: side; height: side
+      x: Math.round(Math.max(24, (root.width / 2 - 200 - side) / 2))
+      y: Math.round(root.height * 0.47 - side / 2)
+      opacity: root.artMode ? 1 : 0
+      scale: root.artMode ? 1 : 0.9
+      visible: opacity > 0.01
+      Behavior on opacity { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } }
+      Behavior on scale { NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 1.1 } }
+      Image {
+        id: bigArtImg
+        anchors.fill: parent
+        source: root.loadBackground ? root.coverSource : ""
+        sourceSize: Qt.size(640, 640)
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        visible: false
+      }
+      Rectangle { id: bigArtMask; anchors.fill: parent; radius: 18; visible: false; layer.enabled: true }
+      MultiEffect {
+        anchors.fill: parent
+        source: bigArtImg
+        maskEnabled: true
+        maskSource: bigArtMask
+        shadowEnabled: true
+        shadowOpacity: 0.55
+        shadowBlur: 1.0
+        shadowVerticalOffset: 10
+        visible: bigArtImg.status === Image.Ready
+      }
+      // Liseré de verre.
+      Rectangle { anchors.fill: parent; radius: 18; color: "transparent"; border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.22) }
+      Text {
+        anchors.top: parent.bottom; anchors.topMargin: 14
+        width: parent.width
+        horizontalAlignment: Text.AlignHCenter
+        textFormat: Text.PlainText
+        elide: Text.ElideRight
+        text: root.player ? (root.player.trackAlbum || "") : ""
+        font.family: root.uiFont; font.pixelSize: 12; font.weight: Font.Medium
+        color: "white"; opacity: 0.7
+      }
+    }
+
+    // ---- Paroles synchronisées, à droite.
+    Item {
+      id: lyricsArea
+      x: Math.round(root.width / 2 + 230)
+      width: Math.max(0, root.width - x - 40)
+      y: Math.round(root.height * 0.34)
+      height: Math.round(root.height * 0.5)
+      clip: true
+      opacity: root.lyricsShown && width > 160 ? 1 : 0
+      visible: opacity > 0.01
+      Behavior on opacity { NumberAnimation { duration: 500 } }
+      layer.enabled: true
+      layer.effect: MultiEffect {
+        maskEnabled: true
+        maskSource: lyricsFade
+        maskThresholdMin: 0.0
+        maskSpreadAtMin: 0.0
+      }
+      LyricsColumn {
+        anchors.fill: parent
+        service: lyricsModel
+        fontFamily: root.uiFont
+        fontSize: Math.round(Math.max(18, Math.min(30, root.height * 0.036)))
+        visibleRadius: 4
+        blurPerLine: 0.25
+      }
+    }
+    // Fondu haut/bas des paroles.
+    Item {
+      id: lyricsFade
+      width: lyricsArea.width; height: lyricsArea.height
+      visible: false
+      layer.enabled: true
+      Rectangle {
+        anchors.fill: parent
+        gradient: Gradient {
+          GradientStop { position: 0.0; color: "transparent" }
+          GradientStop { position: 0.22; color: "black" }
+          GradientStop { position: 0.78; color: "black" }
+          GradientStop { position: 1.0; color: "transparent" }
+        }
+      }
+    }
+
     // ---------------------------------------------------------- horloge
-    SystemClock { id: clock; precision: SystemClock.Minutes }
+    SystemClock { id: clock; precision: SystemClock.Minutes; onDateChanged: root.nowSec = Date.now() / 1000 }
 
     Column {
       id: clockColumn
       anchors.horizontalCenter: parent.horizontalCenter
-      y: Math.round(parent.height * 0.09)
-      spacing: -4
+      y: Math.round(parent.height * 0.065)
+      spacing: -Math.round(root.height * 0.004)
 
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
@@ -216,58 +453,127 @@ Item {
           return s.charAt(0).toUpperCase() + s.slice(1)
         }
         font.family: root.uiFont; font.pixelSize: Math.round(root.height * 0.028); font.weight: Font.DemiBold
-        color: "white"; opacity: 0.88
+        color: "white"; opacity: 0.9
         layer.enabled: true
         layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.6; shadowColor: "#40000000"; shadowVerticalOffset: 1 }
       }
-      Text {
+
+      // Grande horloge. Style « glass » : remplissage blanc dégradé, comme du
+      // verre dépoli éclairé par le haut, avec une ombre douce.
+      Item {
+        id: bigClock
+        // Marge autour du texte : les chiffres débordent de leur boîte (approche
+        // négative), et le masque ne doit pas les rogner.
+        readonly property real pad: Math.round(root.height * 0.03)
         anchors.horizontalCenter: parent.horizontalCenter
-        textFormat: Text.PlainText
-        text: Qt.formatTime(clock.date, "HH:mm")
-        font.family: root.uiFont; font.pixelSize: Math.round(root.height * 0.15); font.weight: Font.Bold
-        font.letterSpacing: -2
-        font.features: { "tnum": 1 }
-        color: "white"; opacity: 0.92
-        layer.enabled: true
-        layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.8; shadowColor: "#38000000"; shadowVerticalOffset: 2 }
+        width: clockText.implicitWidth
+        height: clockText.implicitHeight
+        Text {
+          id: clockText
+          textFormat: Text.PlainText
+          text: Qt.formatTime(clock.date, root.clock24 ? "HH:mm" : "h:mm")
+          font.family: root.clockFont
+          font.pixelSize: Math.round(root.height * 0.155)
+          font.weight: root.clockStyle === "light" ? Font.Light : (root.clockStyle === "glass" ? Font.DemiBold : Font.Bold)
+          font.letterSpacing: -Math.round(root.height * 0.003)
+          font.features: { "tnum": 1 }
+          color: "white"
+          opacity: root.clockStyle === "glass" ? 0 : 0.92
+          layer.enabled: root.clockStyle !== "glass"
+          layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.8; shadowColor: "#38000000"; shadowVerticalOffset: 2 }
+        }
+        Item {
+          id: clockMask
+          x: -bigClock.pad; y: -bigClock.pad
+          width: bigClock.width + 2 * bigClock.pad; height: bigClock.height + 2 * bigClock.pad
+          visible: false
+          layer.enabled: true
+          layer.smooth: true
+          Text {
+            x: bigClock.pad; y: bigClock.pad
+            textFormat: Text.PlainText
+            text: clockText.text
+            font: clockText.font
+            color: "black"
+          }
+        }
+        Rectangle {
+          id: clockFill
+          anchors.fill: clockMask
+          visible: false
+          layer.enabled: true
+          gradient: Gradient {
+            GradientStop { position: 0.15; color: Qt.rgba(1, 1, 1, 0.97) }
+            GradientStop { position: 0.6; color: Qt.rgba(1, 1, 1, 0.80) }
+            GradientStop { position: 0.9; color: Qt.rgba(1, 1, 1, 0.60) }
+          }
+        }
+        MultiEffect {
+          anchors.fill: clockMask
+          visible: root.clockStyle === "glass"
+          source: clockFill
+          maskEnabled: true
+          maskSource: clockMask
+          // Bords lissés : fondu autour du seuil (sinon le masque est binaire).
+          maskThresholdMin: 0.5
+          maskSpreadAtMin: 1.0
+          shadowEnabled: true
+          shadowBlur: 0.7
+          shadowOpacity: 0.3
+          shadowVerticalOffset: 3
+        }
       }
     }
 
     // ---------------------------------------------------------- lecture en cours
     Rectangle {
       id: nowCard
-      visible: root.musicActive
+      readonly property bool shown: root.musicActive && root.showMusicCard
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.top: clockColumn.bottom
-      anchors.topMargin: Math.round(root.height * 0.03)
-      width: 340; height: 76
-      radius: 18
-      color: Qt.rgba(1, 1, 1, 0.16)
+      anchors.topMargin: Math.round(root.height * 0.02)
+      width: 370; height: 118
+      radius: 24
+      opacity: shown ? 1 : 0
+      visible: opacity > 0.01
+      scale: shown ? 1 : 0.94
+      Behavior on opacity { NumberAnimation { duration: 400; easing.type: Easing.OutCubic } }
+      Behavior on scale { NumberAnimation { duration: 500; easing.type: Easing.OutBack } }
+      color: Qt.rgba(1, 1, 1, 0.14)
       border.width: 1
-      border.color: Qt.rgba(1, 1, 1, 0.28)
+      border.color: Qt.rgba(1, 1, 1, 0.30)
+      // Reflet du verre sur le haut de la carte.
+      Rectangle {
+        anchors.fill: parent; anchors.margins: 1
+        radius: parent.radius - 1
+        gradient: Gradient {
+          GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, 0.14) }
+          GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0.0) }
+        }
+      }
 
       Item {
         id: art
-        x: 10; anchors.verticalCenter: parent.verticalCenter
-        width: 56; height: 56
-        Image { id: artImg; anchors.fill: parent; source: root.coverSource; sourceSize: Qt.size(112, 112); fillMode: Image.PreserveAspectCrop; visible: false }
-        Rectangle { id: artMask; anchors.fill: parent; radius: 10; visible: false; layer.enabled: true }
+        x: 14; y: 14
+        width: 58; height: 58
+        Image { id: artImg; anchors.fill: parent; source: root.coverSource; sourceSize: Qt.size(128, 128); fillMode: Image.PreserveAspectCrop; visible: false; asynchronous: true }
+        Rectangle { id: artMask; anchors.fill: parent; radius: 11; visible: false; layer.enabled: true }
         MultiEffect { anchors.fill: parent; source: artImg; maskEnabled: true; maskSource: artMask; visible: artImg.status === Image.Ready }
-        Rectangle { anchors.fill: parent; radius: 10; color: Qt.rgba(1, 1, 1, 0.2); visible: artImg.status !== Image.Ready }
+        Rectangle { anchors.fill: parent; radius: 11; color: Qt.rgba(1, 1, 1, 0.2); visible: artImg.status !== Image.Ready }
       }
       Column {
         anchors.left: art.right; anchors.leftMargin: 12
         anchors.right: controls.left; anchors.rightMargin: 8
-        anchors.verticalCenter: parent.verticalCenter
+        anchors.verticalCenter: art.verticalCenter
         spacing: 2
         Text { width: parent.width; textFormat: Text.PlainText; text: root.player ? root.player.trackTitle || "" : ""; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: 14; font.weight: Font.DemiBold; color: "white" }
-        Text { width: parent.width; textFormat: Text.PlainText; text: root.player ? root.player.trackArtist || "" : ""; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: 12; color: "white"; opacity: 0.7 }
+        Text { width: parent.width; textFormat: Text.PlainText; text: root.player ? root.player.trackArtist || "" : ""; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: 12; color: "white"; opacity: 0.72 }
       }
       Row {
         id: controls
-        anchors.right: parent.right; anchors.rightMargin: 10
-        anchors.verticalCenter: parent.verticalCenter
-        spacing: 2
+        anchors.right: parent.right; anchors.rightMargin: 12
+        anchors.verticalCenter: art.verticalCenter
+        spacing: 0
         Repeater {
           model: [
             [0xF04AE, function() { root.player.previous() }],
@@ -276,17 +582,184 @@ Item {
           ]
           delegate: Item {
             required property var modelData
-            width: 30; height: 30
+            width: 32; height: 32
+            Rectangle { anchors.fill: parent; radius: 16; color: "white"; opacity: btnMouse.containsMouse ? 0.14 : 0 }
             Text {
               anchors.centerIn: parent
               textFormat: Text.PlainText
               text: String.fromCodePoint(modelData[0] === -1 ? (root.player && root.player.isPlaying ? 0xF03E4 : 0xF040A) : modelData[0])
               font.family: Style.font.family; font.pixelSize: modelData[0] === -1 ? 24 : 18
               color: "white"
+              scale: btnMouse.pressed ? 0.86 : 1
+              Behavior on scale { NumberAnimation { duration: 90 } }
             }
-            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: { if (root.player) modelData[1](); root.forcePasswordFocus() } }
+            MouseArea { id: btnMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { if (root.player) modelData[1](); root.forcePasswordFocus() } }
           }
         }
+      }
+      // Progression + temps.
+      Item {
+        anchors.left: parent.left; anchors.right: parent.right
+        anchors.leftMargin: 16; anchors.rightMargin: 16
+        anchors.bottom: parent.bottom; anchors.bottomMargin: 12
+        height: 26
+        Text { id: elapsed; anchors.left: parent.left; anchors.verticalCenter: bar.verticalCenter; width: 34; textFormat: Text.PlainText; text: root.fmt(root.position); font.family: root.uiFont; font.pixelSize: 10; font.features: { "tnum": 1 }; color: "white"; opacity: 0.7 }
+        Text { id: remain; anchors.right: parent.right; anchors.verticalCenter: bar.verticalCenter; width: 38; horizontalAlignment: Text.AlignRight; textFormat: Text.PlainText; text: root.trackLength > 0 ? "-" + root.fmt(root.trackLength - root.position) : ""; font.family: root.uiFont; font.pixelSize: 10; font.features: { "tnum": 1 }; color: "white"; opacity: 0.7 }
+        Rectangle {
+          id: bar
+          anchors.left: elapsed.right; anchors.right: remain.left
+          anchors.leftMargin: 6; anchors.rightMargin: 6
+          anchors.verticalCenter: parent.verticalCenter
+          height: 5; radius: 2.5
+          color: Qt.rgba(1, 1, 1, 0.22)
+          Rectangle {
+            width: root.trackLength > 0 ? parent.width * Math.min(1, root.position / root.trackLength) : 0
+            height: parent.height; radius: 2.5
+            color: "white"
+            Behavior on width { NumberAnimation { duration: 260 } }
+          }
+          MouseArea {
+            anchors.fill: parent; anchors.margins: -8
+            cursorShape: Qt.PointingHandCursor
+            onClicked: function(m) {
+              if (root.player && root.player.canSeek && root.trackLength > 0) {
+                root.player.position = Math.max(0, Math.min(1, (m.x - 8) / (width - 16))) * root.trackLength
+                root.updatePosition()
+              }
+              root.forcePasswordFocus()
+            }
+          }
+        }
+      }
+    }
+
+    // ---------------------------------------------------------- état (en haut à droite)
+    Row {
+      id: statusRow
+      visible: root.showStatus
+      anchors.right: parent.right; anchors.rightMargin: 22
+      y: 14
+      spacing: 10
+      readonly property var bat: UPower.displayDevice
+      readonly property bool hasBat: !!(bat && bat.isPresent)
+      Text {
+        visible: statusRow.hasBat
+        anchors.verticalCenter: parent.verticalCenter
+        textFormat: Text.PlainText
+        text: statusRow.hasBat ? Math.round(statusRow.bat.percentage * 100) + " %" : ""
+        font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.Medium
+        color: "white"
+      }
+      Text {
+        visible: statusRow.hasBat
+        anchors.verticalCenter: parent.verticalCenter
+        textFormat: Text.PlainText
+        text: {
+          if (!statusRow.hasBat) return ""
+          if (!UPower.onBattery) return String.fromCodePoint(0xF0084)
+          var p = statusRow.bat.percentage
+          var steps = [0xF008E, 0xF007A, 0xF007B, 0xF007C, 0xF007D, 0xF007E, 0xF007F, 0xF0080, 0xF0081, 0xF0082, 0xF0079]
+          return String.fromCodePoint(steps[Math.max(0, Math.min(10, Math.round(p * 10)))])
+        }
+        font.family: Style.font.family; font.pixelSize: 18
+        color: statusRow.hasBat && UPower.onBattery && statusRow.bat.percentage <= 0.2 ? "#ff6961" : "white"
+      }
+    }
+
+    // ---------------------------------------------------------- notifications (en haut à droite)
+    Column {
+      id: notifColumn
+      anchors.right: parent.right; anchors.rightMargin: 18
+      y: statusRow.visible ? 44 : 18
+      width: 330
+      spacing: 8
+      visible: root.notifMode !== "off" && root.notifications.length > 0
+
+      // Mode « count » : une seule pastille.
+      Rectangle {
+        visible: root.notifMode === "count"
+        width: parent.width; height: 44; radius: 16
+        color: Qt.rgba(1, 1, 1, 0.16)
+        border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.28)
+        Text {
+          anchors.centerIn: parent
+          textFormat: Text.PlainText
+          text: root.notifications.length + (root.notifications.length > 1 ? " notifications" : " notification")
+          font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold
+          color: "white"
+        }
+      }
+
+      Repeater {
+        model: root.notifMode === "count" ? [] : root.notifications.slice(0, 3)
+        delegate: Rectangle {
+          id: card
+          required property var modelData
+          required property int index
+          width: notifColumn.width
+          height: cardCol.implicitHeight + 22
+          radius: 18
+          color: Qt.rgba(1, 1, 1, 0.17)
+          border.width: 1
+          border.color: Qt.rgba(1, 1, 1, 0.28)
+          // Apparition en cascade.
+          opacity: 0
+          Component.onCompleted: appear.start()
+          NumberAnimation { id: appear; target: card; property: "opacity"; to: 1; duration: 320; easing.type: Easing.OutCubic }
+
+          Item {
+            id: icon
+            x: 12; y: 12
+            width: 30; height: 30
+            readonly property string iconPath: card.modelData.appIcon ? Quickshell.iconPath(card.modelData.appIcon, true) : ""
+            Rectangle {
+              anchors.fill: parent; radius: 8
+              visible: iconImg.status !== Image.Ready
+              gradient: Gradient {
+                GradientStop { position: 0; color: "#5ac8fa" }
+                GradientStop { position: 1; color: "#007aff" }
+              }
+              Text {
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: card.modelData.glyph || String.fromCodePoint(0xF009A)
+                font.family: Style.font.family; font.pixelSize: 16
+                color: "white"
+              }
+            }
+            Image { id: iconImg; anchors.fill: parent; source: icon.iconPath; sourceSize: Qt.size(60, 60); asynchronous: true; visible: status === Image.Ready }
+          }
+          Column {
+            id: cardCol
+            anchors.left: icon.right; anchors.leftMargin: 10
+            anchors.right: parent.right; anchors.rightMargin: 12
+            y: 11
+            spacing: 1
+            Item {
+              width: parent.width; height: appText.implicitHeight
+              Text { id: appText; anchors.left: parent.left; anchors.right: when.left; anchors.rightMargin: 6; textFormat: Text.PlainText; elide: Text.ElideRight; text: root.appLabel(card.modelData).toUpperCase(); font.family: root.uiFont; font.pixelSize: 10; font.weight: Font.DemiBold; font.letterSpacing: 0.4; color: "white"; opacity: 0.65 }
+              Text { id: when; anchors.right: parent.right; textFormat: Text.PlainText; text: root.ago(card.modelData.ts); font.family: root.uiFont; font.pixelSize: 10; color: "white"; opacity: 0.6 }
+            }
+            Text { width: parent.width; textFormat: Text.PlainText; elide: Text.ElideRight; text: card.modelData.summary || ""; font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold; color: "white" }
+            Text {
+              width: parent.width
+              visible: root.notifMode === "full" && text !== ""
+              textFormat: Text.PlainText
+              text: String(card.modelData.body || "").replace(/<[^>]*>/g, "")
+              wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight
+              font.family: root.uiFont; font.pixelSize: 12
+              color: "white"; opacity: 0.82
+            }
+          }
+        }
+      }
+      Text {
+        visible: root.notifMode !== "count" && root.notifications.length > 3
+        anchors.right: parent.right; anchors.rightMargin: 6
+        textFormat: Text.PlainText
+        text: "+ " + (root.notifications.length - 3) + " autres"
+        font.family: root.uiFont; font.pixelSize: 11; font.weight: Font.Medium
+        color: "white"; opacity: 0.7
       }
     }
 
@@ -294,37 +767,38 @@ Item {
     Column {
       id: userColumn
       anchors.horizontalCenter: parent.horizontalCenter
-      y: Math.round(parent.height * 0.70)
-      spacing: 10
+      anchors.bottom: parent.bottom
+      anchors.bottomMargin: Math.round(parent.height * 0.065)
+      spacing: 9
 
       Item {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 64; height: 64
+        width: 62; height: 62
         Image {
           id: face
           anchors.fill: parent
-          source: root.hasFace ? "file://" + Quickshell.env("HOME") + "/.face" : ""
+          source: root.hasFace ? "file://" + root.home + "/.face" : ""
           sourceSize: Qt.size(128, 128)
           fillMode: Image.PreserveAspectCrop
           visible: false
           cache: false
         }
         Rectangle { id: faceMask; anchors.fill: parent; radius: width / 2; visible: false; layer.enabled: true }
-        MultiEffect { anchors.fill: parent; source: face; maskEnabled: true; maskSource: faceMask; visible: face.status === Image.Ready }
+        MultiEffect { anchors.fill: parent; source: face; maskEnabled: true; maskSource: faceMask; visible: face.status === Image.Ready; shadowEnabled: true; shadowOpacity: 0.3; shadowBlur: 0.6 }
         Rectangle {
           anchors.fill: parent
           radius: width / 2
           visible: face.status !== Image.Ready
           gradient: Gradient {
-            GradientStop { position: 0; color: "#9aa7ff" }
-            GradientStop { position: 1; color: "#5b6cf0" }
+            GradientStop { position: 0; color: "#a5b4c8" }
+            GradientStop { position: 1; color: "#6b7a90" }
           }
           border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.4)
           Text {
             anchors.centerIn: parent
             textFormat: Text.PlainText
-            text: String(Quickshell.env("USER") || "?").charAt(0).toUpperCase()
-            font.family: root.uiFont; font.pixelSize: 28; font.weight: Font.DemiBold
+            text: root.displayName.charAt(0).toUpperCase()
+            font.family: root.uiFont; font.pixelSize: 27; font.weight: Font.DemiBold
             color: "white"
           }
         }
@@ -333,7 +807,7 @@ Item {
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
         textFormat: Text.PlainText
-        text: { var u = String(Quickshell.env("USER") || ""); return u.charAt(0).toUpperCase() + u.slice(1) }
+        text: root.displayName
         font.family: root.uiFont; font.pixelSize: 15; font.weight: Font.DemiBold
         color: "white"
         layer.enabled: true
@@ -354,9 +828,9 @@ Item {
           readonly property int borderLeft: 1
           width: parent.width; height: parent.height
           radius: height / 2
-          color: Qt.rgba(1, 1, 1, passwordInput.activeFocus ? 0.24 : 0.18)
+          color: Qt.rgba(1, 1, 1, passwordInput.activeFocus ? 0.22 : 0.16)
           border.width: 1
-          border.color: root.errorState ? Qt.rgba(1, 0.35, 0.33, 0.85) : Qt.rgba(1, 1, 1, 0.38)
+          border.color: root.errorState ? Qt.rgba(1, 0.35, 0.33, 0.85) : Qt.rgba(1, 1, 1, 0.36)
           clip: true
           Behavior on color { ColorAnimation { duration: 150 } }
 
@@ -374,9 +848,9 @@ Item {
             id: passwordInput
             anchors.fill: parent
             anchors.topMargin: inputField.borderTop
-            anchors.rightMargin: inputField.borderRight + 16 + root.fingerprintReserve
+            anchors.rightMargin: inputField.borderRight + 14 + root.fingerprintReserve
             anchors.bottomMargin: inputField.borderBottom
-            anchors.leftMargin: inputField.borderLeft + 16 + root.fingerprintReserve
+            anchors.leftMargin: inputField.borderLeft + 14 + root.fingerprintReserve
             verticalAlignment: TextInput.AlignVCenter
             horizontalAlignment: TextInput.AlignHCenter
             activeFocusOnPress: true
@@ -431,12 +905,29 @@ Item {
             anchors.fill: passwordInput
             text: root.authenticatingPassword ? "Vérification…" : (root.failureMessage.length > 0 ? root.failureMessage : root.placeholderText)
             visible: passwordInput.text.length === 0
-            color: root.failureMessage.length > 0 && !root.authenticatingPassword ? "#ffd2d0" : Qt.rgba(1, 1, 1, 0.7)
+            color: root.failureMessage.length > 0 && !root.authenticatingPassword ? "#ffd2d0" : Qt.rgba(1, 1, 1, 0.68)
             font.family: root.uiFont
             font.pixelSize: root.fieldFontSize
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
             elide: Text.ElideRight
+          }
+
+          // Flèche « valider » à droite, comme sur macOS, dès qu'on tape.
+          Rectangle {
+            visible: passwordInput.text.length > 0 && !root.fingerprintConfigured
+            anchors.right: parent.right; anchors.rightMargin: 4
+            anchors.verticalCenter: parent.verticalCenter
+            width: parent.height - 8; height: width; radius: width / 2
+            color: Qt.rgba(1, 1, 1, 0.28)
+            Text {
+              anchors.centerIn: parent
+              textFormat: Text.PlainText
+              text: String.fromCodePoint(0xF0054)
+              font.family: Style.font.family; font.pixelSize: 14
+              color: "white"
+            }
+            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: passwordInput.accepted() }
           }
 
           Text {
@@ -465,17 +956,20 @@ Item {
         text: Commons.I18n.t("lock.fingerprintUnavailable")
         color: "#ffd2d0"
         font.family: root.uiFont
-        font.pixelSize: 13
+        font.pixelSize: 12
         horizontalAlignment: Text.AlignHCenter
       }
 
+      // Petite indication sous le champ.
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
         textFormat: Text.PlainText
-        visible: root.fingerprintConfigured && !root.fingerprintUnavailable
-        text: "Touchez le lecteur d'empreintes ou saisissez le mot de passe"
-        font.family: root.uiFont; font.pixelSize: 12
-        color: "white"; opacity: 0.7
+        visible: !(root.fingerprintConfigured && root.fingerprintUnavailable)
+        text: root.fingerprintConfigured
+          ? "Touchez le lecteur d'empreintes ou saisissez le mot de passe"
+          : "Saisissez votre mot de passe pour déverrouiller"
+        font.family: root.uiFont; font.pixelSize: 11
+        color: "white"; opacity: 0.62
       }
     }
   }

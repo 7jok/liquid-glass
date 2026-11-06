@@ -57,7 +57,7 @@ Les paquets installés ne sont pas désinstallés : la liste d'avant se trouve d
 | **Verrouillage** | Date et grande horloge, avatar (`~/.face` ou initiale), champ pilule en verre qui secoue en cas d'erreur, pochette floutée et mini-lecteur pendant la lecture |
 | **OSD** | Pilule de verre volume / luminosité au-dessus du dock |
 | **Réglages** | Fenêtre « Réglages Système » qui modifie la config en direct |
-| **Terminal** | foot en verre clair ou sombre, Starship sur deux lignes, fastfetch avec logo, btop transparent, cava |
+| **Terminal** | foot en verre clair ou sombre, Starship sur deux lignes, fastfetch avec logo goutte en pixel art, btop transparent, cava |
 
 ### Spotify
 

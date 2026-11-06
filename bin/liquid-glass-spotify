@@ -19,6 +19,7 @@ LRCLIB), taille et délai bornés ; aucune valeur externe n'est passée à un sh
 from __future__ import annotations
 
 import argparse
+import base64
 import hashlib
 import json
 import os
@@ -91,6 +92,18 @@ def get_cover(art: str) -> Path | None:
         return None
     covers = CACHE / "covers"
     covers.mkdir(parents=True, exist_ok=True)
+    if art.startswith("data:image/") and ";base64," in art:
+        # Pochette intégrée (mpv, lecteurs locaux) : décodée puis ré-encodée par ImageMagick.
+        raw = base64.b64decode(art.split(",", 1)[1], validate=False)
+        if len(raw) > MAX_IMAGE:
+            return None
+        dest = covers / f"{hashlib.sha1(raw).hexdigest()[:20]}.jpg"
+        if not dest.exists():
+            tmp = dest.with_suffix(".part")
+            tmp.write_bytes(raw)
+            magick(str(tmp), "-strip", "-resize", "1000x1000>", "-quality", "92", str(dest))
+            tmp.unlink(missing_ok=True)
+        return dest
     u = urllib.parse.urlparse(art)
     if u.scheme == "file":
         p = Path(urllib.parse.unquote(u.path))

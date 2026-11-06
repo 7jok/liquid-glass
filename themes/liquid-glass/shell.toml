@@ -4,7 +4,7 @@
 
 [bar]
 background       = "#f5f5f7"
-background-alpha = 0.50
+background-alpha = 0.38
 text             = "#1d1d1f"
 active           = "#ff3b30"
 scale-with-font  = true
@@ -54,7 +54,7 @@ base-size = 12
 
 [popups]
 background       = "#f5f5f7"
-background-alpha = 0.70
+background-alpha = 0.52
 text             = "#1d1d1f"
 border           = "hyprland.active-border"
 border-alpha     = 1.0
@@ -62,14 +62,14 @@ border-width     = 1
 
 [tooltip]
 background       = "#f5f5f7"
-background-alpha = 0.86
+background-alpha = 0.65
 text             = "#1d1d1f"
 border           = "hyprland.active-border-foreground"
 border-alpha     = 1.0
 
 [notifications]
 background       = "#f5f5f7"
-background-alpha = 0.72
+background-alpha = 0.54
 text             = "#1d1d1f"
 border           = "hyprland.active-border"
 border-alpha     = 1.0
@@ -78,7 +78,7 @@ countdown        = "#007aff"
 
 [launcher]
 background                = "#f5f5f7"
-background-alpha          = 0.72
+background-alpha          = 0.54
 text                      = "#1d1d1f"
 border                    = "hyprland.active-border-foreground"
 border-alpha              = 1.0
@@ -92,7 +92,7 @@ selected-border-alpha     = 0.0
 
 [menu]
 background                = "#f5f5f7"
-background-alpha          = 0.72
+background-alpha          = 0.54
 text                      = "#1d1d1f"
 border                    = "hyprland.active-border-foreground"
 border-alpha              = 1.0
@@ -106,7 +106,7 @@ selected-border-alpha     = 0.0
 
 [polkit]
 background       = "#f5f5f7"
-background-alpha = 0.80
+background-alpha = 0.60
 text             = "#1d1d1f"
 text-error       = "#ff3b30"
 border           = "hyprland.active-border"
@@ -118,7 +118,7 @@ accent           = "#007aff"
 
 [lock]
 background       = "#f5f5f7"
-background-alpha = 0.38
+background-alpha = 0.29
 text             = "#1d1d1f"
 placeholder      = "#949496"
 text-error       = "#ff3b30"

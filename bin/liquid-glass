@@ -340,7 +340,7 @@ def cmd_auto_tick(_args: list[str]) -> None:
 
 
 # Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
-LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners"}
+LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock"}
 # Clés isolées lues directement par le shell (pas de régénération du thème).
 LIVE_KEYS = {"appearance.logo", "appearance.logo_path"}
 

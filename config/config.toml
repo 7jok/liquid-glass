@@ -93,6 +93,23 @@ weather_city = ""
 # Masquer les widgets quand la pochette sert de fond d'écran.
 hide_on_cover = true
 
+[lock]
+# Écran de verrouillage façon macOS Tahoe (relu à chaud).
+# Horloge : glass (verre dégradé) | bold | light ; 24 h ou 12 h.
+clock_style = "glass"
+clock_24h = true
+# Police de l'horloge ("" = police de l'interface).
+clock_font = ""
+# Notifications récentes en haut à droite :
+# full (titre + texte) | summary (appli + titre) | count (nombre) | off
+notifications = "summary"
+# Pendant la lecture : art (pochette nette + fond flou) | wallpaper (fond Spotify)
+#                      | blur (pochette floutée) | off (fond normal)
+music_background = "art"
+music_card = true     # carte « lecture en cours » sous l'horloge
+lyrics = true         # paroles synchronisées à droite
+status = true         # batterie en haut à droite
+
 [hotcorners]
 # Coins actifs : pointer dans un coin de l'écran déclenche une action.
 # Actions : mission | desktop | spotlight | control | karaoke | lock | settings | "" (rien)

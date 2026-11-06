@@ -1,16 +1,21 @@
-// Liquid Glass — fastfetch. Logo original (goutte de verre), couleurs ANSI du thème.
+// Liquid Glass — fastfetch. Logo en pixel art (goutte de verre en blocs █),
+// généré par scripts/gen-fastfetch-logo.py. Couleurs 24 bits : identiques
+// quel que soit le thème du terminal, et ça marche aussi dans tmux/ssh.
 {
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
-  // Logo image (goutte de verre) en sixel, géré par foot.
-  // Dans un terminal sans sixel (tmux…) : remplacer par
-  //   "type": "file", "source": "~/.config/fastfetch/logo.txt",
-  //   "color": { "1": "blue", "2": "magenta", "3": "white" }
   "logo": {
-    "type": "sixel",
-    "source": "~/.config/fastfetch/logo.png",
-    "width": 18,
-    "height": 9,
-    "padding": { "top": 2, "left": 3, "right": 4 }
+    "type": "file",
+    "source": "~/.config/fastfetch/logo.txt",
+    "color": {
+      "1": "38;2;255;255;255",
+      "2": "38;2;200;244;255",
+      "3": "38;2;111;216;255",
+      "4": "38;2;47;163;255",
+      "5": "38;2;79;108;247",
+      "6": "38;2;159;230;255",
+      "7": "38;2;59;47;181"
+    },
+    "padding": { "top": 1, "left": 3, "right": 4 }
   },
   "display": {
     "separator": "  ",

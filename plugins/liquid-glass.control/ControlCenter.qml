@@ -9,12 +9,12 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 
-// Liquid Glass — Centre de contrôle façon macOS Tahoe.
-//   Haut : connectivité (Wi-Fi, Bluetooth, Mode avion) | lecture en cours
-//   Puis : Concentration (avec ses modes) | Mode sombre | Verre (clair/teinté)
-//   Curseurs : Écran, Son (sortie audio)
-//   Boutons ronds personnalisables ([control] buttons dans config.toml)
-//   « Modifier les commandes… » ouvre la page des Réglages.
+// Liquid Glass — Centre de contrôle façon macOS Tahoe : pas de panneau, des
+// capsules de verre séparées qui flottent sous la barre et arrivent en cascade.
+//   Confidentialité (micro / enregistrement d'écran, bouton Arrêter), si actif
+//   Concentration · Wi-Fi · Bluetooth | Lecture en cours (carré) · Mode avion
+//   Boutons ronds : mode sombre + [control] buttons de config.toml
+//   Capsules Son (sortie audio) et Écran ; « Modifier les commandes… ».
 // Aucune interrogation périodique : l'état est relu à l'ouverture et après chaque action.
 // Raccourci : omarchy-shell liquid-glass.control toggle
 Panel {
@@ -55,6 +55,7 @@ Panel {
   property bool darkMode: false
   property bool awake: false
   property bool recording: false
+  property int micUsers: 0
   property real brightness: 1.0
 
   readonly property var btAdapter: Bluetooth.defaultAdapter
@@ -107,6 +108,7 @@ Panel {
     nightProc.running = true
     awakeProc.running = true
     recProc.running = true
+    micProc.running = true
     themeFile.reload()
     brightProc.running = true
   }
@@ -165,6 +167,12 @@ Panel {
     stdout: StdioCollector { onStreamFinished: root.recording = text.trim() === "on" }
   }
   Process {
+    id: micProc
+    // Applications qui écoutent le micro (indicateur de confidentialité).
+    command: ["sh", "-c", "pactl list source-outputs short 2>/dev/null | wc -l"]
+    stdout: StdioCollector { onStreamFinished: root.micUsers = parseInt(text.trim()) || 0 }
+  }
+  Process {
     id: brightProc
     command: ["brightnessctl", "-m"]
     stdout: StdioCollector {
@@ -199,6 +207,7 @@ Panel {
   // [id] → { libellé, glyphe, actif, action }
   function buttonInfo(id) {
     switch (id) {
+    case "dark": return { label: darkMode ? "Mode sombre" : "Mode clair", glyph: 0xF050E, on: darkMode, act: function() { root.run(["liquid-glass", "mode", "toggle"]) } }
     case "nightshift": return { label: "Night Shift", glyph: 0xF06E8, on: nightlight, act: function() { root.run(["omarchy-shell", "nightlight", "toggle"]) } }
     case "awake": return { label: "Rester éveillé", glyph: 0xF0176, on: awake, act: function() { root.run(["omarchy", "toggle", "idle", "toggle"]) } }
     case "screenshot": return { label: "Capture", glyph: 0xF0100, on: false, act: function() { root.launch(["omarchy", "capture", "screenshot", "region"]) } }
@@ -239,37 +248,104 @@ Panel {
     owner: root
     bar: root.bar
     open: root.opened
-    padding: Style.space(12)
+    padding: Style.space(4)
+    borderSpec: Border.none()
     focusTarget: panel.loadedContent
-    contentWidth: Style.space(332)
+    contentWidth: Style.space(318)
     contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)
 
     content: PanelKeyCatcher {
+      id: catcher
       anchors.fill: parent
       implicitHeight: col.implicitHeight
       onCloseRequested: root.close()
       onTabRequested: function(d) { root.switchPanel(d) }
+      // Pas de fond de panneau : seules les capsules sont dessinées.
+      Component.onCompleted: {
+        var p = catcher.parent
+        while (p) {
+          if (p.contentTopInset !== undefined && p.color !== undefined) { p.color = "transparent"; break }
+          p = p.parent
+        }
+      }
 
       Column {
         id: col
         width: parent.width
-        spacing: Style.space(10)
-        readonly property real half: (width - Style.space(10)) / 2
+        spacing: Style.space(9)
+        readonly property real gap: Style.space(9)
+        readonly property real half: (width - gap) / 2
+        readonly property real pillH: Style.space(50)
 
-        // ---- Ligne 1 : connectivité | lecture en cours
+        // ---- Confidentialité : micro / enregistrement d'écran
+        Capsule {
+          order: 0
+          visible: root.recording || root.micUsers > 0
+          width: parent.width
+          height: visible ? privCol.implicitHeight + Style.space(18) : 0
+          radius: Style.space(22)
+          Column {
+            id: privCol
+            x: Style.space(12); y: Style.space(9)
+            width: parent.width - Style.space(24)
+            spacing: Style.space(6)
+            PrivacyLine {
+              visible: root.micUsers > 0
+              width: parent.width
+              dot: "#ff9f0a"; glyph: 0xF036C
+              title: "Micro"
+              subtitle: root.micUsers > 1 ? root.micUsers + " applications" : "Utilisé par une application"
+            }
+            PrivacyLine {
+              visible: root.recording
+              width: parent.width
+              dot: "#bf5af2"; glyph: 0xF0A1C
+              title: "Enregistrement de l'écran"
+              subtitle: "En cours"
+              stop: true
+            }
+          }
+        }
+
+        // ---- Pastilles | Lecture en cours
         Row {
           width: parent.width
-          spacing: Style.space(10)
-
-          Tile {
+          spacing: col.gap
+          Column {
             width: col.half
-            height: Style.space(150)
-            Column {
-              anchors.fill: parent
-              anchors.margins: Style.space(10)
-              spacing: Style.space(6)
+            spacing: col.gap
+            // Concentration, avec la liste des modes au chevron.
+            Capsule {
+              order: 1
+              width: parent.width; height: col.pillH
               ToggleLine {
-                width: parent.width
+                anchors.fill: parent
+                anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(24)
+                icon: root.g(0xF0594)
+                title: "Concentration"
+                subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? "Ne pas déranger" : "Désactivée")
+                active: root.focusMode !== "off" || root.dnd
+                activeColor: "#5e5ce6"
+                onClicked: root.run(["liquid-glass", "focus", "toggle"])
+                onSecondary: root.focusMenu = !root.focusMenu
+              }
+              Text {
+                anchors.right: parent.right; anchors.rightMargin: Style.space(9)
+                anchors.verticalCenter: parent.verticalCenter
+                textFormat: Text.PlainText
+                text: root.g(0xF0140)
+                rotation: root.focusMenu ? 180 : 0
+                Behavior on rotation { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 2.5 } }
+                font.family: root.iconFont; font.pixelSize: Style.space(15)
+                color: root.fg; opacity: 0.6
+                MouseArea { anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor; onClicked: root.focusMenu = !root.focusMenu }
+              }
+            }
+            Capsule {
+              order: 2
+              width: parent.width; height: col.pillH
+              ToggleLine {
+                anchors.fill: parent; anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(6)
                 icon: root.wifiOn ? root.g(0xF05A9) : root.g(0xF05AA)
                 title: "Wi-Fi"
                 subtitle: root.wifiOn ? (root.ssid || "Non connecté") : "Désactivé"
@@ -277,8 +353,12 @@ Panel {
                 onClicked: root.run(["nmcli", "radio", "wifi", root.wifiOn ? "off" : "on"])
                 onSecondary: root.launch(["omarchy-shell", "omarchy.network", "toggle"])
               }
+            }
+            Capsule {
+              order: 3
+              width: parent.width; height: col.pillH
               ToggleLine {
-                width: parent.width
+                anchors.fill: parent; anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(6)
                 icon: root.btOn ? root.g(0xF00AF) : root.g(0xF00B2)
                 title: "Bluetooth"
                 subtitle: root.btLabel
@@ -286,11 +366,71 @@ Panel {
                 onClicked: if (root.btAdapter) root.btAdapter.enabled = !root.btOn
                 onSecondary: root.launch(["omarchy-shell", "omarchy.bluetooth", "toggle"])
               }
+            }
+          }
+          Column {
+            width: col.half
+            spacing: col.gap
+            // Lecture en cours : carré (hauteur de deux pastilles).
+            Capsule {
+              order: 2
+              width: parent.width; height: col.pillH * 2 + col.gap
+              radius: Style.space(24)
+              Item {
+                anchors.fill: parent
+                anchors.margins: Style.space(11)
+                visible: root.hasTrack
+                Item {
+                  id: art
+                  width: Style.space(42); height: width
+                  Image { id: artImg; anchors.fill: parent; source: root.coverSource; sourceSize: Qt.size(128, 128); fillMode: Image.PreserveAspectCrop; asynchronous: true; visible: false }
+                  Item { id: artMask; anchors.fill: parent; visible: false; layer.enabled: true
+                    Rectangle { anchors.fill: parent; radius: Style.space(8); color: "black" } }
+                  MultiEffect { anchors.fill: parent; source: artImg; maskEnabled: true; maskSource: artMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0; visible: artImg.status === Image.Ready; shadowEnabled: true; shadowOpacity: 0.25; shadowBlur: 0.5; shadowVerticalOffset: 2 }
+                  Rectangle { anchors.fill: parent; radius: Style.space(8); visible: artImg.status !== Image.Ready; color: root.fg; opacity: 0.1 }
+                }
+                Column {
+                  anchors.left: art.right; anchors.leftMargin: Style.space(8)
+                  anchors.right: parent.right
+                  anchors.verticalCenter: art.verticalCenter
+                  Label { width: parent.width; text: root.player ? (root.player.trackTitle || "") : ""; font.weight: Font.DemiBold; font.pixelSize: Style.font.caption; elide: Text.ElideRight }
+                  Label { width: parent.width; text: root.player ? (root.player.trackArtist || "") : ""; opacity: 0.6; font.pixelSize: Style.font.caption; elide: Text.ElideRight }
+                }
+                Row {
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  anchors.bottom: parent.bottom
+                  spacing: Style.space(4)
+                  IconButton { glyph: root.g(0xF04AE); onClicked: if (root.player) root.player.previous() }
+                  IconButton {
+                    glyph: root.player && root.player.isPlaying ? root.g(0xF03E4) : root.g(0xF040A)
+                    size: Style.space(22)
+                    onClicked: if (root.player) root.player.togglePlaying()
+                  }
+                  IconButton { glyph: root.g(0xF04AD); onClicked: if (root.player) root.player.next() }
+                }
+              }
+              Column {
+                anchors.centerIn: parent
+                visible: !root.hasTrack
+                spacing: Style.space(6)
+                Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: root.g(0xF075A); font.family: root.iconFont; font.pixelSize: Style.space(26); color: root.fg; opacity: 0.35 }
+                Rectangle {
+                  anchors.horizontalCenter: parent.horizontalCenter
+                  width: openLbl.implicitWidth + Style.space(16); height: Style.space(22); radius: height / 2
+                  color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, openMouse.containsMouse ? 0.16 : 0.09)
+                  Label { id: openLbl; anchors.centerIn: parent; text: "Ouvrir Spotify"; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
+                  MouseArea { id: openMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.launch(["omarchy-launch-or-focus", "spotify", "spotify"]) }
+                }
+              }
+            }
+            Capsule {
+              order: 4
+              width: parent.width; height: col.pillH
               ToggleLine {
-                width: parent.width
+                anchors.fill: parent; anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(6)
                 icon: root.g(0xF001D)
                 title: "Mode avion"
-                subtitle: root.airplane ? "Activé" : ""
+                subtitle: root.airplane ? "Activé" : "Désactivé"
                 active: root.airplane
                 activeColor: "#ff9f0a"
                 onClicked: {
@@ -301,123 +441,15 @@ Panel {
               }
             }
           }
-
-          // Lecture en cours : pochette, titre, commandes (ou Spotify à ouvrir).
-          Tile {
-            id: musicTile
-            width: col.half
-            height: Style.space(150)
-            clip: true
-            Item {
-              anchors.fill: parent
-              anchors.margins: Style.space(11)
-              visible: root.hasTrack
-              Item {
-                id: art
-                width: Style.space(52); height: width
-                Image { id: artImg; anchors.fill: parent; source: root.coverSource; sourceSize: Qt.size(128, 128); fillMode: Image.PreserveAspectCrop; asynchronous: true; visible: false }
-                Rectangle { id: artMask; anchors.fill: parent; radius: Style.space(9); visible: false; layer.enabled: true }
-                MultiEffect { anchors.fill: parent; source: artImg; maskEnabled: true; maskSource: artMask; visible: artImg.status === Image.Ready; shadowEnabled: true; shadowOpacity: 0.25; shadowBlur: 0.5; shadowVerticalOffset: 2 }
-                Rectangle { anchors.fill: parent; radius: Style.space(9); visible: artImg.status !== Image.Ready; color: root.fg; opacity: 0.1
-                  Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(0xF075A); font.family: root.iconFont; font.pixelSize: Style.space(20); color: root.fg } }
-              }
-              Text {
-                anchors.right: parent.right; anchors.top: parent.top
-                textFormat: Text.PlainText
-                text: root.g(0xF04C7)
-                font.family: root.iconFont; font.pixelSize: Style.space(14)
-                color: "#1db954"
-                visible: String((root.player && (root.player.identity || root.player.desktopEntry)) || "").toLowerCase().indexOf("spotify") !== -1
-              }
-              Column {
-                anchors.left: parent.left; anchors.right: parent.right
-                anchors.top: art.bottom; anchors.topMargin: Style.space(8)
-                spacing: 0
-                Label { width: parent.width; text: root.player ? (root.player.trackTitle || "") : ""; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall; elide: Text.ElideRight }
-                Label { width: parent.width; text: root.player ? (root.player.trackArtist || "") : ""; opacity: 0.6; font.pixelSize: Style.font.caption; elide: Text.ElideRight }
-              }
-              Row {
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.bottom: parent.bottom
-                spacing: Style.space(6)
-                IconButton { glyph: root.g(0xF04AE); onClicked: if (root.player) root.player.previous() }
-                IconButton {
-                  glyph: root.player && root.player.isPlaying ? root.g(0xF03E4) : root.g(0xF040A)
-                  size: Style.space(22)
-                  onClicked: if (root.player) root.player.togglePlaying()
-                }
-                IconButton { glyph: root.g(0xF04AD); onClicked: if (root.player) root.player.next() }
-              }
-            }
-            Column {
-              anchors.centerIn: parent
-              visible: !root.hasTrack
-              spacing: Style.space(8)
-              Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: root.g(0xF075A); font.family: root.iconFont; font.pixelSize: Style.space(30); color: root.fg; opacity: 0.35 }
-              Label { anchors.horizontalCenter: parent.horizontalCenter; text: "Aucune lecture"; opacity: 0.55; font.pixelSize: Style.font.caption }
-              Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: openLbl.implicitWidth + Style.space(18); height: Style.space(24); radius: height / 2
-                color: openMouse.containsMouse ? Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.16) : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.09)
-                Label { id: openLbl; anchors.centerIn: parent; text: "Ouvrir Spotify"; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
-                MouseArea { id: openMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.launch(["omarchy-launch-or-focus", "spotify", "spotify"]) }
-              }
-            }
-          }
-        }
-
-        // ---- Ligne 2 : Concentration | Mode sombre + Verre
-        Row {
-          width: parent.width
-          spacing: Style.space(10)
-          Tile {
-            width: col.half
-            height: Style.space(62)
-            ToggleLine {
-              anchors.fill: parent
-              anchors.margins: Style.space(10)
-              anchors.rightMargin: Style.space(28)
-              icon: root.g(0xF0594)
-              title: "Concentration"
-              subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? "Ne pas déranger" : "")
-              active: root.focusMode !== "off" || root.dnd
-              activeColor: "#5e5ce6"
-              onClicked: root.run(["liquid-glass", "focus", "toggle"])
-              onSecondary: root.focusMenu = !root.focusMenu
-            }
-            // Chevron : liste des modes.
-            Text {
-              anchors.right: parent.right; anchors.rightMargin: Style.space(10)
-              anchors.verticalCenter: parent.verticalCenter
-              textFormat: Text.PlainText
-              text: root.g(root.focusMenu ? 0xF0143 : 0xF0140)
-              font.family: root.iconFont; font.pixelSize: Style.space(16)
-              color: root.fg; opacity: 0.6
-              MouseArea { anchors.fill: parent; anchors.margins: -8; cursorShape: Qt.PointingHandCursor; onClicked: root.focusMenu = !root.focusMenu }
-            }
-          }
-          Row {
-            spacing: Style.space(10)
-            SquareToggle {
-              width: (col.half - Style.space(10)) / 2; height: Style.space(62)
-              icon: root.g(0xF050E); label: "Sombre"; active: root.darkMode
-              onClicked: root.run(["liquid-glass", "mode", "toggle"])
-            }
-            SquareToggle {
-              width: (col.half - Style.space(10)) / 2; height: Style.space(62)
-              icon: root.g(0xF0F5A)
-              label: root.glassStyle === "clear" ? "Clair" : (root.glassStyle === "tinted" ? "Teinté" : "Verre")
-              active: root.glassStyle !== "standard"
-              onClicked: { var n = { standard: "clear", clear: "tinted", tinted: "standard" }[root.glassStyle] || "standard"; root.run(["liquid-glass", "set", "glass.style", n]) }
-            }
-          }
         }
 
         // ---- Modes de concentration (dépliable)
-        Tile {
+        Capsule {
+          order: 0
           visible: root.focusMenu
           width: parent.width
           height: visible ? focusCol.implicitHeight + Style.space(12) : 0
+          radius: Style.space(20)
           Column {
             id: focusCol
             x: Style.space(6); y: Style.space(6)
@@ -429,7 +461,7 @@ Panel {
                 id: fm
                 required property var modelData
                 readonly property bool on: root.focusMode === modelData[0]
-                width: focusCol.width; height: Style.space(36); radius: Style.space(9)
+                width: focusCol.width; height: Style.space(36); radius: height / 2
                 color: fmMouse.containsMouse ? Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08) : "transparent"
                 Rectangle {
                   id: fmDot
@@ -447,15 +479,99 @@ Panel {
           }
         }
 
-        // ---- Écran
-        Tile {
+        // ---- Boutons ronds : chacun sa capsule de verre
+        Flow {
+          id: rounds
           width: parent.width
-          height: Style.space(62)
+          spacing: col.gap
+          readonly property real d: (width - 4 * col.gap) / 5
+          Repeater {
+            model: ["dark"].concat(root.buttons.filter(function(b) { return b !== "dark" }))
+            delegate: Capsule {
+              id: rb
+              required property var modelData
+              required property int index
+              readonly property var info: root.buttonInfo(modelData)
+              order: 5 + index
+              visible: info !== null
+              width: rounds.d; height: rounds.d
+              radius: width / 2
+              active: !!(info && info.on)
+              Text {
+                anchors.centerIn: parent
+                textFormat: Text.PlainText
+                text: rb.info ? root.g(rb.info.glyph) : ""
+                font.family: root.iconFont; font.pixelSize: Style.space(19)
+                color: rb.active ? "white" : root.fg
+                scale: rbMouse.pressed ? 0.7 : 1
+                Behavior on scale { NumberAnimation { duration: 340; easing.type: Easing.OutBack; easing.overshoot: 3.2 } }
+              }
+              MouseArea {
+                id: rbMouse
+                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                onClicked: if (rb.info) { rb.pulse(); rb.info.act() }
+              }
+              PanelToolTip { visible: rbMouse.containsMouse; text: rb.info ? rb.info.label : "" }
+            }
+          }
+        }
+
+        // ---- Son
+        Capsule {
+          order: 13
+          width: parent.width
+          height: Style.space(66)
+          radius: Style.space(24)
           Column {
             anchors.fill: parent
-            anchors.margins: Style.space(10)
-            spacing: Style.space(6)
-            Label { text: "Écran"; font.weight: Font.DemiBold }
+            anchors.margins: Style.space(11)
+            spacing: Style.space(7)
+            Item {
+              width: parent.width; height: soundLbl.implicitHeight
+              Label { id: soundLbl; text: "Son"; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
+              Label {
+                anchors.right: parent.right; anchors.left: soundLbl.right; anchors.leftMargin: Style.space(12)
+                horizontalAlignment: Text.AlignRight
+                text: root.sinkName; opacity: 0.5; elide: Text.ElideLeft; font.pixelSize: Style.font.caption
+              }
+            }
+            Row {
+              width: parent.width
+              spacing: Style.space(8)
+              GlassSlider {
+                width: parent.width - outBtn.width - parent.spacing
+                icon: root.muted || root.volume <= 0.001 ? root.g(0xF0581) : root.g(0xF057E)
+                value: root.muted ? 0 : Math.min(1, root.volume)
+                onMoved: function(v) {
+                  if (!root.sink || !root.sink.audio) return
+                  root.sink.audio.muted = false
+                  root.sink.audio.volume = v
+                }
+                onIconClicked: if (root.sink && root.sink.audio) root.sink.audio.muted = !root.muted
+              }
+              // Sortie audio (comme le bouton AirPlay de macOS).
+              Rectangle {
+                id: outBtn
+                width: Style.space(24); height: width; radius: width / 2
+                color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, outMouse.containsMouse ? 0.18 : 0.1)
+                Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(0xF04C3); font.family: root.iconFont; font.pixelSize: Style.space(13); color: root.fg }
+                MouseArea { id: outMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.launch(["omarchy-shell", "omarchy.audio", "toggle"]) }
+              }
+            }
+          }
+        }
+
+        // ---- Écran
+        Capsule {
+          order: 14
+          width: parent.width
+          height: Style.space(66)
+          radius: Style.space(24)
+          Column {
+            anchors.fill: parent
+            anchors.margins: Style.space(11)
+            spacing: Style.space(7)
+            Label { text: "Écran"; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
             GlassSlider {
               width: parent.width
               icon: root.g(0xF00DF)
@@ -469,96 +585,17 @@ Panel {
           }
         }
 
-        // ---- Son
-        Tile {
-          width: parent.width
-          height: Style.space(62)
-          Column {
-            anchors.fill: parent
-            anchors.margins: Style.space(10)
-            spacing: Style.space(6)
-            Item {
-              width: parent.width; height: soundLbl.implicitHeight
-              Label { id: soundLbl; text: "Son"; font.weight: Font.DemiBold }
-              Label {
-                anchors.right: parent.right; anchors.left: soundLbl.right; anchors.leftMargin: Style.space(12)
-                horizontalAlignment: Text.AlignRight
-                text: root.sinkName; opacity: 0.5; elide: Text.ElideLeft; font.pixelSize: Style.font.caption
-                MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.launch(["omarchy-shell", "omarchy.audio", "toggle"]) }
-              }
-            }
-            GlassSlider {
-              width: parent.width
-              icon: root.muted || root.volume <= 0.001 ? root.g(0xF0581) : root.g(0xF057E)
-              value: root.muted ? 0 : Math.min(1, root.volume)
-              onMoved: function(v) {
-                if (!root.sink || !root.sink.audio) return
-                root.sink.audio.muted = false
-                root.sink.audio.volume = v
-              }
-              onIconClicked: if (root.sink && root.sink.audio) root.sink.audio.muted = !root.muted
-            }
-          }
-        }
-
-        // ---- Boutons ronds (4 par ligne)
-        Grid {
-          id: grid
-          width: parent.width
-          columns: 4
-          rowSpacing: Style.space(8)
-          columnSpacing: 0
-          Repeater {
-            model: root.buttons
-            delegate: Item {
-              id: rb
-              required property var modelData
-              readonly property var info: root.buttonInfo(modelData)
-              visible: info !== null
-              width: grid.width / 4
-              height: Style.space(70)
-              Rectangle {
-                id: circle
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: Style.space(44); height: width; radius: width / 2
-                color: rb.info && rb.info.on ? root.accent : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, rbMouse.containsMouse ? 0.16 : 0.09)
-                border.width: 1
-                border.color: Qt.rgba(1, 1, 1, root.lightUi ? 0.6 : 0.08)
-                scale: rbMouse.pressed ? 0.92 : 1
-                Behavior on color { ColorAnimation { duration: Style.duration(140) } }
-                Behavior on scale { NumberAnimation { duration: Style.duration(90) } }
-                Text {
-                  anchors.centerIn: parent
-                  textFormat: Text.PlainText
-                  text: rb.info ? root.g(rb.info.glyph) : ""
-                  font.family: root.iconFont; font.pixelSize: Style.space(18)
-                  color: rb.info && rb.info.on ? "white" : root.fg
-                }
-                MouseArea { id: rbMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: if (rb.info) rb.info.act() }
-              }
-              Label {
-                anchors.top: circle.bottom; anchors.topMargin: Style.space(4)
-                width: parent.width
-                horizontalAlignment: Text.AlignHCenter
-                text: rb.info ? rb.info.label : ""
-                font.pixelSize: Style.font.caption
-                elide: Text.ElideRight
-                opacity: 0.8
-              }
-            }
-          }
-        }
-
         // ---- Modifier les commandes
         Item {
           width: parent.width
           height: Style.space(30)
-          Rectangle {
+          Capsule {
+            order: 15
             anchors.centerIn: parent
-            width: editLbl.implicitWidth + Style.space(22); height: Style.space(28); radius: height / 2
-            color: editMouse.containsMouse ? Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.14) : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.07)
+            width: editLbl.implicitWidth + Style.space(24); height: Style.space(28)
+            radius: height / 2
             Label { id: editLbl; anchors.centerIn: parent; text: "Modifier les commandes…"; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
-            MouseArea { id: editMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+            MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
               onClicked: root.launch(["omarchy-shell", "shell", "summon", "liquid-glass.settings", "{\"page\":\"control\"}"]) }
           }
         }
@@ -567,20 +604,48 @@ Panel {
   }
 
   // ------------------------------------------------------------ composants
-  // Tuile de verre aux coins arrondis, avec un reflet sur le haut.
-  component Tile: Rectangle {
-    radius: Style.space(18)
-    color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.07)
+  // Capsule de verre indépendante (le flou vient de Hyprland). Arrive en
+  // cascade à l'ouverture (ordre = rang), avec un rebond marqué.
+  component Capsule: Rectangle {
+    id: cap
+    property int order: 0
+    property bool active: false
+    property real t: 0
+    radius: Style.space(25)
+    color: active ? root.accent
+                  : (root.lightUi ? Qt.rgba(1, 1, 1, capHover.hovered ? 0.62 : 0.5) : Qt.rgba(0.16, 0.16, 0.18, capHover.hovered ? 0.62 : 0.5))
+    Behavior on color { ColorAnimation { duration: 180 } }
     border.width: 1
-    border.color: Qt.rgba(1, 1, 1, root.lightUi ? 0.55 : 0.08)
+    border.color: Qt.rgba(1, 1, 1, root.lightUi ? 0.7 : 0.16)
+    HoverHandler { id: capHover }
     Rectangle {
       anchors.fill: parent; anchors.margins: 1
-      radius: parent.radius - 1
+      radius: Math.max(0, parent.radius - 1)
       gradient: Gradient {
-        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, root.lightUi ? 0.22 : 0.05) }
-        GradientStop { position: 0.6; color: Qt.rgba(1, 1, 1, 0) }
+        GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, root.lightUi ? 0.35 : 0.08) }
+        GradientStop { position: 0.55; color: Qt.rgba(1, 1, 1, 0) }
       }
     }
+    opacity: t
+    scale: 0.55 + 0.45 * t
+    transform: Translate { y: (1 - cap.t) * -Style.space(26) }
+    function pulse() { pulseAnim.restart() }
+    SequentialAnimation {
+      id: enter
+      PropertyAction { target: cap; property: "t"; value: 0 }
+      PauseAnimation { duration: Math.min(14, cap.order) * 28 }
+      NumberAnimation { target: cap; property: "t"; to: 1; duration: 560; easing.type: Easing.OutBack; easing.overshoot: 2.2 }
+    }
+    SequentialAnimation {
+      id: pulseAnim
+      NumberAnimation { target: cap; property: "t"; to: 0.86; duration: 90; easing.type: Easing.OutQuad }
+      NumberAnimation { target: cap; property: "t"; to: 1; duration: 520; easing.type: Easing.OutElastic; easing.amplitude: 1.2; easing.period: 0.35 }
+    }
+    Connections {
+      target: root
+      function onOpenedChanged() { if (root.opened) enter.restart() }
+    }
+    Component.onCompleted: if (root.opened) enter.restart(); else t = 0
   }
 
   component Label: Text {
@@ -590,30 +655,41 @@ Panel {
     font.pixelSize: Style.font.body
   }
 
-  // Tuile carrée : icône ronde + libellé dessous (Mode sombre, Verre).
-  component SquareToggle: Tile {
-    id: sq
-    property string icon: ""
-    property string label: ""
-    property bool active: false
-    signal clicked()
+  // Ligne de confidentialité : pastille colorée, titre, détail, « Arrêter ».
+  component PrivacyLine: Item {
+    id: pl
+    property color dot: "#ff9f0a"
+    property int glyph: 0
+    property string title: ""
+    property string subtitle: ""
+    property bool stop: false
+    height: Style.space(34)
     Rectangle {
-      id: sqDot
-      anchors.horizontalCenter: parent.horizontalCenter
-      y: Style.space(7)
-      width: Style.space(30); height: width; radius: width / 2
-      color: sq.active ? root.accent : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.12)
-      Behavior on color { ColorAnimation { duration: Style.duration(140) } }
-      Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: sq.icon; font.family: root.iconFont; font.pixelSize: Style.space(15); color: sq.active ? "white" : root.fg }
+      id: plDot
+      width: Style.space(26); height: width; radius: width / 2
+      anchors.verticalCenter: parent.verticalCenter
+      color: pl.dot
+      Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(pl.glyph); font.family: root.iconFont; font.pixelSize: Style.space(13); color: "white" }
     }
-    Label {
-      anchors.top: sqDot.bottom; anchors.topMargin: Style.space(3)
-      width: parent.width; horizontalAlignment: Text.AlignHCenter
-      text: sq.label; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; elide: Text.ElideRight
+    Column {
+      anchors.left: plDot.right; anchors.leftMargin: Style.space(9)
+      anchors.right: stopBtn.visible ? stopBtn.left : parent.right; anchors.rightMargin: Style.space(6)
+      anchors.verticalCenter: parent.verticalCenter
+      Label { width: parent.width; text: pl.title; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall; elide: Text.ElideRight }
+      Label { width: parent.width; text: pl.subtitle; opacity: 0.6; font.pixelSize: Style.font.caption; elide: Text.ElideRight }
     }
-    scale: sqMouse.pressed ? 0.95 : 1
-    Behavior on scale { NumberAnimation { duration: Style.duration(90) } }
-    MouseArea { id: sqMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: sq.clicked() }
+    Rectangle {
+      id: stopBtn
+      visible: pl.stop
+      anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
+      width: stopLbl.implicitWidth + Style.space(18); height: Style.space(22); radius: height / 2
+      color: stopMouse.containsMouse ? "#ff5f57" : "#ff453a"
+      scale: stopMouse.pressed ? 0.85 : 1
+      Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+      Text { id: stopLbl; anchors.centerIn: parent; textFormat: Text.PlainText; text: "Arrêter"; font.family: root.uiFont; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; color: "white" }
+      MouseArea { id: stopMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+        onClicked: root.launch(["omarchy", "capture", "screenrecording", "--stop-recording"]) }
+    }
   }
 
   // Pastille ronde (accent si active) + titre + sous-titre.

@@ -110,6 +110,13 @@ hl.layer_rule({
   blur = true,
   ignore_alpha = 0.05,
 })
+-- Panneaux du shell (dont le Centre de contrôle, fait de capsules très
+-- transparentes) : flou même sous un verre léger, rien entre les capsules.
+hl.layer_rule({
+  match = { namespace = "^omarchy-keyboard-panel$" },
+  blur = true,
+  ignore_alpha = 0.05,
+})
 
 -- ---------------------------------------------------------------------------
 -- Raccourcis façon macOS (désactivables : [keys] macos_shortcuts = false).

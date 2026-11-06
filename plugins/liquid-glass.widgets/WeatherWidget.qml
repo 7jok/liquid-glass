@@ -2,15 +2,19 @@ import QtQuick
 import qs.Commons
 
 // Météo façon macOS : ciel en dégradé selon le temps et l'heure, ville, température,
-// condition et min/max. Données Open-Meteo (voir Widgets.qml).
+// condition et min/max ; en large, les prochaines heures à droite.
+// Données Open-Meteo (voir Widgets.qml).
 Tile {
   id: w
+  property bool wide: false
+  readonly property real leftW: wide ? (height - 0) : width
   readonly property var wx: svc ? svc.weather : null
   readonly property int code: wx ? wx.code : -1
   readonly property bool day: wx ? wx.isDay : true
 
   // [libellé, glyphe Nerd Font (Material Design), famille de ciel]
-  function describe(c) {
+  function describe(c, dayFlag) {
+    var day = dayFlag === undefined ? w.day : dayFlag
     if (c === 0) return ["Dégagé", day ? 0xF0599 : 0xF0594, "clear"]
     if (c === 1 || c === 2) return [c === 1 ? "Plutôt dégagé" : "Partiellement nuageux", day ? 0xF0595 : 0xF0F31, "partly"]
     if (c === 3) return ["Couvert", 0xF0590, "cloudy"]
@@ -47,13 +51,14 @@ Tile {
   }
 
   Column {
-    anchors { left: parent.left; right: parent.right; top: parent.top; margins: 13 }
+    anchors { left: parent.left; top: parent.top; margins: 13 }
+    width: w.leftW - 26
     spacing: 0
     Row {
       spacing: 3
       Text {
         text: w.wx ? w.wx.city : (svc ? svc.city : "")
-        width: Math.min(implicitWidth, w.width - 40)
+        width: Math.min(implicitWidth, w.leftW - 40)
         elide: Text.ElideRight
         font.family: w.font; font.pixelSize: 13; font.weight: Font.DemiBold
         color: "white"
@@ -68,7 +73,8 @@ Tile {
   }
 
   Column {
-    anchors { left: parent.left; right: parent.right; bottom: parent.bottom; margins: 13 }
+    anchors { left: parent.left; bottom: parent.bottom; margins: 13 }
+    width: w.leftW - 26
     spacing: 1
     Text {
       text: w.wx ? String.fromCodePoint(w.d[1]) : ""
@@ -85,6 +91,33 @@ Tile {
       text: w.wx ? "Max. " + w.wx.max + "°  Min. " + w.wx.min + "°" : ""
       font.family: w.font; font.pixelSize: 11; font.weight: Font.Medium
       color: Qt.rgba(1, 1, 1, 0.85)
+    }
+  }
+
+  // Prévisions heure par heure (format large).
+  Rectangle {
+    visible: w.wide
+    x: w.leftW - 1; y: 16
+    width: 1; height: w.height - 32
+    color: Qt.rgba(1, 1, 1, 0.22)
+  }
+  Row {
+    visible: w.wide && hours.count > 0
+    anchors.left: parent.left; anchors.leftMargin: w.leftW + 8
+    anchors.right: parent.right; anchors.rightMargin: 10
+    anchors.verticalCenter: parent.verticalCenter
+    Repeater {
+      id: hours
+      model: w.wx && w.wx.hourly ? w.wx.hourly : []
+      delegate: Column {
+        required property var modelData
+        required property int index
+        width: (w.width - w.leftW - 18) / Math.max(1, hours.count)
+        spacing: 6
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.h < 0 ? "Maint." : modelData.h + " h"; font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: Qt.rgba(1, 1, 1, 0.85) }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: String.fromCodePoint(w.describe(modelData.code, modelData.isDay)[1]); font.family: Style.font.family; font.pixelSize: 18; color: "white" }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.temp + "°"; font.family: w.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: "white" }
+      }
     }
   }
 

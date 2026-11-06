@@ -27,6 +27,10 @@ Item {
   readonly property bool showClock: opt("clock", true) !== false
   readonly property bool showCalendar: opt("calendar", true) !== false
   readonly property bool showWeather: opt("weather", true) !== false
+  // digital (chiffres en verre) | analog (cadran)
+  readonly property string clockStyle: String(opt("clock_style", "digital"))
+  // wide (avec prévisions heure par heure) | small
+  readonly property string weatherSize: String(opt("weather_size", "wide"))
   readonly property bool showBattery: opt("battery", true) !== false
   readonly property bool showMusic: opt("music", true) !== false
   readonly property bool hideOnCover: opt("hide_on_cover", true) !== false
@@ -126,7 +130,8 @@ Item {
     }
     forecast.command = ["curl", "-fsS", "--proto", "=https", "--max-time", "10", "--max-filesize", "200000",
                         "https://api.open-meteo.com/v1/forecast?latitude=" + coords.lat + "&longitude=" + coords.lon
-                        + "&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto"]
+                        + "&current=temperature_2m,weather_code,is_day&daily=temperature_2m_max,temperature_2m_min&forecast_days=2"
+                        + "&hourly=temperature_2m,weather_code,is_day&forecast_hours=7&timezone=auto"]
     forecast.running = true
   }
   Process {
@@ -147,8 +152,14 @@ Item {
       onStreamFinished: {
         try {
           var j = JSON.parse(text)
+          var hours = [{ h: -1, temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, isDay: j.current.is_day === 1 }]
+          if (j.hourly && j.hourly.time) {
+            for (var i = 1; i < j.hourly.time.length && hours.length < 5; i++)
+              hours.push({ h: parseInt(String(j.hourly.time[i]).slice(11, 13)), temp: Math.round(j.hourly.temperature_2m[i]),
+                           code: j.hourly.weather_code[i], isDay: j.hourly.is_day[i] === 1 })
+          }
           svc.weather = {
-            temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, isDay: j.current.is_day === 1,
+            temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, isDay: j.current.is_day === 1, hourly: hours,
             max: Math.round(j.daily.temperature_2m_max[0]), min: Math.round(j.daily.temperature_2m_min[0]),
             city: svc.coords ? svc.coords.name : svc.city
           }

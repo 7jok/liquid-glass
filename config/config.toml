@@ -87,6 +87,10 @@ position = "left"
 clock = true
 calendar = true
 weather = true
+# Horloge : digital (chiffres en verre) | analog (cadran) ; météo : wide (avec
+# les prochaines heures) | small.
+clock_style = "digital"
+weather_size = "wide"
 battery = true
 # Lecture en cours aux couleurs de la pochette (avec la palette cliquable).
 music = true

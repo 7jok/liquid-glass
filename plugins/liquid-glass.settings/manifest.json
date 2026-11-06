@@ -4,7 +4,7 @@
   "name": "Liquid Glass — Réglages",
   "version": "1.0.0",
   "author": "Liquid Glass",
-  "description": "Réglages Système de Liquid Glass : apparence, verre, dock, Spotify, paroles, clavier",
+  "description": "Réglages Système façon macOS Tahoe : Wi-Fi, Bluetooth, apparence, fond d’écran, écran verrouillé, son, Centre de contrôle…",
   "kinds": ["overlay"],
   "keepLoaded": true,
   "entryPoints": { "overlay": "Settings.qml" }

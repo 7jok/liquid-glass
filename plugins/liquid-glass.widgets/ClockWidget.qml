@@ -1,8 +1,11 @@
 import QtQuick
+import QtQuick.Effects
 
-// Horloge analogique façon macOS : cadran clair, trotteuse orange.
+// Horloge façon macOS. Numérique (défaut) : grands chiffres en verre dégradé,
+// jour et date au-dessus. Analogique : cadran clair, trotteuse orange.
 Tile {
   id: w
+  property bool digital: true
   property date now: new Date()
   Timer { interval: 1000; repeat: true; running: w.visible; triggeredOnStart: true; onTriggered: w.now = new Date() }
 
@@ -11,8 +14,63 @@ Tile {
   readonly property color faceColor: night ? "#1c1c1e" : "#ffffff"
   readonly property color ink: night ? "#ffffff" : "#1d1d1f"
 
+  // ---- Numérique
+  Item {
+    anchors.fill: parent
+    visible: w.digital
+    Text {
+      x: 14; y: 12
+      textFormat: Text.PlainText
+      text: Qt.locale("fr_FR").toString(w.now, "ddd d").toUpperCase().replace(".", "")
+      font.family: w.font; font.pixelSize: 12; font.weight: Font.Bold; font.letterSpacing: 0.6
+      color: "#ff453a"
+    }
+    Item {
+      id: digits
+      anchors.centerIn: parent
+      anchors.verticalCenterOffset: 8
+      width: dText.implicitWidth; height: dText.implicitHeight
+      readonly property real pad: 12
+      Text {
+        id: dText
+        textFormat: Text.PlainText
+        text: Qt.formatTime(w.now, "H:mm")
+        font.family: w.font
+        font.pixelSize: Math.round(w.height * (text.length > 4 ? 0.36 : 0.42))
+        font.weight: Font.DemiBold
+        font.letterSpacing: -2
+        font.features: { "tnum": 1 }
+        visible: false
+      }
+      Item {
+        id: dMask
+        x: -digits.pad; y: -digits.pad
+        width: digits.width + 2 * digits.pad; height: digits.height + 2 * digits.pad
+        visible: false; layer.enabled: true
+        Text { x: digits.pad; y: digits.pad; textFormat: Text.PlainText; text: dText.text; font: dText.font; color: "black" }
+      }
+      Rectangle {
+        id: dFill
+        anchors.fill: dMask
+        visible: false; layer.enabled: true
+        gradient: Gradient {
+          GradientStop { position: 0.15; color: w.fg }
+          GradientStop { position: 0.95; color: Qt.rgba(w.fg.r, w.fg.g, w.fg.b, 0.55) }
+        }
+      }
+      MultiEffect {
+        anchors.fill: dMask
+        source: dFill
+        maskEnabled: true; maskSource: dMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0
+        shadowEnabled: true; shadowBlur: 0.6; shadowOpacity: 0.18; shadowVerticalOffset: 2
+      }
+    }
+  }
+
+  // ---- Analogique
   Rectangle {
     id: dial
+    visible: !w.digital
     anchors.centerIn: parent
     width: w.face; height: w.face; radius: width / 2
     color: w.faceColor

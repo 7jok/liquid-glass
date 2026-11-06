@@ -46,9 +46,9 @@ PanelWindow {
     Behavior on opacity { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
     Behavior on scale { NumberAnimation { duration: 320; easing.type: Easing.OutBack; easing.overshoot: 1.2 } }
 
-    ClockWidget { visible: !!win.service && win.service.showClock; svc: win.service; width: win.unit; height: win.unit }
+    ClockWidget { visible: !!win.service && win.service.showClock; svc: win.service; digital: !win.service || win.service.clockStyle !== "analog"; width: win.unit; height: win.unit }
     CalendarWidget { visible: !!win.service && win.service.showCalendar; svc: win.service; width: win.unit; height: win.unit }
-    WeatherWidget { visible: !!win.service && win.service.showWeather; svc: win.service; width: win.unit; height: win.unit }
+    WeatherWidget { visible: !!win.service && win.service.showWeather; svc: win.service; wide: !!win.service && win.service.weatherSize === "wide"; width: wide ? win.unit * 2 + win.gap : win.unit; height: win.unit }
     BatteryWidget { id: bat; visible: !!win.service && win.service.showBattery && bat.present; svc: win.service; width: win.unit; height: win.unit }
   }
 }

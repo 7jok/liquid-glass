@@ -50,14 +50,15 @@ Les paquets installés ne sont pas désinstallés : la liste d'avant se trouve d
 | **Thèmes** | `liquid-glass` (clair, par défaut) et `liquid-glass-dark`, accent bleu Apple, fonds aurora originaux ; bascule ⌘⇧L ou mode Auto |
 | **Barre** | Logo goutte de verre et menu système, nom de l'app active, bureaux, mini-lecteur, icônes d'état, centre de contrôle, horloge « jeu. 5 nov. 21:15 » |
 | **Dock** | Capsule de verre, grossissement en vague (gaussienne), point sous les apps ouvertes, masquage auto en option |
-| **Centre de contrôle** | Wi-Fi, Bluetooth, Concentration, Mode sombre, Night Shift, luminosité, volume, lecture en cours |
-| **Spotlight** (⌘Espace) | Applications, calculatrice (`12*(3+4)` puis Entrée pour copier), commandes, fichiers (fd), `> commande`, recherche web |
+| **Centre de contrôle** | Capsules de verre flottantes qui arrivent en cascade : Concentration (Ne pas déranger, Travail, Personnel, Sommeil), Wi-Fi, Bluetooth, Mode avion, lecture en cours, boutons ronds au choix (`[control] buttons`), Son avec sortie, Écran, indicateur micro / enregistrement |
+| **Spotlight** (⌘Espace) | Barre pilule + 5 boutons (Ctrl 1–5) : Applications, Fichiers, Actions, Presse-papiers (avec images), Musique ; calculatrice, `> commande`, recherche web |
 | **Mission Control** (⌘↑, 4 doigts ↑) | Aperçus en direct qui glissent depuis leur place réelle, bandeau des bureaux, glisser une fenêtre sur un bureau pour l'y déplacer |
 | **Sélecteur ⌘Tab** | Apps triées par usage récent ; relâcher ⌘ valide ; Q quitte l'app sélectionnée |
-| **Verrouillage** | Date et grande horloge, avatar (`~/.face` ou initiale), champ pilule en verre qui secoue en cas d'erreur, pochette floutée et mini-lecteur pendant la lecture |
+| **Verrouillage** | Fond net, date et horloge en verre, notifications en haut à droite, widget musique au-dessus de l'avatar ; sa bulle l'agrandit (grande pochette, fond de pochette flouté, paroles synchronisées à côté) ; on le déplace avec inertie |
 | **OSD** | Pilule de verre volume / luminosité au-dessus du dock |
-| **Réglages** | Fenêtre « Réglages Système » qui modifie la config en direct |
-| **Terminal** | foot en verre clair ou sombre, Starship sur deux lignes, fastfetch avec logo goutte en pixel art, btop transparent, cava |
+| **Réglages** | Fenêtre façon Tahoe : recherche, compte, Wi-Fi, Bluetooth, Réseau, Batterie, Apparence (verre, police), Centre de contrôle, Bureau et Dock, Écrans, Fond d'écran (grille), Notifications, Son, Concentration, Musique, Écran verrouillé (styles d'horloge, aperçu), Utilisateurs (photo)… |
+| **Widgets** | Horloge numérique en verre, calendrier, météo large heure par heure, batterie ; widget musique libre (petit / moyen / grand) qui glisse comme sur une patinoire, bulle des paroles, aléatoire / répétition |
+| **Terminal** | foot en verre clair ou sombre, Starship sur deux lignes, fastfetch avec logo goutte en pixel art (`scripts/gen-fastfetch-logo.py`), btop transparent, cava |
 
 ### Spotify
 

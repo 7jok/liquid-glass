@@ -1,4 +1,5 @@
 import QtQuick
+import "T.js" as T
 
 // Horloge façon macOS. Numérique (défaut) : grands chiffres en verre dégradé,
 // jour et date au-dessus. Analogique : cadran clair, trotteuse orange.
@@ -20,7 +21,7 @@ Tile {
     Text {
       x: 14 * w.k; y: 12 * w.k
       textFormat: Text.PlainText
-      text: Qt.locale("fr_FR").toString(w.now, w.width > w.height * 1.4 ? "dddd d MMMM" : "ddd d").toUpperCase().replace(".", "")
+      text: Qt.locale(T.loc).toString(w.now, w.width > w.height * 1.4 ? "dddd d MMMM" : "ddd d").toUpperCase().replace(".", "")
       font.family: w.font; font.pixelSize: Math.round(12 * w.k); font.weight: Font.Bold; font.letterSpacing: 0.6
       color: "#ff453a"
     }

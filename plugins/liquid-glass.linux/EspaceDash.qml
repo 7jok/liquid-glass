@@ -76,35 +76,39 @@ PanelWindow {
       }
     }
 
-    // Heure et météo
-    Column {
-      x: 300; y: 34; width: 220; spacing: 2
-      Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: Qt.formatTime(win.now, "HH:mm")
-        font.family: win.font; font.pixelSize: 62; font.weight: Font.Bold; color: win.ink
+    // Heure au centre, prévision des douze prochaines heures tout autour.
+    Item {
+      id: dial
+      x: 300; y: 16; width: 220; height: 182
+      readonly property var hours: win.s.weather && win.s.weather.hourly ? win.s.weather.hourly.slice(0, 12) : []
+      Rectangle {
+        anchors.centerIn: parent; width: 112; height: 112; radius: 56
+        color: "transparent"; border.width: 1; border.color: win.s.alpha(win.ink, 0.16)
       }
-      Text {
-        anchors.horizontalCenter: parent.horizontalCenter
-        text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM")
-        font.family: win.font; font.pixelSize: 12; color: win.sub
-      }
-      Item { width: 1; height: 14 }
-      Row {
-        anchors.horizontalCenter: parent.horizontalCenter
-        spacing: 10
-        MIcon { anchors.verticalCenter: parent.verticalCenter; icon: win.s.weatherIcon; size: 30; fill: 1; color: win.s.primary }
-        Column {
-          anchors.verticalCenter: parent.verticalCenter
-          Text { text: win.s.weather ? win.s.weather.temp + " °C" : "--"; font.family: win.font; font.pixelSize: 19; font.weight: Font.Bold; color: win.ink }
-          Text { text: win.s.weatherDesc.charAt(0).toUpperCase() + win.s.weatherDesc.slice(1); font.family: win.font; font.pixelSize: 11; color: win.sub }
+      Repeater {
+        model: dial.hours
+        delegate: Column {
+          required property var modelData
+          required property int index
+          readonly property real a: -Math.PI / 2 + index / Math.max(1, dial.hours.length) * Math.PI * 2
+          x: dial.width / 2 + 88 * Math.cos(a) - width / 2
+          y: dial.height / 2 + 76 * Math.sin(a) - height / 2
+          width: 34; spacing: 0
+          MIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: win.s.weatherInfo(modelData.code)[1]; size: 13; fill: 1; color: index === 0 ? win.s.primary : win.sub }
+          Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: modelData.temp + "°"; font.family: win.font; font.pixelSize: 9; font.weight: index === 0 ? Font.Bold : Font.Normal; color: index === 0 ? win.ink : win.sub }
         }
+      }
+      Column {
+        anchors.centerIn: parent; spacing: 0
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatTime(win.now, "HH:mm"); font.family: win.font; font.pixelSize: 30; font.weight: Font.Bold; color: win.ink }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd d MMM"); font.family: win.font; font.pixelSize: 10; color: win.sub }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: win.s.weather ? win.s.weather.temp + " °C" : "--"; font.family: win.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: win.s.primary }
       }
     }
 
     // Jauges
     Row {
-      x: 300; y: 196; width: 220; spacing: 14
+      x: 300; y: 212; width: 220; spacing: 14
       Repeater {
         model: [["CPU", win.s.cpu], ["RAM", win.s.memPct], ["SSD", win.s.diskPct]]
         delegate: Item {

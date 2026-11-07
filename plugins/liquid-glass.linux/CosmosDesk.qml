@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Wayland
 import "T.js" as T
 
@@ -168,7 +169,7 @@ PanelWindow {
     Repeater {
       model: [
         { a: 0.2, r: 1.55, k: "net" }, { a: 1.5, r: 1.9, k: "music" }, { a: 2.7, r: 1.65, k: "ws" },
-        { a: 3.9, r: 2.05, k: "power" }, { a: 5.1, r: 1.75, k: "stats" }
+        { a: 3.9, r: 2.05, k: "power" }, { a: 5.1, r: 1.75, k: "stats" }, { a: 4.5, r: 1.6, k: "mode" }
       ]
       delegate: Item {
         id: sat
@@ -209,7 +210,8 @@ PanelWindow {
             id: inner
             anchors.centerIn: parent
             sourceComponent: sat.modelData.k === "net" ? netSat : sat.modelData.k === "music" ? musicSat
-              : sat.modelData.k === "ws" ? wsSat : sat.modelData.k === "power" ? powerSat : statsSat
+              : sat.modelData.k === "ws" ? wsSat : sat.modelData.k === "power" ? powerSat
+              : sat.modelData.k === "mode" ? modeSat : statsSat
           }
         }
         MouseArea {
@@ -219,9 +221,35 @@ PanelWindow {
           enabled: sat.modelData.k !== "ws"
           onClicked: {
             var k = sat.modelData.k
-            if (k === "power") win.s.powerMenu()
+            if (k === "mode") { Quickshell.execDetached(["omarchy-hyprland-workspace-layout-toggle"]); modeRead.restart() }
+            else if (k === "power") win.s.powerMenu()
             else win.s.togglePanel(k === "music" ? "dash" : k)
           }
+        }
+      }
+    }
+
+    // Satellites de notifications : les trois dernières tournent loin autour de la Terre.
+    Repeater {
+      model: win.notes
+      delegate: Rectangle {
+        id: note
+        required property var modelData
+        required property int index
+        // Sur l'arc gauche de la Terre, où il reste de la place à l'écran.
+        readonly property real a: Math.PI + (index - 1) * 0.5 + 0.1 * Math.sin(win.tt * 0.2 + index)
+        x: (world.er + 100) * Math.cos(a) - width / 2
+        y: (world.er + 100) * 0.9 * Math.sin(a) - height / 2
+        z: 13
+        width: Math.min(230, noteCol.implicitWidth + 40); height: noteCol.implicitHeight + 12; radius: 7
+        color: win.s.alpha(win.s.surface, 0.92)
+        border.width: 1; border.color: win.s.alpha(win.acc, 0.55)
+        MIcon { x: 8; anchors.verticalCenter: parent.verticalCenter; icon: "notifications"; size: 15; fill: 1; color: win.acc }
+        Column {
+          id: noteCol
+          x: 30; anchors.verticalCenter: parent.verticalCenter; spacing: 1
+          Text { width: Math.min(implicitWidth, 190); elide: Text.ElideRight; text: note.modelData.app || ""; font.family: win.font; font.pixelSize: 9; color: win.s.alpha(win.ink, 0.65) }
+          Text { width: Math.min(implicitWidth, 190); elide: Text.ElideRight; textFormat: Text.PlainText; text: note.modelData.summary || ""; font.family: win.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: win.ink }
         }
       }
     }
@@ -248,6 +276,26 @@ PanelWindow {
           Text { anchors.verticalCenter: parent.verticalCenter; text: fc.modelData.temp + "°"; font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold; color: win.ink }
         }
       }
+    }
+  }
+
+  // Mode du bureau et notifications, lus sans rien réclamer au service d'Omarchy.
+  property string mode: "dwindle"
+  property var notes: []
+  Process {
+    id: modeProc
+    command: ["omarchy-hyprland-workspace-layout-current"]
+    stdout: StdioCollector { onStreamFinished: { var m = text.trim(); if (m !== "") win.mode = m } }
+  }
+  Timer { id: modeRead; interval: 350; onTriggered: { modeProc.running = false; modeProc.running = true } }
+  Timer { interval: 5000; repeat: true; running: true; triggeredOnStart: true; onTriggered: modeRead.restart() }
+  FileView {
+    id: noteFile
+    path: Quickshell.env("HOME") + "/.local/state/omarchy/notifications/history.json"
+    watchChanges: true
+    onFileChanged: reload()
+    onLoaded: {
+      try { win.notes = JSON.parse(text()).slice(0, 3) } catch (e) { win.notes = [] }
     }
   }
 
@@ -307,6 +355,14 @@ PanelWindow {
     }
   }
   Component { id: powerSat; MIcon { icon: "power_settings_new"; size: 18; color: win.acc } }
+  Component {
+    id: modeSat
+    Chip {
+      icon: win.mode === "floating" ? "open_with" : (win.mode === "scrolling" ? "view_carousel" : "grid_view")
+      label: win.mode === "floating" ? T.t("Libre") : (win.mode === "scrolling" ? T.t("Ouvert") : T.t("Grille"))
+      lit: win.mode !== "dwindle"
+    }
+  }
   Component {
     id: statsSat
     Row {

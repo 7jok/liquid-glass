@@ -1097,7 +1097,7 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 self.rows.append(row)
             try:
                 out = subprocess.run(["fastfetch", "--pipe", "--logo", "none", "-s",
-                                      "title:os:kernel:uptime:packages:shell:wm:cpu:gpu:memory:disk"],
+                                      "title:os:kernel:uptime:packages:wm:cpu:gpu:memory:disk"],
                                      capture_output=True, text=True, timeout=8).stdout
                 # fastfetch aligne par des codes de curseur, même en --pipe.
                 clean = re.sub(r"\x1b\[\d*G", "  ", out)

@@ -8,6 +8,7 @@ import qs.Ui
 import "Calc.js" as Calc
 import "Units.js" as Units
 import "Mac.js" as Mac
+import "T.js" as T
 
 // ============================================================================
 // Liquid Glass — Spotlight (SUPER+Espace).
@@ -42,10 +43,10 @@ Item {
   // [id, nom, glyphe, indication du champ]
   readonly property var modes: [
     ["apps", "Applications", 0xF003B, "Rechercher des applications"],
-    ["files", "Fichiers", 0xF024B, "Rechercher des fichiers"],
+    ["files", T.t("Fichiers"), 0xF024B, "Rechercher des fichiers"],
     ["actions", "Actions", 0xF140B, "Rechercher des actions"],
-    ["clipboard", "Presse-papiers", 0xF014F, "Rechercher dans le presse-papiers"],
-    ["emoji", "Émojis", 0xF0785, "Rechercher des émojis"]
+    ["clipboard", T.t("Presse-papiers"), 0xF014F, "Rechercher dans le presse-papiers"],
+    ["emoji", T.t("Émojis"), 0xF0785, "Rechercher des émojis"]
   ]
   function modeInfo(id) { for (var i = 0; i < modes.length; i++) if (modes[i][0] === id) return modes[i]; return null }
   function setMode(id) {
@@ -192,7 +193,7 @@ Item {
     }
 
     var site = siteFor(q)
-    if (site) out.push({ section: site.site[1], kind: "web", title: "Rechercher « " + site.q + " »", sub: site.site[1], glyph: site.site[3], url: site.site[2] + encodeURIComponent(site.q) })
+    if (site) out.push({ section: site.site[1], kind: "web", title: T.t("Rechercher « ") + site.q + " »", sub: site.site[1], glyph: site.site[3], url: site.site[2] + encodeURIComponent(site.q) })
 
     var conv = Units.convert(q)
     if (conv) out.push({ section: "Conversion", kind: "calc", title: "= " + Calc.format(Math.round(conv.value * 1e4) / 1e4) + " " + conv.unit,
@@ -227,7 +228,7 @@ Item {
       out.push({ section: "Fichiers", kind: "file", title: name, sub: dir, glyph: isDir ? 0xF024B : 0xF0214, path: clean })
     }
 
-    out.push({ section: "Web", kind: "web", title: "Rechercher « " + q + " » sur le web", sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
+    out.push({ section: "Web", kind: "web", title: T.t("Rechercher « ") + q + " » sur le web", sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
     results = out
     if (selected >= out.length) selected = 0
   }

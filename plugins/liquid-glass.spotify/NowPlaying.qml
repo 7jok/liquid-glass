@@ -5,6 +5,7 @@ import Quickshell.Services.Pipewire
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — mini-lecteur de la barre.
 //   Barre : petite pochette + ligne de paroles en cours (ou « titre · artiste »).
@@ -365,9 +366,9 @@ Panel {
           Chip { text: "Paroles bureau"; on: !!root.s && root.s.lyricsDesktop; onClicked: root.s.setConfig("lyrics.desktop", !root.s.lyricsDesktop) }
           Chip { text: "Widget"; on: !!root.s && root.s.lyricsWidget; onClicked: root.s.setConfig("lyrics.widget", !root.s.lyricsWidget) }
           Chip { text: "Barre"; on: !!root.s && root.s.lyricsBar; onClicked: root.s.setConfig("lyrics.bar", !root.s.lyricsBar) }
-          Chip { text: "Karaoké"; on: !!root.s && root.s.karaokeOpen; onClicked: { root.close(); root.s.karaokeOpen = true } }
-          Chip { text: "Couleurs"; on: !!root.s && root.s.dynamicColors; onClicked: root.s.setConfig("spotify.dynamic_colors", !root.s.dynamicColors) }
-          Chip { text: "Visualiseur"; on: !!root.s && root.s.visualizer; onClicked: root.s.setConfig("visualizer.enabled", !root.s.visualizer) }
+          Chip { text: T.t("Karaoké"); on: !!root.s && root.s.karaokeOpen; onClicked: { root.close(); root.s.karaokeOpen = true } }
+          Chip { text: T.t("Couleurs"); on: !!root.s && root.s.dynamicColors; onClicked: root.s.setConfig("spotify.dynamic_colors", !root.s.dynamicColors) }
+          Chip { text: T.t("Visualiseur"); on: !!root.s && root.s.visualizer; onClicked: root.s.setConfig("visualizer.enabled", !root.s.visualizer) }
           Chip {
             readonly property var modes: ["cover", "blur", "gradient", "off"]
             readonly property var names: ({ cover: "Fond : pochette", blur: "Fond : flou", gradient: "Fond : dégradé", off: "Fond : thème" })

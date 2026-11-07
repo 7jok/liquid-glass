@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Shapes
 import Quickshell.Services.UPower
 import qs.Commons
+import "T.js" as T
 
 // Batterie façon macOS : anneau de charge (vert, rouge sous 20 %), éclair en charge.
 Tile {
@@ -65,7 +66,7 @@ Tile {
     }
     Text {
       anchors.horizontalCenter: w.wideBat ? undefined : parent.horizontalCenter
-      text: w.charging ? (w.frac >= 0.99 ? "Chargé" : "En charge") : "Sur batterie"
+      text: w.charging ? (w.frac >= 0.99 ? "Chargé" : T.t("En charge")) : T.t("Sur batterie")
       font.family: w.font; font.pixelSize: Math.round((w.wideBat ? 12 : 10) * w.k); font.weight: Font.Medium
       color: w.dim
     }

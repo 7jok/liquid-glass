@@ -5,6 +5,7 @@ import Quickshell.Services.Mpris
 import Quickshell.Widgets
 import qs.Commons
 import qs.Ui
+import "T.js" as T
 
 // ============================================================================
 // Liquid Glass — écran de verrouillage du bureau Linux.
@@ -148,7 +149,7 @@ Item {
   readonly property string hh: Qt.formatTime(now, "HH")
   readonly property string mm: Qt.formatTime(now, "mm")
   readonly property string dateText: {
-    var s = now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM")
+    var s = now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM")
     return s.charAt(0).toUpperCase() + s.slice(1)
   }
   readonly property var player: {
@@ -561,7 +562,7 @@ Item {
         spacing: 2
         Repeater {
           model: [["bedtime", "Veille", ["systemctl", "suspend"]],
-                  ["restart_alt", "Redémarrer", ["systemctl", "reboot"]],
+                  ["restart_alt", T.t("Redémarrer"), ["systemctl", "reboot"]],
                   ["power_settings_new", "Éteindre", ["systemctl", "poweroff"]]]
           delegate: Rectangle {
             required property var modelData

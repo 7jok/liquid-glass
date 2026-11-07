@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — menu du bouton vert (barres de titre hyprbars), façon Tahoe :
 // Plein écran, Agrandir, « Déplacer et redimensionner » (moitiés et quarts en
@@ -90,7 +91,7 @@ Item {
         width: parent.width - Mac.menu.padV * 2
 
         MenuItem { label: "Plein écran"; shortcut: "⌃⌘F"; onChosen: root.act("fullscreen") }
-        MenuItem { label: "Agrandir"; onChosen: root.act("zoom") }
+        MenuItem { label: T.t("Agrandir"); onChosen: root.act("zoom") }
         Sep {}
         Text {
           x: Mac.menu.inset + 4

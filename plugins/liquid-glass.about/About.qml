@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — « À propos de ce Mac » (menu Pomme), façon macOS Tahoe :
 // petite fenêtre de verre, portable dessiné avec le fond d'écran actuel,
@@ -34,7 +35,7 @@ Item {
 
   function bytes(n) {
     var v = Number(n) || 0
-    if (v >= 1e12) return (v / 1e12).toLocaleString(Qt.locale("fr_FR"), "f", 2) + " To"
+    if (v >= 1e12) return (v / 1e12).toLocaleString(Qt.locale(T.loc), "f", 2) + " To"
     return Math.round(v / 1e9) + " Go"
   }
 

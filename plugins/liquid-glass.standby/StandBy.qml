@@ -7,6 +7,7 @@ import Quickshell.Services.UPower
 import Quickshell.Wayland
 import qs.Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — « En veille » (StandBy, ⌘⌥B ou Spotlight).
 // Plein écran noir : à gauche une grande horloge (3 styles, ← →), à droite un
@@ -139,7 +140,7 @@ Item {
           anchors.horizontalCenter: parent.horizontalCenter
           anchors.bottom: parent.bottom
           textFormat: Text.PlainText
-          text: Qt.locale("fr_FR").toString(root.now, "dddd d MMMM")
+          text: Qt.locale(T.loc).toString(root.now, "dddd d MMMM")
           font.family: root.uiFont; font.pixelSize: Math.round(stage.height * 0.06); font.weight: Font.Medium
           color: root.inkDim
         }
@@ -235,7 +236,7 @@ Item {
             Text {
               id: calTitle
               textFormat: Text.PlainText
-              text: Qt.locale("fr_FR").toString(root.now, "MMMM").toUpperCase()
+              text: Qt.locale(T.loc).toString(root.now, "MMMM").toUpperCase()
               font.family: root.uiFont; font.pixelSize: Math.round(cal.height * 0.075); font.weight: Font.Bold
               color: root.night ? root.ink : "#ff453a"
             }
@@ -357,7 +358,7 @@ Item {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.bottom: parent.bottom
               textFormat: Text.PlainText
-              text: batt.charging ? (batt.frac >= 0.99 ? "Chargé" : "En charge") : "Sur batterie"
+              text: batt.charging ? (batt.frac >= 0.99 ? "Chargé" : T.t("En charge")) : T.t("Sur batterie")
               font.family: root.uiFont; font.pixelSize: Math.round(parent.height * 0.065); font.weight: Font.DemiBold
               color: root.inkDim
             }

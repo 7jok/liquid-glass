@@ -184,11 +184,11 @@ def sixel_file(path: Path, w: int, h: int) -> Path | None:
     cw, ch = cell_size()
     if not cw:
         return None
-    f = lg_art.CACHE / f"six-{path.stem}-{w * cw}x{h * ch}.six"
+    f = lg_art.CACHE / f"sixel-{path.stem}-{w * cw}x{h * ch}.six"
     if not f.exists() or f.stat().st_size == 0:
         f.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["magick", str(path) + "[0]", "-background", "black", "-alpha", "remove", "-resize", f"{w * cw}x{h * ch}^",
-                        "-gravity", "center", "-extent", f"{w * cw}x{h * ch}", "-colors", "200", f"sixel:{f}"], timeout=30)
+        subprocess.run(["magick", str(path) + "[0]", "-background", "#0c0c12", "-alpha", "remove", "-resize", f"{w * cw}x{h * ch}",
+                        "-colors", "200", f"sixel:{f}"], timeout=30)
     return f if f.exists() and f.stat().st_size else None
 
 

@@ -7,6 +7,7 @@ import Quickshell.Services.UPower
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // ============================================================================
 // Liquid Glass — vue de l'écran de verrouillage façon macOS Tahoe.
@@ -400,7 +401,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         textFormat: Text.PlainText
         text: {
-          var s = Qt.locale("fr_FR").toString(clock.date, root.dateFormat === "short" ? "ddd d MMM" : "dddd d MMMM")
+          var s = Qt.locale(T.loc).toString(clock.date, root.dateFormat === "short" ? "ddd d MMM" : "dddd d MMMM")
           return s.charAt(0).toUpperCase() + s.slice(1)
         }
         font.family: root.uiFont; font.pixelSize: Math.round(root.height * 0.028); font.weight: Font.DemiBold

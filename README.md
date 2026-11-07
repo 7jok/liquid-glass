@@ -170,6 +170,15 @@ Les fonds d'écran ne sont pas dans le dépôt : ils se téléchargent en arriè
 l'installation. Textures de Cosmos : Lune NASA LROC (domaine public), Terre NASA Blue
 Marble (domaine public), nuages Solar System Scope (CC BY 4.0).
 
+**Terminaux** : ⌃⌘M ouvre un rice au hasard, de 1 à 13 terminaux, et le relance si tu rappuies.
+⌃⌘⇧M le ferme, ⌃⌘⌥M ouvre les pages à composer. `liquid-glass ascii photo.jpg` convertit une image,
+`liquid-glass ascii --text "Salut" --font Isometric1` écrit en grand, `liquid-glass fetch` affiche
+une fiche à la taille du terminal. Tes images : `~/Images/ascii`, tes vidéos : `~/Vidéos/ascii`.
+
+Images de `assets/art` et boucles de `assets/loops` : domaine public, via Wikimedia Commons
+(NASA, Hokusai, Van Gogh, Dürer, Léonard de Vinci, Muybridge, Émile Cohl). Tux : Larry Ewing,
+Simon Budig et Anja Gerwinski. Polices de `assets/figlet` : collection xero/figlet-fonts.
+
 **Langue** : `liquid-glass lang en` ou `fr`, ou Réglages → Bureau Linux → Langue.
 
 **Son des touches** : `liquid-glass keys on` — clavier mécanique « creamy » sur tout le

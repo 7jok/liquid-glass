@@ -9,6 +9,7 @@ import qs.Commons as Commons
 import qs.Ui
 import "DockModel.js" as DockModel
 import "Mac.js" as Mac
+import "T.js" as T
 
 // One screen's dock. It stays mapped and only hides its contents, so switching
 // to a floating workspace does not wait on a fresh layer surface. While hidden the
@@ -1173,7 +1174,7 @@ PanelWindow {
   readonly property var menuRows: {
     var rows = []
     if (window.settingsMenu) {
-      var pos = [["top", "En haut"], ["bottom", "En bas"], ["left", "À gauche"], ["right", "À droite"]]
+      var pos = [["top", "En haut"], ["bottom", "En bas"], ["left", T.t("À gauche")], ["right", T.t("À droite")]]
       rows.push({ kind: "header", text: "Position à l'écran" })
       for (var p = 0; p < pos.length; p++)
         rows.push({ text: pos[p][1], checked: window.position === pos[p][0], indent: true, act: "pos:" + pos[p][0] })
@@ -1208,7 +1209,7 @@ PanelWindow {
       rows.push(window.altHeld ? { text: "Forcer à quitter", act: "force", danger: true, shortcut: "⌥⌘⎋" }
                                : { text: "Quitter", act: "quit", shortcut: "⌘Q" })
     } else if (hasEntry) {
-      rows.push({ text: "Ouvrir", act: "open" })
+      rows.push({ text: T.t("Ouvrir"), act: "open" })
     }
     if (rows.length > 0 && rows[rows.length - 1].kind === "sep") rows.pop()
     return rows

@@ -10,6 +10,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Bluetooth
 import Quickshell.Widgets
 import qs.Commons
+import "T.js" as T
 
 // Liquid Glass — île dynamique dans une fausse encoche, façon Alcove / NotchNook.
 //
@@ -135,7 +136,7 @@ Item {
       root.lastOnBattery = UPower.onBattery
       var pct = root.bat && root.bat.ready ? Math.round(root.bat.percentage * 100) : -1
       root.flash({ kind: "power", icon: UPower.onBattery ? 0xF0079 : 0xF0084,
-                   title: UPower.onBattery ? "Sur batterie" : "En charge",
+                   title: UPower.onBattery ? T.t("Sur batterie") : T.t("En charge"),
                    detail: pct >= 0 ? pct + " %" : "", color: UPower.onBattery ? "#ffffff" : "#30d158",
                    value: pct >= 0 ? pct / 100 : -1 })
     }
@@ -156,7 +157,7 @@ Item {
       now[key] = true
       if (btPrimed && !btSeen[key] && showBluetooth) {
         var b = d.batteryAvailable ? Math.round(d.battery * 100) : -1
-        flash({ kind: "bt", icon: 0xF02CB, title: String(d.name || "Appareil").slice(0, 40),
+        flash({ kind: "bt", icon: 0xF02CB, title: String(d.name || T.t("Appareil")).slice(0, 40),
                 detail: b >= 0 ? b + " %" : "Connecté", color: "#0a84ff", value: b >= 0 ? b / 100 : -1 })
       }
     }
@@ -195,7 +196,7 @@ Item {
     lastVol = vol
     if (!showHud) return
     flash({ kind: "volume", icon: muted || vol === 0 ? 0xF075F : (vol < 0.4 ? 0xF057F : 0xF057E),
-            title: "Volume", detail: muted ? "Muet" : Math.round(vol * 100) + " %", color: "#ffffff", value: muted ? 0 : Math.min(1, vol) })
+            title: "Volume", detail: muted ? T.t("Muet") : Math.round(vol * 100) + " %", color: "#ffffff", value: muted ? 0 : Math.min(1, vol) })
   }
 
   // ------------------------------------------------------------ état de l'île
@@ -217,7 +218,7 @@ Item {
     target: "liquid-glass.island"
     function toggle(): void { if (root.hasTrack) root.expanded = !root.expanded }
     function close(): void { root.expanded = false }
-    function test(): void { root.flash({ kind: "power", icon: 0xF0084, title: "En charge", detail: "72 %", color: "#30d158", value: 0.72 }) }
+    function test(): void { root.flash({ kind: "power", icon: 0xF0084, title: T.t("En charge"), detail: "72 %", color: "#30d158", value: 0.72 }) }
   }
 
   // ------------------------------------------------------------ fenêtre

@@ -8,6 +8,7 @@ import Quickshell.Services.Pipewire
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — Centre de contrôle façon macOS Tahoe : pas de panneau, des
 // capsules de verre séparées qui flottent sous la barre et arrivent en cascade.
@@ -267,23 +268,23 @@ Panel {
   // [id] → { libellé, glyphe, actif, action }
   function buttonInfo(id) {
     switch (id) {
-    case "dark": return { label: darkMode ? "Mode sombre" : "Mode clair", glyph: 0xF050E, on: darkMode, act: function() { root.run(["liquid-glass", "mode", "toggle"]) } }
+    case "dark": return { label: darkMode ? T.t("Mode sombre") : T.t("Mode clair"), glyph: 0xF050E, on: darkMode, act: function() { root.run(["liquid-glass", "mode", "toggle"]) } }
     case "nightshift": return { label: "Night Shift", glyph: 0xF06E8, on: nightlight, act: function() { root.run(["omarchy-shell", "nightlight", "toggle"]) } }
-    case "awake": return { label: "Rester éveillé", glyph: 0xF0176, on: awake, act: function() { root.run(["omarchy", "toggle", "idle", "toggle"]) } }
-    case "screenshot": return { label: "Capture", glyph: 0xF0100, on: false, act: function() { root.launch(["omarchy", "capture", "screenshot", "region"]) } }
-    case "record": return { label: recording ? "Arrêter" : "Enregistrer", glyph: recording ? 0xF04DB : 0xF044A, on: recording,
+    case "awake": return { label: T.t("Rester éveillé"), glyph: 0xF0176, on: awake, act: function() { root.run(["omarchy", "toggle", "idle", "toggle"]) } }
+    case "screenshot": return { label: T.t("Capture"), glyph: 0xF0100, on: false, act: function() { root.launch(["omarchy", "capture", "screenshot", "region"]) } }
+    case "record": return { label: recording ? T.t("Arrêter") : "Enregistrer", glyph: recording ? 0xF04DB : 0xF044A, on: recording,
                             act: function() { root.launch(recording ? ["omarchy", "capture", "screenrecording", "--stop-recording"] : ["omarchy", "capture", "screenrecording"]) } }
-    case "glass": return { label: glassStyle === "clear" ? "Verre clair" : (glassStyle === "tinted" ? "Verre teinté" : "Verre"), glyph: 0xF0F5A, on: glassStyle !== "standard",
+    case "glass": return { label: glassStyle === "clear" ? "Verre clair" : (glassStyle === "tinted" ? "Verre teinté" : T.t("Verre")), glyph: 0xF0F5A, on: glassStyle !== "standard",
                            act: function() { var n = { standard: "clear", clear: "tinted", tinted: "standard" }[glassStyle] || "standard"; root.run(["liquid-glass", "set", "glass.style", n]) } }
-    case "lyrics": return { label: "Paroles", glyph: 0xF0387, on: !(cfg.lyrics && cfg.lyrics.desktop === false), act: function() { root.run(["omarchy-shell", "liquid-glass.spotify", "desktop"]) } }
-    case "karaoke": return { label: "Karaoké", glyph: 0xF0E54, on: false, act: function() { root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } }
+    case "lyrics": return { label: T.t("Paroles"), glyph: 0xF0387, on: !(cfg.lyrics && cfg.lyrics.desktop === false), act: function() { root.run(["omarchy-shell", "liquid-glass.spotify", "desktop"]) } }
+    case "karaoke": return { label: T.t("Karaoké"), glyph: 0xF0E54, on: false, act: function() { root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } }
     case "mission": return { label: "Mission Control", glyph: 0xF0570, on: false, act: function() { root.launch(["omarchy-shell", "shell", "toggle", "liquid-glass.mission"]) } }
-    case "desktop": return { label: "Bureau", glyph: 0xF01C4, on: false, act: function() { root.launch(["liquid-glass", "show-desktop"]) } }
-    case "lock": return { label: "Verrouiller", glyph: 0xF033E, on: false, act: function() { root.launch(["omarchy-shell", "lock", "lock"]) } }
-    case "calculator": return { label: "Calculette", glyph: 0xF00EC, on: false, act: function() { root.launch(["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"query\":\"=\"}"]) } }
-    case "clipboard": return { label: "Presse-papiers", glyph: 0xF014F, on: false, act: function() { root.launch(["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"mode\":\"clipboard\"}"]) } }
-    case "emoji": return { label: "Émojis", glyph: 0xF0785, on: false, act: function() { root.launch(["omarchy-shell", "shell", "toggle", "omarchy.emojis"]) } }
-    case "settings": return { label: "Réglages", glyph: 0xF0493, on: false, act: function() { root.launch(["omarchy-shell", "liquid-glass.settings", "toggle"]) } }
+    case "desktop": return { label: T.t("Bureau"), glyph: 0xF01C4, on: false, act: function() { root.launch(["liquid-glass", "show-desktop"]) } }
+    case "lock": return { label: T.t("Verrouiller"), glyph: 0xF033E, on: false, act: function() { root.launch(["omarchy-shell", "lock", "lock"]) } }
+    case "calculator": return { label: T.t("Calculette"), glyph: 0xF00EC, on: false, act: function() { root.launch(["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"query\":\"=\"}"]) } }
+    case "clipboard": return { label: T.t("Presse-papiers"), glyph: 0xF014F, on: false, act: function() { root.launch(["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"mode\":\"clipboard\"}"]) } }
+    case "emoji": return { label: T.t("Émojis"), glyph: 0xF0785, on: false, act: function() { root.launch(["omarchy-shell", "shell", "toggle", "omarchy.emojis"]) } }
+    case "settings": return { label: T.t("Réglages"), glyph: 0xF0493, on: false, act: function() { root.launch(["omarchy-shell", "liquid-glass.settings", "toggle"]) } }
     }
     return null
   }
@@ -292,25 +293,25 @@ Panel {
   // [id] → { icon, title, subtitle, on, color, act, secondary }
   function tileInfo(id) {
     switch (id) {
-    case "wifi": return { icon: wifiOn ? 0xF05A9 : 0xF05AA, title: "Wi-Fi", subtitle: wifiOn ? (ssid || "Non connecté") : "Désactivé", on: wifiOn, color: accent,
+    case "wifi": return { icon: wifiOn ? 0xF05A9 : 0xF05AA, title: "Wi-Fi", subtitle: wifiOn ? (ssid || T.t("Non connecté")) : T.t("Désactivé"), on: wifiOn, color: accent,
                           act: function() { root.run(["nmcli", "radio", "wifi", root.wifiOn ? "off" : "on"]) },
                           secondary: function() { root.launch(["omarchy-shell", "omarchy.network", "toggle"]) } }
     case "bluetooth": return { icon: btOn ? 0xF00AF : 0xF00B2, title: "Bluetooth", subtitle: btLabel, on: btOn, color: accent,
                                act: function() { if (root.btAdapter) root.btAdapter.enabled = !root.btOn },
                                secondary: function() { root.launch(["omarchy-shell", "omarchy.bluetooth", "toggle"]) } }
-    case "airplane": return { icon: 0xF001D, title: "Mode avion", subtitle: airplane ? "Activé" : "Désactivé", on: airplane, color: "#ff9f0a",
+    case "airplane": return { icon: 0xF001D, title: T.t("Mode avion"), subtitle: airplane ? T.t("Activé") : T.t("Désactivé"), on: airplane, color: "#ff9f0a",
                               act: function() { var off = !root.airplane; if (root.btAdapter) root.btAdapter.enabled = !off; root.run(["nmcli", "radio", "all", off ? "off" : "on"]) },
                               secondary: null }
-    case "record": return { icon: recording ? 0xF04DB : 0xF044A, title: recording ? "Arrêter" : "Enregistrer", subtitle: recording ? "Enregistrement…" : "Écran", on: true, color: "#ff3b30",
+    case "record": return { icon: recording ? 0xF04DB : 0xF044A, title: recording ? T.t("Arrêter") : "Enregistrer", subtitle: recording ? "Enregistrement…" : T.t("Écran"), on: true, color: "#ff3b30",
                             act: function() { root.launch(recording ? ["omarchy", "capture", "screenrecording", "--stop-recording"] : ["omarchy", "capture", "screenrecording"]) },
                             secondary: null }
-    case "gamemode": return { icon: 0xF0297, title: "Mode Jeu", subtitle: gameMode ? "Activé" : "Auto", on: gameMode, color: "#30d158",
+    case "gamemode": return { icon: 0xF0297, title: T.t("Mode Jeu"), subtitle: gameMode ? T.t("Activé") : "Auto", on: gameMode, color: "#30d158",
                               act: function() { root.gameMode = !root.gameMode; root.run(["liquid-glass", "gamemode", "toggle"]) }, secondary: null }
-    case "nightshift": return { icon: 0xF06E8, title: "Night Shift", subtitle: nightlight ? "Activé" : "Désactivé", on: nightlight, color: "#ff9f0a",
+    case "nightshift": return { icon: 0xF06E8, title: "Night Shift", subtitle: nightlight ? T.t("Activé") : T.t("Désactivé"), on: nightlight, color: "#ff9f0a",
                                 act: function() { root.run(["omarchy-shell", "nightlight", "toggle"]) }, secondary: null }
-    case "awake": return { icon: 0xF0176, title: "Rester éveillé", subtitle: awake ? "Activé" : "Désactivé", on: awake, color: accent,
+    case "awake": return { icon: 0xF0176, title: T.t("Rester éveillé"), subtitle: awake ? T.t("Activé") : T.t("Désactivé"), on: awake, color: accent,
                            act: function() { root.run(["omarchy", "toggle", "idle", "toggle"]) }, secondary: null }
-    case "dark": return { icon: 0xF050E, title: "Mode sombre", subtitle: darkMode ? "Activé" : "Désactivé", on: darkMode, color: accent,
+    case "dark": return { icon: 0xF050E, title: T.t("Mode sombre"), subtitle: darkMode ? T.t("Activé") : T.t("Désactivé"), on: darkMode, color: accent,
                           act: function() { root.run(["liquid-glass", "mode", "toggle"]) }, secondary: null }
     }
     return null
@@ -411,7 +412,7 @@ Panel {
               visible: root.recording
               width: parent.width
               dot: "#bf5af2"; glyph: 0xF0A1C
-              title: "Enregistrement de l'écran"
+              title: T.t("Enregistrement de l'écran")
               subtitle: "En cours"
               stop: true
             }
@@ -433,8 +434,8 @@ Panel {
                 anchors.fill: parent
                 anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(24)
                 icon: root.g(0xF0594)
-                title: "Concentration"
-                subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? "Ne pas déranger" : "Désactivée")
+                title: T.t("Concentration")
+                subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? T.t("Ne pas déranger") : "Désactivée")
                 active: root.focusMode !== "off" || root.dnd
                 activeColor: "#5e5ce6"
                 onClicked: root.run(["liquid-glass", "focus", "toggle"])
@@ -537,8 +538,8 @@ Panel {
             x: Style.space(6); y: Style.space(6)
             width: parent.width - Style.space(12)
             Repeater {
-              model: [["dnd", "Ne pas déranger", 0xF0594, "#5e5ce6"], ["work", "Travail", 0xF0D6B, "#30b0c7"],
-                      ["personal", "Personnel", 0xF0004, "#bf5af2"], ["sleep", "Sommeil", 0xF04B2, "#64d2ff"]]
+              model: [["dnd", T.t("Ne pas déranger"), 0xF0594, "#5e5ce6"], ["work", T.t("Travail"), 0xF0D6B, "#30b0c7"],
+                      ["personal", T.t("Personnel"), 0xF0004, "#bf5af2"], ["sleep", T.t("Sommeil"), 0xF04B2, "#64d2ff"]]
               delegate: Rectangle {
                 id: fm
                 required property var modelData
@@ -553,7 +554,7 @@ Panel {
                   Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(fm.modelData[2]); font.family: root.iconFont; font.pixelSize: Style.space(13); color: fm.on ? "white" : root.fg }
                 }
                 Label { anchors.left: fmDot.right; anchors.leftMargin: Style.space(10); anchors.verticalCenter: parent.verticalCenter; text: fm.modelData[1]; font.pixelSize: Style.font.bodySmall; font.weight: fm.on ? Font.DemiBold : Font.Normal }
-                Label { anchors.right: parent.right; anchors.rightMargin: Style.space(10); anchors.verticalCenter: parent.verticalCenter; visible: fm.on; text: "Activé"; opacity: 0.5; font.pixelSize: Style.font.caption }
+                Label { anchors.right: parent.right; anchors.rightMargin: Style.space(10); anchors.verticalCenter: parent.verticalCenter; visible: fm.on; text: T.t("Activé"); opacity: 0.5; font.pixelSize: Style.font.caption }
                 MouseArea { id: fmMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                   onClicked: { root.run(["liquid-glass", "focus", fm.on ? "off" : fm.modelData[0]]); root.focusMenu = false } }
               }
@@ -684,7 +685,7 @@ Panel {
             spacing: Style.space(7)
             Item {
               width: parent.width; height: soundLbl.implicitHeight
-              Label { id: soundLbl; text: "Son"; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
+              Label { id: soundLbl; text: T.t("Son"); font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
               Label {
                 anchors.right: parent.right; anchors.left: soundLbl.right; anchors.leftMargin: Style.space(12)
                 horizontalAlignment: Text.AlignRight
@@ -728,7 +729,7 @@ Panel {
             anchors.fill: parent
             anchors.margins: Style.space(11)
             spacing: Style.space(7)
-            Label { text: "Écran"; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
+            Label { text: T.t("Écran"); font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
             GlassSlider {
               width: parent.width
               icon: root.g(0xF00DE)
@@ -922,7 +923,7 @@ Panel {
       color: stopMouse.containsMouse ? "#ff5f57" : "#ff453a"
       scale: stopMouse.pressed ? 0.85 : 1
       Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
-      Text { id: stopLbl; anchors.centerIn: parent; textFormat: Text.PlainText; text: "Arrêter"; font.family: root.uiFont; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; color: "white" }
+      Text { id: stopLbl; anchors.centerIn: parent; textFormat: Text.PlainText; text: T.t("Arrêter"); font.family: root.uiFont; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold; color: "white" }
       MouseArea { id: stopMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
         onClicked: root.launch(["omarchy", "capture", "screenrecording", "--stop-recording"]) }
     }

@@ -2032,7 +2032,6 @@ def cmd_export(args: list[str]) -> None:
     print(f"Réglages et applications enregistrés dans {out}")
 
 
-I18N_PLUGINS = ("liquid-glass.linux", "liquid-glass.profiles", "liquid-glass.settings")
 
 
 def write_lang(lang: str, roots: list[Path]) -> None:
@@ -2045,9 +2044,9 @@ def write_lang(lang: str, roots: list[Path]) -> None:
     else:
         body = 'var loc = "fr_FR"\nfunction t(s) { return s }\n'
     for root in roots:
-        for name in I18N_PLUGINS:
-            if (root / name).is_dir():
-                (root / name / "T.js").write_text(".pragma library\n" + body)
+        for plugin in root.glob("liquid-glass.*"):
+            if (plugin / "T.js").exists():
+                (plugin / "T.js").write_text(".pragma library\n" + body)
 
 
 def cmd_lang(args: list[str]) -> None:

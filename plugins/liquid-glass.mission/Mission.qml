@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // ============================================================================
 // Liquid Glass — Mission Control / Exposé (SUPER+↑, geste 4 doigts vers le haut).
@@ -342,7 +343,7 @@ Item {
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 textFormat: Text.PlainText
-                text: "Bureau " + wsPill.modelData.id
+                text: T.t("Bureau ") + wsPill.modelData.id
                 font.family: root.uiFont; font.pixelSize: Style.space(13); font.weight: Font.DemiBold
                 color: "white"
               }
@@ -365,7 +366,7 @@ Item {
         anchors.bottomMargin: Style.space(22)
         textFormat: Text.PlainText
         visible: root.appClass === ""
-        text: (root.allWindows ? "Toutes les fenêtres" : "Bureau " + root.currentWs) + "   ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer"
+        text: (root.allWindows ? "Toutes les fenêtres" : T.t("Bureau ") + root.currentWs) + "   ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer"
         font.family: root.uiFont; font.pixelSize: Style.space(12)
         color: "white"
         opacity: root.arranged ? 0.6 : 0

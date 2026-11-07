@@ -87,6 +87,7 @@ Arrière-plan	Background
 Arrondi des cartes	Card radius
 Arrondi des fenêtres	Window radius
 Associé	Paired
+ATTENDS	WAIT
 Aube	Dawn
 Aucun adaptateur	No adapter
 Aucune application	No application
@@ -112,6 +113,7 @@ Au-dessus du mot de passe	Above the password
  aujourd'hui	 today
 Aujourd'hui	Today
 Au repos	Idle
+Aurore	Aurora
 Aussi dans le Centre de contrôle	Also in Control Center
 Automatique	Automatic
 Automatique, tirée de l'arrière-plan	Automatic, taken from the wallpaper
@@ -138,6 +140,7 @@ Basculer clair / sombre	Toggle light / dark
 Batterie	Battery
 Batterie en haut à droite	Battery at top right
 beaucoup	a lot
+Bienvenue	Welcome
 Bille	Marble
 Blanc	White
 Bleu	Blue
@@ -241,6 +244,7 @@ Clic secondaire à deux doigts	Two-finger secondary click
 Clic sur l'anneau : pause	Click the ring: pause
 Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page.	Click a shortcut to open the app, or switch to it if already open. Right click: this page.
 Cliquez avec deux doigts : clic droit ; trois : clic du milieu	Click with two fingers: right click; three: middle click
+Code incorrect	Wrong code
 Code QR	QR code
 Coins actifs	Hot corners
 Coins d'écran arrondis	Rounded screen corners
@@ -275,6 +279,7 @@ Copier	Copy
 Corail	Coral
 Corbeille	Recycle Bin
 Coucher du soleil	Sunset
+Coucher	Sunset
 Couleur	Color
 Couleur d'accentuation	Accent color
 Couleur de la pochette	Cover color
@@ -308,7 +313,9 @@ Déplacer la fenêtre	Move window
 Déplacer vers le bureau précédent	Move to previous desktop
 Déplacer vers le bureau suivant	Move to next desktop
 Dépose ici des raccourcis, dossiers ou fichiers	Drop shortcuts, folders or files here
+Dernier croissant	Waning crescent
 Dernière écoute · ▶ pour reprendre	Last played · ▶ to resume
+Dernier quartier	Last quarter
 Derrière les fenêtres	Behind windows
 Désactivée	Off
 Désactivé	Off
@@ -353,12 +360,15 @@ Dynamiques	Dynamic
 Écris ici : numéro de commande, liste, bout de code. Tout s'enregistre seul.	Write here: order number, list, code snippet. Everything saves itself.
 Éditeur de texte	Text Editor
 Édition	Edit
+Effacer	Clear
 Effets d'animation	Animation effects
 Éléments de la barre	Bar items
  éléments	 items
 Émojis	Emoji
 Émojis et symboles	Emoji & Symbols
+EMPREINTE INDISPONIBLE	FINGERPRINT UNAVAILABLE
 Empreinte ou mot de passe	Fingerprint or password
+en attente d'identification_	waiting for identification_
 En bas à droite	Bottom right
 En bas à gauche	Bottom left
 En bas	Bottom
@@ -390,7 +400,11 @@ Entrée pour appliquer	Enter to apply
  ·  Entrée pour copier	 ·  Enter to copy
 Entrée pour envoyer	Enter to send
 Entrée pour lancer la commande	Enter to run the command
+entrée pour ouvrir	enter to unlock
+Entrez le code	Enter PIN
+Entrez votre mot de passe	Enter your password
 En veille (StandBy)	StandBy
+Envoi	Upload
 Envoyer à la console déroulante	Send to drop-down console
 Envoyer au bloc-notes flottant	Send to floating notepad
 Envoyer la fenêtre à l'espace	Send window to workspace
@@ -417,6 +431,7 @@ Espaces	Workspaces
 Essentiels	Essentials
 Étagère	Shelf
 Étagère vide	Shelf is empty
+éteindre	shutdown
 Éteindre	Shut Down
 Éteindre…	Shut Down…
 Étire les chiffres pour remplir l'espace, comme iOS 26	Stretches digits to fill the space, like iOS 26
@@ -496,6 +511,8 @@ Gauche	Left
 Général	General
 Générés	Generated
 Gestes	Gestures
+Gibbeuse croissante	Waxing gibbous
+Gibbeuse décroissante	Waning gibbous
 Glace	Ice
 Glisse des fichiers sur l'île, ils restent ici jusqu'à ce que tu les retires	Drag files onto the island, they stay here until you remove them
 Glissez-le où vous voulez : il glisse et rebondit	Drag it anywhere: it glides and bounces
@@ -528,6 +545,8 @@ Horloge pixel	Pixel clock
 Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and lyrics hop a little on each bass hit
 Hors ligne	Offline
 HUMID.	HUMID.
+Humidité	Humidity
+ICI	HERE
 Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
 Ignorer en tapant au clavier	Ignore while typing
 Île dynamique	Dynamic Island
@@ -546,6 +565,7 @@ Jeux	Games
 Jouet	Toy
 Jour en grand	Big day
 Jour en kanji	Day in kanji
+ jours	 days
 JSON compact	Compact JSON
 JSON lisible	Pretty JSON
 Karaoké	Karaoke
@@ -553,6 +573,7 @@ Karaoké plein écran	Full-screen karaoke
 La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.	The bar is Omarchy's, dressed in glass by the Liquid Glass theme. Widget layout: omarchy bar --help.
 La bulle l'agrandit	The bubble enlarges it
 La fonctionnalité d'entrée tactile ou avec un stylet n'est pas disponible sur cet écran	Pen and touch input is not available on this display
+Lagon	Lagoon
 Lancer la page	Launch page
 lancer…	launch…
 Lance Spotify ♪	Start Spotify ♪
@@ -576,9 +597,12 @@ Les notifications sont silencieuses	Notifications are silent
 Les paroles s'afficheront ici	Lyrics will appear here
 Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture	Sound drawn at the bottom of the screen (cava), only during playback
 Lever du soleil	Sunrise
+Lever	Sunrise
+liaison	link
 Libre	Free
 Ligne	Line
  lignes	 lines
+Lilas	Lilac
 L'île s'élargit et la ligne chantée défile dedans	The island widens and the sung line scrolls inside
 Liquide	Liquid
 Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
@@ -590,6 +614,7 @@ Lumière nocturne	Night light
 Luminosité	Brightness
 Luminosité, éclairage nocturne	Brightness, night light
 Lu	Mo
+Lune	Moon
  · lus en direct dans Hyprland	 · read live from Hyprland
 Mac, Omarchy, Mono, Forêt, Violet… (⌘⇧Espace)	Mac, Omarchy, Mono, Forest, Violet… (⌘⇧Space)
 Maint.	Now
@@ -606,6 +631,8 @@ Masquer 	Hide
 Masquer les autres	Hide Others
 Material 3, couleurs du fond	Material 3, wallpaper colors
 Ma	Tu
+Max	High
+Max 	High 
 Max. 	Max. 
 Meilleur résultat	Top hit
 Mémoire	Memory
@@ -629,6 +656,9 @@ Météo…	Weather…
 Mettre en veille	Sleep
 Me	We
 Micro	Microphone
+Min	Low
+Min 	Low 
+Minuit	Midnight
 minuscules	lowercase
 Minuteur terminé	Timer finished
 Minuteur	Timer
@@ -665,7 +695,9 @@ Monter le son	Volume up
 Morceau en cours	Current track
 Morceau précédent	Previous track
 Morceau suivant	Next track
+mot de passe	password
 Mot de passe	Password
+MOT DE PASSE	PASSWORD
 Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien	Giant sung word in the center, full line, in the player card, or nothing
 Mot géant	Giant word
  mots	 words
@@ -687,6 +719,7 @@ Neige	Snow
 Ne pas déranger	Do Not Disturb
 Niveau de batterie : 	Battery level: 
 Niveau de la batterie	Battery level
+noeud	node
 Noir	Black
 Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)	Black (black frame), paper (all white, mist) or sakura (plum and pink)
 Noir profond, blanc cassé, jour en kanji	Deep black, off-white, day in kanji
@@ -700,7 +733,9 @@ Non connecté	Not connected
 Non connecté (	Not connected (
 Normale	Normal
 Notes	Notes
+ notifications	 notifications
 Nouvelle fenêtre	New Window
+Nouvelle lune	New moon
 Nouvelle tâche…	New task…
 Noyau	Kernel
 Nuit	Night
@@ -710,6 +745,7 @@ Off : le fond normal reste, seul le widget s'affiche	Off: the normal wallpaper s
 Opacité du verre	Glass opacity
 Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément.	Glass opacity, font and terminal: the theme is rebuilt (≈1 s). The rest applies instantly.
 Opacité	Opacity
+Options de connexion	Sign-in options
 orages	thunderstorms
 Orage	Thunderstorm
 Orbite, mousse ou corail	Orbit, moss or coral
@@ -761,9 +797,11 @@ Pas sur macOS : Mission Control (⌘↑) les remplace	Not on macOS: Mission Cont
 Pastille 2 (sous Concentration)	Dot 2 (under Focus)
 Pastille 3	Dot 3
 Pastilles	Dots
+PAUSE	PAUSE
 Pavé	Touchpad
 Pêche	Peach
 Pendant la musique	During music
+Pense du jour	Thought of the day
 Performances	Performance
 Perso	Custom
 Personnalisation	Personalization
@@ -781,6 +819,7 @@ Plasma, Kickoff	Plasma, Kickoff
 Plein écran en mosaïque	Tiled full screen
 Plein écran	Full screen
 Pleine largeur	Full width
+Pleine lune	Full moon
 pluie	rain
 Pluie	Rain
 Plus d'infos…	More Info…
@@ -800,9 +839,12 @@ Position ; se déplace aussi au doigt	Position; also moves with your finger
 Pourcentage de la batterie	Battery percentage
 Pour ce thème	For this theme
 Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation.	To undo everything: ~/.config-backup-<date>/restore.sh restores the state before install.
+Premier croissant	Waxing crescent
+Premier quartier	First quarter
 Présentation	View
 Presse-papiers	Clipboard
 Presse-papiers…	Clipboard…
+Proc.	CPU
 Processeur	Processor
 Profil	Profile
 Pseudo-mosaïque	Pseudo-tiling
@@ -832,6 +874,7 @@ Réappliquer tous les réglages	Reapply all settings
 Réappliquer tout	Reapply all
 Rebond	Bounce
 Récents	Recent
+Réception	Download
 Recherche des paroles…	Searching lyrics…
 Recherche en cours…	Searching…
 Rechercher dans le presse-papiers	Search clipboard
@@ -884,7 +927,9 @@ Réseaux disponibles	Available networks
  réseaux	 networks
 Résolution d'écran	Screen resolution
 Respire	Breathe
+RESPIRE	BREATHE
 Respire un coup.	Take a breath.
+Ressenti	Feels like
 Ressenti 	Feels like 
 Reste curieux.	Stay curious.
 Rester éveillé	Stay awake
@@ -894,9 +939,11 @@ Rétablir	Redo
 Retour au fond après pause	Back to wallpaper after pause
 Retour	Back
 Rétroéclairage	Backlight
+REVIENS	COME BACK
 Rien à faire, profite ✨	Nothing to do, enjoy ✨
 Rien de prévu	Nothing planned
 Rien en lecture	Nothing playing
+Rien pour l'instant	Nothing yet
 Rouge	Red
 Rubans	Ribbons
 Saisie	Input
@@ -918,9 +965,12 @@ Se déconnecter	Log out
 Sélectionnez un thème à appliquer	Select a theme to apply
 Sensibilité	Sensitivity
 Sept jours	Seven days
+session verrouillée	session locked
+SILENCE	SILENCE
 Silence	Silent
 Si une application ne répond plus, sélectionnez-la dans la liste et cliquez sur Forcer à quitter.	If an app stops responding, select it in the list and click Force Quit.
 Sois fier de toi.	Be proud of yourself.
+Soleil	Sun
 Sombre	Dark
 Sommeil	Sleep
 Son des touches	Key sound
@@ -983,6 +1033,7 @@ Thème de contraste foncé	Dark contrast theme
 Thème sombre	Dark theme
 Thème	Theme
 Tiens bon !	Hang in there!
+Total	Total
 Touche /	Key /
 Toucher pour cliquer	Tap to click
 ⌘ = touche Super	⌘ = Super key
@@ -1014,10 +1065,13 @@ Très légère	Extra light
 Type du système	System type
 Une lueur qui respire en bas de l'écran au rythme des basses	A glow breathing at the bottom of the screen with the bass
 Une page = un bureau de terminaux, à ton goût	One page = one desktop of terminals, your way
+Une seconde…	One sec…
 Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift.	A focus mode silences notifications. Sleep also turns on Night Shift.
 Un pas après l'autre.	One step at a time.
 un peu	a little
 Utilisateurs et groupes	Users and groups
+utilisateur	user
+Utilisation	Usage
 Utilisé par une application	Used by an app
 Utiliser	Use
  utilisés	 used
@@ -1026,7 +1080,12 @@ Vague	Wave
 Variante matugen calculée depuis le fond d'écran (ou la pochette)	Matugen variant computed from the wallpaper (or the cover)
 Ve	Fr
 Veille	Sleep
+Vent	Wind
+Vérification	Authenticating
+vérification	checking
 Vérification…	Checking…
+VÉRIFICATION	CHECKING
+VÉRIFICATION…	CHECKING…
 Verre clair	Clear glass
 Verre	Glass
 Verre teinté	Tinted glass
@@ -1037,7 +1096,9 @@ Verrouiller l'écran	Lock screen
 Verrouiller l'écran	Lock Screen
 Verrouiller	Lock
 Verrouiller maintenant	Lock now
+verrou	lock
 Vers le groupe $1	To group $1
+Vert	Green
 Vide	Empty
 Vidéo	Video
 Vif	Vivid

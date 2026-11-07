@@ -1,8 +1,8 @@
 -- Thème « mono sakura » (profil Linux) : bordure en dégradé à 45°.
 -- Généré par scripts/gen-linux-themes.py ; le service du bureau Linux affine
 -- ensuite bordures, arrondis et ombres selon le style.
-local active_border_color = { colors = { "rgba(f7a8c4cc)", "rgba(ffc9a8cc)" }, angle = 45 }
-local inactive_border_color = "rgba(4a3240ff)"
+local active_border_color = { colors = { "rgba(7a3d4fcc)", "rgba(e2708fcc)" }, angle = 45 }
+local inactive_border_color = "rgba(efd2daff)"
 
 hl.config({
   general = {

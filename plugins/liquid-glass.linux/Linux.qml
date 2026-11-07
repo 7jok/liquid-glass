@@ -171,7 +171,7 @@ Item {
   readonly property int radius: Number(opt("radius", skin.radius))
   readonly property int borderW: skin.border
   readonly property string shadowMode: skin.shadow
-  readonly property bool darkSkin: style === "violet" ? vtone === "nuit" : (style === "windows" ? wtone === "sombre" : (style === "mono" ? mtone !== "papier" : (style === "gouts" ? themeMode !== "light" : skin.dark)))
+  readonly property bool darkSkin: style === "violet" ? (vtone === "nuit" || vtone === "minuit") : (style === "windows" ? wtone === "sombre" : (style === "mono" ? mtone === "noir" : (style === "gouts" ? themeMode !== "light" : skin.dark)))
   // Windows : mode clair (défaut, comme une installation neuve) ou sombre.
   readonly property string wtone: String(opt("windows_tone", "clair")) === "sombre" ? "sombre" : "clair"
   // Forêt : « mousse » (olive, accents pêche) ou « cendre » (nuit rosée).
@@ -181,13 +181,13 @@ Item {
   // Tonalité du violet : nuit (montagnes violettes la nuit), aube (lilas clair), rose (pastel).
   readonly property string stone: ["encre", "ambre", "glace", "sang", "indigo"].indexOf(String(opt("sombre_tone", "encre"))) >= 0 ? String(opt("sombre_tone", "encre")) : "encre"
   readonly property string ctone: ["orbite", "mousse", "corail"].indexOf(String(opt("cosmos_tone", "orbite"))) >= 0 ? String(opt("cosmos_tone", "orbite")) : "orbite"
-  readonly property string etone: ["bleu", "mars", "nebuleuse"].indexOf(String(opt("espace_tone", "bleu"))) >= 0 ? String(opt("espace_tone", "bleu")) : "bleu"
-  readonly property string rtone: ["bleu", "rouge", "or"].indexOf(String(opt("ruban_tone", "bleu"))) >= 0 ? String(opt("ruban_tone", "bleu")) : "bleu"
-  readonly property string jtone: ["bonbon", "menthe", "peche"].indexOf(String(opt("jouet_tone", "bonbon"))) >= 0 ? String(opt("jouet_tone", "bonbon")) : "bonbon"
+  readonly property string etone: ["bleu", "mars", "nebuleuse", "aurore", "soleil"].indexOf(String(opt("espace_tone", "bleu"))) >= 0 ? String(opt("espace_tone", "bleu")) : "bleu"
+  readonly property string rtone: ["bleu", "rouge", "or", "vert", "violet"].indexOf(String(opt("ruban_tone", "bleu"))) >= 0 ? String(opt("ruban_tone", "bleu")) : "bleu"
+  readonly property string jtone: ["bonbon", "menthe", "peche", "lagon", "lilas"].indexOf(String(opt("jouet_tone", "bonbon"))) >= 0 ? String(opt("jouet_tone", "bonbon")) : "bonbon"
   readonly property string mtone: ["noir", "papier", "sakura"].indexOf(String(opt("mono_tone", "noir"))) >= 0 ? String(opt("mono_tone", "noir")) : "noir"
   // Cadre et barre latérale de Mono (noir pur, blanc pur ou prune) ; suit le fond en mode « fond ».
   readonly property color monoFrame: mc("frame", darkSkin ? "#000000" : "#ffffff")
-  readonly property string vtone: ["nuit", "aube", "rose"].indexOf(String(opt("violet_tone", "nuit"))) >= 0 ? String(opt("violet_tone", "nuit")) : "nuit"
+  readonly property string vtone: ["nuit", "aube", "rose", "minuit"].indexOf(String(opt("violet_tone", "nuit"))) >= 0 ? String(opt("violet_tone", "nuit")) : "nuit"
 
   // « Mes goûts » : la palette vient du thème Omarchy choisi (colors.toml).
   readonly property string goutsTheme: String(opt("gouts_theme", ""))
@@ -292,7 +292,15 @@ Item {
       primary: "#ff8a6b", on_primary: "#2b0c04", primary_container: "#5c2616", on_primary_container: "#ffdccf",
       secondary: "#d1a896", secondary_container: "#33201a", tertiary: "#ffc27a",
       surface: "#120a08", surface_container_low: "#1a100c", surface_container: "#221511", surface_container_high: "#2e1d17",
-      surface_container_highest: "#3b261e", on_surface: "#f7ece7", on_surface_variant: "#bda69c", outline: "#80645a", outline_variant: "#46302a" } : etone === "nebuleuse" ? {
+      surface_container_highest: "#3b261e", on_surface: "#f7ece7", on_surface_variant: "#bda69c", outline: "#80645a", outline_variant: "#46302a" } : etone === "aurore" ? {
+      primary: "#6ff0b4", on_primary: "#03241a", primary_container: "#145a43", on_primary_container: "#d2fbe8",
+      secondary: "#9fd8c6", secondary_container: "#10302a", tertiary: "#b58bff",
+      surface: "#04100e", surface_container_low: "#081815", surface_container: "#0c201c", surface_container_high: "#122c27",
+      surface_container_highest: "#193a33", on_surface: "#ebfaf4", on_surface_variant: "#93b8ac", outline: "#4f7a6e", outline_variant: "#1f3d36" } : etone === "soleil" ? {
+      primary: "#ffc04d", on_primary: "#2b1a00", primary_container: "#6a4300", on_primary_container: "#ffe8bf",
+      secondary: "#ffd99a", secondary_container: "#33240a", tertiary: "#ff7b54",
+      surface: "#120c03", surface_container_low: "#1a1206", surface_container: "#231909", surface_container_high: "#30230d",
+      surface_container_highest: "#3f2e12", on_surface: "#fff5e4", on_surface_variant: "#c9b28a", outline: "#86704a", outline_variant: "#4a3a1c" } : etone === "nebuleuse" ? {
       primary: "#c58bff", on_primary: "#1f0a38", primary_container: "#46256e", on_primary_container: "#ecdcff",
       secondary: "#b5a3d6", secondary_container: "#261b3f", tertiary: "#ff9ad6",
       surface: "#0c0816", surface_container_low: "#130d20", surface_container: "#1a122b", surface_container_high: "#241a3a",
@@ -308,7 +316,15 @@ Item {
       primary: "#ff3b3b", on_primary: "#ffffff", primary_container: "#7a1420", on_primary_container: "#ffd8d8",
       secondary: "#ff9a9a", secondary_container: "#4a0f18",
       surface: "#16040a", surface_container_low: "#220810", surface_container: "#2c0b14", surface_container_high: "#3c1019",
-      surface_container_highest: "#521620", on_surface_variant: "#ffb8b8", outline: "#c05060", outline_variant: "#6a1f2c" } : rtone === "or" ? {
+      surface_container_highest: "#521620", on_surface_variant: "#ffb8b8", outline: "#c05060", outline_variant: "#6a1f2c" } : rtone === "vert" ? {
+      primary: "#2ee88a", on_primary: "#002a14", primary_container: "#0d5a33", on_primary_container: "#ccffe4",
+      secondary: "#9af5c4", secondary_container: "#063820",
+      surface: "#03140b", surface_container_low: "#051d10", surface_container: "#072515", surface_container_high: "#0b331d",
+      surface_container_highest: "#104527", on_surface_variant: "#a8f0c8", outline: "#3fae74", outline_variant: "#145a35" } : rtone === "violet" ? {
+      primary: "#c06bff", on_primary: "#ffffff", primary_container: "#4f1a7a", on_primary_container: "#f0dcff",
+      secondary: "#e2b3ff", secondary_container: "#2c0d45",
+      surface: "#10041c", surface_container_low: "#170828", surface_container: "#1e0b33", surface_container_high: "#2a1047",
+      surface_container_highest: "#3a165f", on_surface_variant: "#dcb8ff", outline: "#9a5cd0", outline_variant: "#4a2070" } : rtone === "or" ? {
       primary: "#ffc800", on_primary: "#231800", primary_container: "#6a4e00", on_primary_container: "#fff0c0",
       secondary: "#ffe080", secondary_container: "#3a2a00",
       surface: "#151003", surface_container_low: "#1f1805", surface_container: "#282007", surface_container_high: "#362b0a",
@@ -359,8 +375,20 @@ Item {
       surface_container_highest: "#c9f5e6", on_surface: "#10302a", on_surface_variant: "#3f6b60" } : jtone === "peche" ? {
       primary: "#ff7a45", on_primary: "#2b1206", secondary: "#ff5fa2", secondary_container: "#ffc2dc", tertiary: "#7c6cff",
       surface: "#ffe9dc", surface_container_low: "#fff6ef", surface_container: "#fffbf7", surface_container_high: "#ffeadf",
-      surface_container_highest: "#ffd7c2", on_surface: "#2b1206", on_surface_variant: "#7a4a33" } : {}),
-    violet: vtone === "aube" ? {
+      surface_container_highest: "#ffd7c2", on_surface: "#2b1206", on_surface_variant: "#7a4a33" } : jtone === "lagon" ? {
+      primary: "#1aa7ec", on_primary: "#04203a", secondary: "#ffcf3f", secondary_container: "#ffe9a8", tertiary: "#ff6f91",
+      surface: "#d9f2ff", surface_container_low: "#f0faff", surface_container: "#fafdff", surface_container_high: "#e2f4ff",
+      surface_container_highest: "#c6e9ff", on_surface: "#082a40", on_surface_variant: "#3d6680" } : jtone === "lilas" ? {
+      primary: "#9b6bff", on_primary: "#1b0b3a", secondary: "#ffb347", secondary_container: "#ffe0b8", tertiary: "#3ddbb4",
+      surface: "#eee6ff", surface_container_low: "#faf6ff", surface_container: "#fdfbff", surface_container_high: "#f1e9ff",
+      surface_container_highest: "#e0d2ff", on_surface: "#22104a", on_surface_variant: "#5e4b8a" } : {}),
+    violet: vtone === "minuit" ? {
+      primary: "#8f9bff", on_primary: "#0b1040", primary_container: "#2a3480", on_primary_container: "#dde0ff",
+      secondary: "#b4a8ff", secondary_container: "#1d1850", on_secondary_container: "#e2ddff",
+      tertiary: "#ff9ad6", tertiary_container: "#4a1a40", on_tertiary_container: "#ffd8ef",
+      surface: "#06071a", surface_container_low: "#0b0d26", surface_container: "#101330", surface_container_high: "#171b40",
+      surface_container_highest: "#202552", on_surface: "#eceeff", on_surface_variant: "#a3a8d6",
+      outline: "#5d63a0", outline_variant: "#262b5c", error: "#ff7b9a" } : vtone === "aube" ? {
       primary: "#3b2463", on_primary: "#f4eeff", primary_container: "#d9c8f5", on_primary_container: "#2a1748",
       secondary: "#8a63c9", secondary_container: "#e6dafa", on_secondary_container: "#2a1748",
       tertiary: "#b06bd6", tertiary_container: "#f0d9fb", on_tertiary_container: "#3d1450",
@@ -402,13 +430,13 @@ Item {
       surface: "#f4f4f4", surface_container_low: "#f8f8f8", surface_container: "#f1f1f1", surface_container_high: "#e7e7e7",
       surface_container_highest: "#dcdcdc", on_surface: "#161616", on_surface_variant: "#6a6a6a",
       outline: "#9a9a9a", outline_variant: "#dcdcdc", error: "#c0392b" } : mtone === "sakura" ? {
-      frame: "#160d12",
-      primary: "#f7a8c4", on_primary: "#3d0f22", primary_container: "#5c2a40", on_primary_container: "#ffd9e6",
-      secondary: "#e3b8c8", secondary_container: "#43283a", on_secondary_container: "#fbe6ee",
-      tertiary: "#ffc9a8", tertiary_container: "#5a3426", on_tertiary_container: "#ffe4d4",
-      surface: "#1d1218", surface_container_low: "#22161c", surface_container: "#2a1b23", surface_container_high: "#34222c",
-      surface_container_highest: "#3f2a36", on_surface: "#fbe6ee", on_surface_variant: "#c9a3b3",
-      outline: "#8e6a7a", outline_variant: "#4a3240", error: "#ff8a9a" } : {
+      frame: "#fdf1f3",
+      primary: "#7a3d4f", on_primary: "#fff3f6", primary_container: "#f6c9d4", on_primary_container: "#4a1b29",
+      secondary: "#9b6474", secondary_container: "#f8dde4", on_secondary_container: "#4a1b29",
+      tertiary: "#e2708f", tertiary_container: "#f9d2dc", on_tertiary_container: "#4a1b29",
+      surface: "#fbe9ed", surface_container_low: "#fdf1f3", surface_container: "#f9e3e8", surface_container_high: "#f5d9e0",
+      surface_container_highest: "#f0ccd6", on_surface: "#5a2a38", on_surface_variant: "#9b6f7c",
+      outline: "#c79aa7", outline_variant: "#efd2da", error: "#c8435f" } : {
       frame: "#000000",
       primary: "#f2f2f2", on_primary: "#121212", primary_container: "#2c2c2c", on_primary_container: "#f2f2f2",
       secondary: "#bdbdbd", secondary_container: "#262626", on_secondary_container: "#e8e8e8",
@@ -716,7 +744,14 @@ Item {
 
   // ------------------------------------------------------------ météo
   // Open-Meteo, ville de [widgets] weather_city ou du fuseau horaire.
+  property bool hoverOpen: false      // tableau de bord Mono ouvert par le bord haut
+  onPanelChanged: if (panel === "") hoverOpen = false
   property var weather: null
+  // Copie pour l'écran de verrouillage, qui ne fait pas d'appel réseau.
+  FileView { id: weatherCache; path: Quickshell.env("HOME") + "/.cache/liquid-glass/weather.json"; printErrors: false }
+  onWeatherChanged: if (weather && !testing) weatherCache.setText(JSON.stringify(weather))
+  FileView { id: m3Cache; path: Quickshell.env("HOME") + "/.cache/liquid-glass/m3/current.json"; printErrors: false }
+  onM3Changed: if (m3 && m3.primary && !testing) m3Cache.setText(JSON.stringify({ colors: m3 }))
   property var coords: null
   property string timezone: ""
   Process {
@@ -1197,6 +1232,7 @@ Item {
     return out
   }
   readonly property bool testing: String(Quickshell.env("LG_SCREEN") || "") !== ""
+  readonly property bool testingNoExtras: String(Quickshell.env("LG_NO_EXTRAS") || "") !== ""
   // Clavier exclusif pour les volets, sauf pendant les tests (pour ne rien voler à la session).
   function kbd(exclusive) { return testing ? WlrKeyboardFocus.None : (exclusive ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.OnDemand) }
   readonly property var mainScreen: screens.length ? [screens[0]] : []
@@ -1212,8 +1248,23 @@ Item {
     delegate: Component { EspaceBar { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
+    model: String(svc.opt("wall_wipe", "on")) !== "off" && !svc.testing ? svc.screens : []
+    delegate: Component { WallWipe { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
     model: String(svc.opt("live_wall", "off")) !== "off" && !svc.isCosmos ? svc.screens : []
     delegate: Component { LiveWall { required property var modelData; screen: modelData; service: svc } }
+  }
+  // Widgets en plus, par style (fractions de l'écran ; chaque carte se déplace à la souris).
+  readonly property var extraCards: ({
+    espace: [["weather", 0.025, 0.09], ["moon", 0.025, 0.33], ["calendar", 0.025, 0.5], ["gauges", 0.79, 0.27]],
+    foret: [["clock", 0.04, 0.12], ["weather", 0.04, 0.36], ["calendar", 0.8, 0.12], ["todo", 0.8, 0.46], ["music", 0.4, 0.84]],
+    ruban: [["calendar", 0.03, 0.13], ["gauges", 0.79, 0.37], ["quote", 0.79, 0.12]],
+    violet: [["moon", 0.03, 0.8], ["quote", 0.8, 0.8]]
+  })
+  Variants {
+    model: svc.showWidgets && svc.extraCards[svc.style] && !svc.testingNoExtras ? svc.mainScreen : []
+    delegate: Component { DeskExtras { required property var modelData; screen: modelData; service: svc; cards: svc.extraCards[svc.style] } }
   }
   Variants {
     model: svc.isIle ? svc.screens : []
@@ -1315,6 +1366,8 @@ Item {
     delegate: Component { MonoBar { required property var modelData; screen: modelData; service: svc } }
   }
   LazyLoader { active: svc.isMono && svc.panel !== ""; MonoDash { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.isMono && !svc.testingNoExtras; MonoEdge { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.isMono; MonoUnlock { service: svc; screen: svc.primaryScreen } }
 
   // Forêt (ilyamiro c01) : barre en puces, volets musique / horloge / batterie
   Variants {

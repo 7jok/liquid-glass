@@ -31,13 +31,15 @@ PanelWindow {
   readonly property color ink: s.colOnSurface
   readonly property color sub: s.colOnSurfaceVariant
   readonly property color acc: s.primary
+  readonly property color onAcc: s.colOnPrimary
   readonly property color line: s.outlineVariant
   readonly property string font: "Rubik"
   readonly property string mono: "JetBrainsMono Nerd Font"
   readonly property int barW: 44
   readonly property int frame: 8
 
-  readonly property bool dash: ["dashboard", "media", "perf"].indexOf(s.panel) >= 0
+  readonly property bool dash: win.tabIds.indexOf(s.panel) >= 0
+  readonly property var tabIds: ["dashboard", "media", "perf", "weather"]
   property string tab: dash ? s.panel : "dashboard"
   property bool revealed: false
   Component.onCompleted: { revealed = true; keys.forceActiveFocus() }
@@ -47,8 +49,8 @@ PanelWindow {
 
   MouseArea { anchors.fill: parent; onClicked: s.closeAll() }
   Item { id: keys; focus: true; Keys.onEscapePressed: s.closeAll()
-    Keys.onLeftPressed: s.panel = ["dashboard", "media", "perf"][Math.max(0, ["dashboard", "media", "perf"].indexOf(win.tab) - 1)]
-    Keys.onRightPressed: s.panel = ["dashboard", "media", "perf"][Math.min(2, ["dashboard", "media", "perf"].indexOf(win.tab) + 1)] }
+    Keys.onLeftPressed: s.panel = win.tabIds[Math.max(0, win.tabIds.indexOf(win.tab) - 1)]
+    Keys.onRightPressed: s.panel = win.tabIds[Math.min(3, win.tabIds.indexOf(win.tab) + 1)] }
 
   // ================================================================ tableau de bord
   Item {
@@ -58,6 +60,9 @@ PanelWindow {
     x: win.barW + (win.width - win.barW - width) / 2
     y: win.frame - 1 - (win.revealed && win.dash ? 0 : height)
     Behavior on y { NumberAnimation { duration: 380; easing.type: Easing.OutCubic } }
+    // Ouvert par le bord haut : se referme quand la souris s'en va.
+    HoverHandler { id: dashHover }
+    Timer { interval: 450; running: s.hoverOpen && !dashHover.hovered; onTriggered: s.closeAll() }
     // Coins concaves qui soudent le volet au cadre du haut.
     Concave { x: -18; y: 0; flip: false }
     Concave { x: parent.width; y: 0; flip: true }
@@ -75,12 +80,12 @@ PanelWindow {
       x: 18; y: 8
       width: parent.width - 36
       Repeater {
-        model: [["dashboard", "Dashboard", "dashboard"], ["media", "Media", "queue_music"], ["perf", "Performance", "speed"]]
+        model: [["dashboard", "Dashboard", "dashboard"], ["media", "Media", "queue_music"], ["perf", "Performance", "speed"], ["weather", T.t("Météo"), "cloud"]]
         delegate: Item {
           id: tabItem
           required property var modelData
           readonly property bool cur: win.tab === modelData[0]
-          width: tabs.width / 3; height: 44
+          width: tabs.width / 4; height: 44
           Column {
             anchors.centerIn: parent
             spacing: 2
@@ -94,7 +99,7 @@ PanelWindow {
     Rectangle { x: 18; y: 52; width: parent.width - 36; height: 1; color: win.line }
     Rectangle {
       y: 50; height: 3; radius: 1.5; width: 70; color: win.ink
-      x: 18 + (tabs.width / 3) * ["dashboard", "media", "perf"].indexOf(win.tab) + (tabs.width / 3 - width) / 2
+      x: 18 + (tabs.width / 4) * win.tabIds.indexOf(win.tab) + (tabs.width / 4 - width) / 2
       Behavior on x { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
     }
 
@@ -355,51 +360,56 @@ PanelWindow {
       Timer { interval: 1000; repeat: true; running: true; triggeredOnStart: true; onTriggered: if (!netP.running) netP.running = true }
       function rate(b) { return b > 1048576 ? (b / 1048576).toFixed(1) + " Mo/s" : (b / 1024).toFixed(1) + " Ko/s" }
 
+      readonly property real leftW: width - 118
+      // Processeur : nom, température en barre, utilisation à droite.
       Card {
-        x: 0; y: 0; width: (parent.width - 8) / 2; height: 100
+        x: 0; y: 0; width: perf.leftW; height: 92
         Row { x: 14; y: 12; spacing: 10
-          MIcon { icon: "memory"; size: 20; color: win.ink }
-          Column { Text { text: T.t("Processeur"); font.family: win.font; font.pixelSize: 13; color: win.ink }
-                   Text { text: (s.info.cpu || "").replace(/\(R\)|\(TM\)|CPU|@.*$/g, "").trim(); font.family: win.font; font.pixelSize: 10; color: win.sub; width: 170; elide: Text.ElideRight } } }
-        Text { x: 14; y: 62; text: s.temp > 0 ? "  " + s.temp + "°C" : ""; font.family: win.mono; font.pixelSize: 12; color: win.ink }
-        Rectangle { anchors.right: parent.right; anchors.rightMargin: 14; y: 50; width: 60; height: 36; radius: 10; color: win.card2
-          Text { anchors.centerIn: parent; text: Math.round(s.cpu * 100) + "%"; font.family: win.font; font.pixelSize: 16; font.weight: Font.Medium; color: win.ink } }
-        Rectangle { x: 14; y: 86; width: parent.width - 100; height: 3; radius: 1.5; color: win.line
-          Rectangle { width: parent.width * s.cpu; height: 3; radius: 1.5; color: win.ink } }
+          Rectangle { width: 30; height: 30; radius: 15; color: win.card2
+            MIcon { anchors.centerIn: parent; icon: "memory"; size: 17; color: win.ink } }
+          Column { Text { text: T.t("Processeur"); font.family: win.font; font.pixelSize: 13; font.weight: Font.Medium; color: win.ink }
+                   Text { text: (s.info.cpu || "").replace(/\(R\)|\(TM\)/g, "").trim(); font.family: win.font; font.pixelSize: 10; color: win.sub; width: perf.leftW - 150; elide: Text.ElideRight } } }
+        Row { x: 14; y: 58; spacing: 6
+          MIcon { icon: "device_thermostat"; size: 13; color: win.ink }
+          Text { text: s.temp > 0 ? s.temp + "°C" : "--"; font.family: win.font; font.pixelSize: 11; color: win.ink } }
+        Rectangle { x: 14; y: 78; width: 130; height: 4; radius: 2; color: win.line
+          Rectangle { width: parent.width * Math.min(1, s.temp / 100); height: 4; radius: 2; color: win.acc } }
+        Text { anchors.right: parent.right; anchors.rightMargin: 16; y: 12; text: T.t("Utilisation"); font.family: win.font; font.pixelSize: 10; color: win.sub }
+        Rectangle { anchors.right: parent.right; anchors.rightMargin: 12; y: 36; width: 58; height: 38; radius: 12; color: win.card2
+          Text { anchors.centerIn: parent; text: Math.round(s.cpu * 100) + "%"; font.family: win.font; font.pixelSize: 17; font.weight: Font.Medium; color: win.ink } }
       }
+      // Stockage
       Card {
-        x: (parent.width + 8) / 2; y: 0; width: (parent.width - 8) / 2; height: 100
-        Row { x: 14; y: 12; spacing: 10
-          MIcon { icon: "memory_alt"; size: 20; color: win.ink }
-          Column { Text { text: T.t("Mémoire"); font.family: win.font; font.pixelSize: 13; color: win.ink }
-                   Text { text: s.memUsedGb.toFixed(1) + " / " + (s.info.ram || "?") + " Gio"; font.family: win.font; font.pixelSize: 10; color: win.sub } } }
-        Item { anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter; width: 70; height: 70
-          Ring { anchors.fill: parent; value: s.memPct; thickness: 4; color: win.ink; track: win.line }
-          Text { anchors.centerIn: parent; text: Math.round(s.memPct * 100) + "%"; font.family: win.font; font.pixelSize: 14; font.weight: Font.Medium; color: win.ink } }
-      }
-      Card {
-        x: 0; y: 108; width: 170; height: parent.height - 108
-        Text { x: 14; y: 12; text: T.t("Stockage"); font.family: win.font; font.pixelSize: 13; color: win.ink }
-        Item { anchors.centerIn: parent; anchors.verticalCenterOffset: 10; width: 90; height: 90
-          Ring { anchors.fill: parent; value: s.diskPct; thickness: 5; color: win.ink; track: win.line }
+        id: stoCard
+        x: 0; y: 100; width: perf.leftW * 0.36; height: parent.height - 100
+        Item { x: 10; anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: -10; width: 64; height: 64
+          Ring { anchors.fill: parent; value: s.diskPct; thickness: 5; color: win.acc; track: win.line }
           Column { anchors.centerIn: parent
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Math.round(s.diskPct * 100) + "%"; font.family: win.font; font.pixelSize: 16; font.weight: Font.Medium; color: win.ink }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("utilisé"); font.family: win.font; font.pixelSize: 10; color: win.sub } } }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 10; text: s.info.disk || ""; font.family: win.font; font.pixelSize: 10; color: win.sub }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Math.round(s.diskPct * 100) + "%"; font.family: win.font; font.pixelSize: 14; font.weight: Font.Medium; color: win.ink }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("utilisé"); font.family: win.font; font.pixelSize: 9; color: win.sub } } }
+        Column { x: 84; anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: -10; spacing: 2
+          MIcon { icon: "hard_drive"; size: 14; color: win.ink }
+          Text { text: T.t("Stockage"); font.family: win.font; font.pixelSize: 12; font.weight: Font.Medium; color: win.ink }
+          Text { text: s.info.disk || ""; font.family: win.font; font.pixelSize: 9; color: win.sub; width: stoCard.width - 92; elide: Text.ElideRight } }
+        Rectangle { anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 12; width: parent.width - 40; height: 22; radius: 11; color: win.card2
+          Row { anchors.centerIn: parent; spacing: 6
+            Text { text: "/"; font.family: win.mono; font.pixelSize: 10; color: win.ink }
+            MIcon { icon: "expand_more"; size: 12; color: win.ink } } }
       }
+      // Réseau : courbe en haut à droite, débits et total.
       Card {
         id: netCard
-        x: 178; y: 108; width: parent.width - 178; height: parent.height - 108
-        Row { x: 14; y: 12; spacing: 8
-          MIcon { icon: "network_check"; size: 16; color: win.ink }
-          Text { text: T.t("Réseau"); font.family: win.font; font.pixelSize: 13; color: win.ink } }
+        x: stoCard.width + 8; y: 100; width: perf.leftW * 0.36; height: parent.height - 100
+        Row { x: 12; y: 12; spacing: 6
+          MIcon { icon: "wifi"; size: 14; color: win.ink }
+          Text { text: T.t("Réseau"); font.family: win.font; font.pixelSize: 12; font.weight: Font.Medium; color: win.ink } }
         Shape {
           id: graph
-          x: 14; y: 40; width: parent.width - 28; height: 70
+          anchors.right: parent.right; anchors.rightMargin: 12; y: 12; width: 60; height: 34
           preferredRendererType: Shape.CurveRenderer
           readonly property real peak: Math.max(1024, Math.max.apply(null, perf.rx.concat(perf.tx).concat([1])))
           ShapePath {
-            strokeColor: win.ink; strokeWidth: 1.5; fillColor: Qt.rgba(1, 1, 1, 0.08)
+            strokeColor: win.ink; strokeWidth: 1.2; fillColor: Qt.rgba(win.acc.r, win.acc.g, win.acc.b, 0.25)
             startX: 0; startY: graph.height
             PathPolyline {
               path: {
@@ -410,21 +420,99 @@ PanelWindow {
               }
             }
           }
-          ShapePath {
-            strokeColor: s.outline; strokeWidth: 1; fillColor: "transparent"
-            PathPolyline {
-              path: {
-                var pts = [], n = perf.tx.length
-                for (var i = 0; i < n; i++) pts.push(Qt.point(graph.width * (i + 40 - n) / 39, graph.height - perf.tx[i] / graph.peak * graph.height))
-                return pts.length ? pts : [Qt.point(0, graph.height)]
-              }
+        }
+        Column {
+          x: 12; anchors.bottom: parent.bottom; anchors.bottomMargin: 12; width: parent.width - 24; spacing: 4
+          Repeater {
+            model: [["download", T.t("Réception"), perf.rate(perf.rxRate)], ["upload", T.t("Envoi"), perf.rate(perf.txRate)],
+                    ["history", T.t("Total"), "↓" + perf.total(perf.lastRx) + " ↑" + perf.total(perf.lastTx)]]
+            Item {
+              required property var modelData
+              width: parent.width; height: 14
+              Row { spacing: 5
+                MIcon { icon: parent.parent.modelData[0]; size: 11; color: win.sub }
+                Text { text: parent.parent.modelData[1]; font.family: win.font; font.pixelSize: 10; color: win.sub } }
+              Text { anchors.right: parent.right; text: parent.modelData[2]; font.family: win.font; font.pixelSize: 10; color: win.ink }
             }
           }
         }
+      }
+      // Mémoire
+      Card {
+        x: stoCard.width + netCard.width + 16; y: 100; width: perf.leftW - stoCard.width - netCard.width - 16; height: parent.height - 100
+        Row { x: 12; y: 12; spacing: 6
+          MIcon { icon: "memory_alt"; size: 14; color: win.ink }
+          Text { text: T.t("Mémoire"); font.family: win.font; font.pixelSize: 12; font.weight: Font.Medium; color: win.ink } }
+        Item { anchors.horizontalCenter: parent.horizontalCenter; anchors.verticalCenter: parent.verticalCenter; anchors.verticalCenterOffset: 4; width: 64; height: 64
+          Ring { anchors.fill: parent; value: s.memPct; thickness: 5; color: win.acc; track: win.line }
+          Column { anchors.centerIn: parent
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: Math.round(s.memPct * 100) + "%"; font.family: win.font; font.pixelSize: 14; font.weight: Font.Medium; color: win.ink }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("utilisé"); font.family: win.font; font.pixelSize: 9; color: win.sub } } }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 10; text: s.memUsedGb.toFixed(1) + " / " + (s.info.ram || "?") + " Gio"; font.family: win.font; font.pixelSize: 10; color: win.sub }
+      }
+      // Batterie : une colonne qui se remplit par le bas.
+      ClippingRectangle {
+        id: batCard
+        x: perf.leftW + 8; y: 0; width: perf.width - perf.leftW - 8; height: perf.height
+        radius: 16; color: win.card
+        readonly property real lvl: s.batteryPct >= 0 ? s.batteryPct / 100 : 1
+        Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: batCard.height * batCard.lvl; color: win.acc
+          Behavior on height { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } } }
+        Column { x: 12; y: 12; spacing: 4
+          MIcon { icon: s.charging ? "battery_charging_full" : "battery_full"; size: 16; color: batCard.lvl > 0.85 ? win.onAcc : win.ink }
+          Text { text: T.t("Batterie"); font.family: win.font; font.pixelSize: 11; color: batCard.lvl > 0.85 ? win.onAcc : win.ink } }
+        Text { anchors.right: parent.right; anchors.rightMargin: 10; anchors.bottom: parent.bottom; anchors.bottomMargin: 8
+               text: (s.batteryPct >= 0 ? s.batteryPct : 100) + "%"; font.family: win.font; font.pixelSize: 22; font.weight: Font.Medium; color: win.onAcc }
+      }
+      function total(b) { return b < 0 ? "--" : b > 1073741824 ? (b / 1073741824).toFixed(1) + "G" : (b / 1048576).toFixed(0) + "M" }
+    }
+
+    // ---------------------------------------------------- Météo
+    Item {
+      visible: win.tab === "weather"
+      x: 14; y: 64
+      width: parent.width - 28; height: parent.height - 78
+      Card {
+        x: 0; y: 0; width: 220; height: parent.height
         Column {
-          x: 14; anchors.bottom: parent.bottom; anchors.bottomMargin: 10; spacing: 2
-          Text { text: "↓  " + perf.rate(perf.rxRate); font.family: win.mono; font.pixelSize: 11; color: win.ink }
-          Text { text: "↑  " + perf.rate(perf.txRate); font.family: win.mono; font.pixelSize: 11; color: win.sub }
+          anchors.centerIn: parent; spacing: 4
+          MIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: s.weatherIcon; size: 64; weight: 300; color: win.acc }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: s.weather ? s.weather.temp + "°C" : "--"; font.family: win.font; font.pixelSize: 34; font.weight: Font.Medium; color: win.ink }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: win.cap(s.weatherDesc); font.family: win.font; font.pixelSize: 12; color: win.sub }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: s.weather ? s.weather.city : ""; font.family: win.font; font.pixelSize: 11; color: win.sub }
+        }
+      }
+      Grid {
+        x: 228; y: 0; columns: 2; columnSpacing: 8; rowSpacing: 8
+        Repeater {
+          model: s.weather ? [["thermostat", T.t("Ressenti"), s.weather.feels + "°C"], ["humidity_percentage", T.t("Humidité"), s.weather.humidity + " %"],
+                              ["air", T.t("Vent"), s.weather.wind + " km/h"], ["umbrella", T.t("Pluie"), s.weather.rain + " %"],
+                              ["wb_twilight", T.t("Lever"), s.weather.sunrise], ["bedtime", T.t("Coucher"), s.weather.sunset]] : []
+          Card {
+            required property var modelData
+            width: (dashBox.width - 28 - 228 - 8) / 2; height: 46
+            Row { x: 12; anchors.verticalCenter: parent.verticalCenter; spacing: 10
+              MIcon { anchors.verticalCenter: parent.verticalCenter; icon: parent.parent.modelData[0]; size: 18; color: win.acc }
+              Column { anchors.verticalCenter: parent.verticalCenter
+                Text { text: parent.parent.parent.modelData[1]; font.family: win.font; font.pixelSize: 10; color: win.sub }
+                Text { text: parent.parent.parent.modelData[2]; font.family: win.font; font.pixelSize: 13; font.weight: Font.Medium; color: win.ink } } }
+          }
+        }
+      }
+      Card {
+        x: 228; y: 162; width: parent.width - 228; height: parent.height - 162
+        Row {
+          anchors.centerIn: parent; spacing: 4
+          Repeater {
+            model: s.weather && s.weather.days ? s.weather.days.slice(0, 7) : []
+            Column {
+              required property var modelData
+              width: (dashBox.width - 28 - 228 - 24) / 7; spacing: 3
+              Text { anchors.horizontalCenter: parent.horizontalCenter; text: new Date(parent.modelData.day + "T12:00").toLocaleDateString(Qt.locale(T.loc), "ddd"); font.family: win.font; font.pixelSize: 10; color: win.sub }
+              Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData.max + "°"; font.family: win.font; font.pixelSize: 13; font.weight: Font.Medium; color: win.ink }
+              Text { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData.min + "°"; font.family: win.font; font.pixelSize: 11; color: win.sub }
+            }
+          }
         }
       }
     }

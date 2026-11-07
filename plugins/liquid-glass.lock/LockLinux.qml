@@ -91,8 +91,9 @@ Item {
     return ""
   }
   readonly property var lcfg: cfg.linux || ({})
-  readonly property string style: String(lcfg.style || "blanc")
+  readonly property string style: String(Quickshell.env("LG_LOCK_STYLE") || lcfg.style || "blanc")
   readonly property string vtone: String(lcfg.violet_tone || "nuit")
+  function tone(key, def) { return String(Quickshell.env("LG_LOCK_TONE") || lcfg[key] || def) }
   readonly property string userName: {
     var u = String(Quickshell.env("USER") || "")
     return u
@@ -116,9 +117,13 @@ Item {
       light: { a: "#1b1030", b: "#ff5fa2", ink: "#1b1030", sub: "#5b4a7a", pill: Qt.rgba(1, 0.99, 0.97, 0.85), acc: "#ffd23f", accInk: "#1b1030", veil: Qt.rgba(0.91, 0.88, 1, 0.5), danger: "#ff3b3b" } },
     expressive: {
       dark:  { a: "#e2e2e9", b: "#adc6ff", ink: "#e2e2e9", sub: "#c4c6d0", pill: Qt.rgba(0.07, 0.08, 0.1, 0.6), acc: "#adc6ff", accInk: "#102f60", veil: Qt.rgba(0, 0, 0, 0.15), danger: "#ffb4ab" },
-      light: { a: "#1a1c20", b: "#3f5f99", ink: "#1a1c20", sub: "#44474f", pill: Qt.rgba(1, 1, 1, 0.75), acc: "#3f5f99", accInk: "#ffffff", veil: Qt.rgba(0.97, 0.97, 1, 0.6), danger: "#ba1a1a" } }
+      light: { a: "#1a1c20", b: "#3f5f99", ink: "#1a1c20", sub: "#44474f", pill: Qt.rgba(1, 1, 1, 0.75), acc: "#3f5f99", accInk: "#ffffff", veil: Qt.rgba(0.97, 0.97, 1, 0.6), danger: "#ba1a1a" } },
+    ile: {
+      dark:  { a: "#c9c2cc", b: "#8a8490", ink: "#d8d2da", sub: "#8a8490", pill: Qt.rgba(0.07, 0.06, 0.08, 0.85), acc: "#c9c2cc", accInk: "#17151b", veil: Qt.rgba(0.09, 0.08, 0.11, 0.25), danger: "#e8857c" },
+      light: { a: "#c9c2cc", b: "#8a8490", ink: "#d8d2da", sub: "#8a8490", pill: Qt.rgba(0.07, 0.06, 0.08, 0.85), acc: "#c9c2cc", accInk: "#17151b", veil: Qt.rgba(0.09, 0.08, 0.11, 0.25), danger: "#e8857c" } }
   })
-  readonly property var palSet: style === "violet" ? (vtone === "rose" ? pals.rose : pals.violet)
+  readonly property bool ile: style === "ile"
+  readonly property var palSet: ile ? pals.ile : style === "violet" ? (vtone === "rose" ? pals.rose : pals.violet)
                               : style === "jouet" ? pals.jouet
                               : style === "expressive" ? pals.expressive : pals.mono
   readonly property bool defaultLight: (style === "violet" && vtone !== "nuit") || style === "blanc" || style === "jouet"
@@ -166,10 +171,18 @@ Item {
 
   // Géométrie partagée par les deux scènes (et le vrai champ de saisie).
   readonly property real clockSize: Math.round(Math.min(height * 0.2, 150))
-  readonly property real fieldW: Math.min(360, width - 48)
-  readonly property real fieldH: 36
-  readonly property real fieldX: (width - fieldW) / 2
-  readonly property real fieldY: Math.round(height * 0.68)
+  // Un style peut avoir son propre écran (LockFace<Nom>.qml) : il dessine tout et dit
+  // où se trouve son champ (fieldBox) ; le vrai champ de saisie s'y pose.
+  readonly property string faceName: ({ ile: "Ile", ruban: "Ruban", espace: "Espace", cosmos: "Espace", foret: "Foret",
+                                        mono: "Mono", sombre: "Sombre", blanc: "Blanc", jouet: "Jouet", windows: "Windows",
+                                        lain: "Lain", expressive: "Expressive" })[style] || ""
+  readonly property var box: face.item && face.item.fieldBox ? face.item.fieldBox : null
+  readonly property real fieldW: box ? box.width : Math.min(360, width - 48)
+  readonly property real fieldH: box ? box.height : 36
+  readonly property real fieldX: box ? box.x : (width - fieldW) / 2
+  readonly property real fieldY: box ? box.y : Math.round(height * 0.68)
+  readonly property real shakeX: inputField.shakeX
+  function accept() { passwordInput.accepted() }
   property bool powerOpen: false
 
   // ------------------------------------------------------------ fond
@@ -186,9 +199,44 @@ Item {
 
   // Scène de base (interactive), puis la scène de l'autre ambiance dans le
   // cercle qui grandit pendant la bascule.
-  Scene { anchors.fill: parent; light: root.light; interactive: true }
+  Loader {
+    id: face
+    anchors.fill: parent
+    active: root.faceName !== ""
+    source: active ? "LockFace" + root.faceName + ".qml" : ""
+    onLoaded: item.lock = root
+  }
+  Scene { anchors.fill: parent; light: root.light; interactive: true; visible: face.status !== Loader.Ready }
+  // Menu d'alimentation des écrans personnalisés (ouvert par leur bouton).
+  Rectangle {
+    visible: face.status === Loader.Ready && root.powerOpen
+    anchors.right: parent.right; anchors.bottom: parent.bottom
+    anchors.rightMargin: 16; anchors.bottomMargin: 56
+    width: 170; height: facePower.implicitHeight + 12; radius: 12
+    color: Qt.rgba(0.08, 0.08, 0.09, 0.92)
+    Column {
+      id: facePower
+      anchors.centerIn: parent; width: parent.width - 12; spacing: 2
+      Repeater {
+        model: [["bedtime", T.t("Veille"), ["systemctl", "suspend"]],
+                ["restart_alt", T.t("Redémarrer"), ["systemctl", "reboot"]],
+                ["power_settings_new", T.t("Éteindre"), ["systemctl", "poweroff"]]]
+        delegate: Rectangle {
+          required property var modelData
+          width: parent.width; height: 32; radius: 8
+          color: fpm.containsMouse ? Qt.rgba(1, 1, 1, 0.12) : "transparent"
+          Row {
+            x: 10; anchors.verticalCenter: parent.verticalCenter; spacing: 10
+            Icon { icon: modelData[0]; size: 16; color: "#eeeeee"; anchors.verticalCenter: parent.verticalCenter }
+            Text { text: modelData[1]; color: "#eeeeee"; font.family: "Google Sans Flex"; font.pixelSize: 13; anchors.verticalCenter: parent.verticalCenter }
+          }
+          MouseArea { id: fpm; anchors.fill: parent; hoverEnabled: true; onClicked: { root.powerOpen = false; Quickshell.execDetached(modelData[2]) } }
+        }
+      }
+    }
+  }
   ClippingRectangle {
-    visible: root.revealing
+    visible: root.revealing && face.status !== Loader.Ready
     x: root.revealX - root.revealR
     y: root.revealY - root.revealR
     width: root.revealR * 2

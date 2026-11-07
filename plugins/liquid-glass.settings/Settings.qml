@@ -1657,7 +1657,7 @@ Item {
           visible: lp.st === "violet"
           sub: T.t("Nuit (violet profond), aube (lilas clair) ou rose pastel")
           Seg {
-            options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"]]
+            options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"], ["minuit", T.t("Minuit")]]
             value: root.val("linux.violet_tone", "nuit")
             onPicked: function(v) { lp.pick("violet:" + v, "linux.violet_tone", v) }
           }
@@ -1687,7 +1687,7 @@ Item {
           visible: lp.st === "jouet"
           sub: T.t("Bonbon (rose), menthe (vert d'eau) ou pêche (orange)")
           Seg {
-            options: [["bonbon", T.t("Bonbon")], ["menthe", T.t("Menthe")], ["peche", T.t("Pêche")]]
+            options: [["bonbon", T.t("Bonbon")], ["menthe", T.t("Menthe")], ["peche", T.t("Pêche")], ["lagon", T.t("Lagon")], ["lilas", T.t("Lilas")]]
             value: root.val("linux.jouet_tone", "bonbon")
             onPicked: function(v) { lp.pick("jouet:" + v, "linux.jouet_tone", v) }
           }
@@ -1707,7 +1707,7 @@ Item {
           visible: lp.st === "ruban"
           sub: T.t("Bleu, rouge ou or")
           Seg {
-            options: [["bleu", T.t("Bleu")], ["rouge", T.t("Rouge")], ["or", T.t("Or")]]
+            options: [["bleu", T.t("Bleu")], ["rouge", T.t("Rouge")], ["or", T.t("Or")], ["vert", T.t("Vert")], ["violet", "Violet"]]
             value: root.val("linux.ruban_tone", "bleu")
             onPicked: function(v) { lp.pick("ruban:" + v, "linux.ruban_tone", v) }
           }
@@ -1745,7 +1745,7 @@ Item {
           visible: lp.st === "espace"
           sub: T.t("Bleu glacé, Mars ou nébuleuse")
           Seg {
-            options: [["bleu", T.t("Bleu")], ["mars", "Mars"], ["nebuleuse", T.t("Nébuleuse")]]
+            options: [["bleu", T.t("Bleu")], ["mars", "Mars"], ["nebuleuse", T.t("Nébuleuse")], ["aurore", T.t("Aurore")], ["soleil", T.t("Soleil")]]
             value: root.val("linux.espace_tone", "bleu")
             onPicked: function(v) { lp.pick("espace:" + v, "linux.espace_tone", v) }
           }

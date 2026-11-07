@@ -105,14 +105,17 @@ Item {
       tones: [
         { id: "bonbon", name: T.t("Bonbon"), acc: "#ff5fa2" },
         { id: "menthe", name: T.t("Menthe"), acc: "#18b98f", bg: themes + "jouet/backgrounds/02-jouet-menthe.jpg" },
-        { id: "peche", name: T.t("Pêche"), acc: "#ff7a45" }
+        { id: "peche", name: T.t("Pêche"), acc: "#ff7a45" },
+        { id: "lagon", name: T.t("Lagon"), acc: "#1aa7ec" },
+        { id: "lilas", name: T.t("Lilas"), acc: "#9b6bff" }
       ] },
     { id: "violet", name: "Violet", sub: T.t("Horloge empilée, brume"), bg: themes + "violet/backgrounds/01-violet-nuit.jpg",
       ink: "#ece4ff", sub2: "#b79ce8", acc: "#cdb6ff", font: "Google Sans Flex", mock: "stack", key: "violet_tone",
       tones: [
         { id: "nuit", name: T.t("Nuit"), acc: "#9b7bdc" },
         { id: "aube", name: T.t("Aube"), bg: themes + "violet-aube/backgrounds/01-violet-aube.jpg", ink: "#2c1b4d", sub2: "#8a63c9", acc: "#c8b2f0" },
-        { id: "rose", name: "Rose", bg: themes + "rose/backgrounds/01-rose-pastel.jpg", ink: "#4a2533", sub2: "#c06a8c", acc: "#f2a7c3" }
+        { id: "rose", name: "Rose", bg: themes + "rose/backgrounds/01-rose-pastel.jpg", ink: "#4a2533", sub2: "#c06a8c", acc: "#f2a7c3" },
+        { id: "minuit", name: T.t("Minuit"), acc: "#8f9bff", sub2: "#a3a8d6" }
       ] },
     { id: "expressive", name: "Expressive", sub: T.t("Material 3, couleurs du fond"), bg: themes + "lain/backgrounds/08-lain.png",
       ink: "#e2e2e9", sub2: "#adc6ff", acc: "#adc6ff", font: "Rubik", mock: "cookie", key: "scheme",
@@ -128,14 +131,18 @@ Item {
       tones: [
         { id: "bleu", name: T.t("Bleu"), acc: "#19d3ff" },
         { id: "rouge", name: T.t("Rouge"), acc: "#ff3b3b", sub2: "#ffb8b8" },
-        { id: "or", name: T.t("Or"), acc: "#ffc800", sub2: "#ffe6a8" }
+        { id: "or", name: T.t("Or"), acc: "#ffc800", sub2: "#ffe6a8" },
+        { id: "vert", name: T.t("Vert"), acc: "#2ee88a", sub2: "#a8f0c8" },
+        { id: "violet", name: "Violet", acc: "#c06bff", sub2: "#dcb8ff" }
       ] },
     { id: "espace", name: T.t("Espace"), sub: T.t("Paroles, horloge à planètes"), bg: themes + "espace/backgrounds/01-espace.jpg",
       ink: "#eef3fa", sub2: "#9aa9bd", acc: "#8fc7ff", font: "Inter", mock: "space", key: "espace_tone",
       tones: [
         { id: "bleu", name: T.t("Bleu"), acc: "#8fc7ff" },
         { id: "mars", name: "Mars", acc: "#ff8a6b", sub2: "#bda69c" },
-        { id: "nebuleuse", name: T.t("Nébuleuse"), acc: "#c58bff", sub2: "#a99dc2" }
+        { id: "nebuleuse", name: T.t("Nébuleuse"), acc: "#c58bff", sub2: "#a99dc2" },
+        { id: "aurore", name: T.t("Aurore"), acc: "#6ff0b4", sub2: "#93b8ac" },
+        { id: "soleil", name: T.t("Soleil"), acc: "#ffc04d", sub2: "#c9b28a" }
       ] },
     { id: "ile", name: T.t("Île"), sub: T.t("Encoche noire, huit onglets, prune"), bg: themes + "ile/backgrounds/01-ile.jpg",
       ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "space" },

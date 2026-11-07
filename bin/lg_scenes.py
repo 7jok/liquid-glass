@@ -7,9 +7,12 @@ import calendar
 import math
 import os
 import random
+import re
 import subprocess
 import threading
 import time
+
+import lg_art
 
 
 class Canvas:
@@ -724,7 +727,416 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 out.append("".join(row))
             return out
 
-    return {"video": Video, "stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
+    class AsciiImage(Base):
+        """Image en caractères, comme les convertisseurs en ligne. Elle se révèle ligne par ligne,
+        puis laisse la place à la suivante. Tes images : ~/Images/ascii."""
+        hold = 26.0
+
+        def __init__(self, app):
+            super().__init__(app)
+            self.key, self.rows, self.since, self.done = None, [], 0.0, None
+            self.left = []
+
+        def pick(self):
+            if not self.left:
+                self.left = lg_art.gallery()
+                random.shuffle(self.left)
+            return self.left.pop() if self.left else None
+
+        def load(self, t, w, h):
+            src = self.pick()
+            self.color = random.random() < 0.5
+            self.rows = lg_art.grid(src, w, h) if src else []
+            self.key, self.since, self.done = (w, h), t, None
+
+        def frame(self, t, w, h):
+            a = self.app
+            if self.key != (w, h) or t - self.since > self.hold:
+                self.load(t, w, h)
+            if self.done is not None:
+                return self.done
+            c = self.canvas(w, h)
+            if not self.rows:
+                c.center(h // 2, "Aucune image", a.dim)
+                return c.lines()
+            shown = min(h, int((t - self.since) * h / 1.6))
+            for y in range(shown):
+                row = self.rows[y]
+                for x in range(w):
+                    ch, col = row[x]
+                    if ch != " ":
+                        c.put(x, y, ch, col if self.color else mix(a.bg, a.acc, 0.25 + 0.75 * lg_art.RAMP.index(ch) / 9))
+            lines = c.lines()
+            if shown >= h:
+                self.done = lines
+            return lines
+
+    class Banner(Base):
+        """Texte en grand aux polices FIGlet, comme sur TAAG : l'heure, ton bureau, ton nom."""
+        hold = 12.0
+
+        def __init__(self, app):
+            super().__init__(app)
+            self.since, self.lines, self.size, self.font = -99.0, [], None, ""
+            self.mine = ""
+
+        def word(self):
+            return random.choice([x for x in (self.app.label, "OMARCHY", os.environ.get("USER", "linux"),
+                                              "HYPRLAND", "LINUX", "ARCH", time.strftime("%H:%M")) if x])
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            if self.size != (w, h) or t - self.since > self.hold:
+                self.lines, self.font = lg_art.banner(self.word(), w - 2)
+                self.since, self.size = t, (w, h)
+            bw = max(map(len, self.lines), default=1)
+            top = max(0, (h - len(self.lines)) // 2)
+            left = max(0, (w - bw) // 2)
+            for y, ln in enumerate(self.lines):
+                for x, ch in enumerate(ln):
+                    if ch != " ":
+                        wave = 0.5 + 0.5 * math.sin(x * 0.12 + y * 0.3 - t * 1.6)
+                        c.put(left + x, top + y, ch, mix(a.acc, a.alt, wave))
+            if h > len(self.lines) + 3:
+                c.center(h - 1, self.font.replace("_", " "), a.dim)
+            return c.lines()
+
+    class Globe(Base):
+        """Planète qui tourne, peinte en caractères depuis la texture de Cosmos."""
+        texture = "earth"
+        speed = 0.09
+
+        def __init__(self, app):
+            super().__init__(app)
+            self.tex = None
+            self.tw, self.th = 360, 180
+            self.map, self.size = [], None
+
+        def load(self):
+            f = lg_art.ROOT / "plugins/liquid-glass.linux/cosmos" / f"{self.texture}.jpg"
+            out = subprocess.run(["magick", str(f), "-resize", f"{self.tw}x{self.th}!", "-depth", "8", "rgb:-"],
+                                 capture_output=True, timeout=30).stdout
+            self.tex = out if len(out) == self.tw * self.th * 3 else b""
+
+        def layout(self, w, h):
+            self.size, self.map = (w, h), []
+            r = min(w / 2.0 - 1, h - 1.0)
+            cx, cy = w / 2.0, h / 2.0
+            tilt = 0.41
+            ct, st = math.cos(tilt), math.sin(tilt)
+            for y in range(h):
+                for x in range(w):
+                    nx, ny = (x + 0.5 - cx) / r, (y + 0.5 - cy) * 2 / r
+                    d = nx * nx + ny * ny
+                    if d >= 1:
+                        continue
+                    nz = math.sqrt(1 - d)
+                    # Axe incliné, comme la Terre.
+                    px, py = nx * ct + ny * st, -nx * st + ny * ct
+                    lat = math.asin(max(-1, min(1, py)))
+                    lon = math.atan2(px, nz)
+                    light = max(0.16, min(1.15, 0.5 + 0.85 * (nx * -0.5 + ny * -0.2 + nz * 0.55)))
+                    self.map.append((x, y, lon / (2 * math.pi) * self.tw,
+                                     int((lat / math.pi + 0.5) * (self.th - 1)) * self.tw, light))
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            if self.tex is None:
+                self.load()
+            if self.size != (w, h):
+                self.layout(w, h)
+            if not self.tex:
+                c.center(h // 2, "Texture absente", a.dim)
+                return c.lines()
+            rot, tex, tw, ramp = t * self.speed, self.tex, self.tw, lg_art.RAMP
+            for x, y, lon, row, light in self.map:
+                i = (row + int(lon + rot * tw) % tw) * 3
+                r, g, b = tex[i] * light, tex[i + 1] * light, tex[i + 2] * light
+                r, g, b = min(255, r * 1.5), min(255, g * 1.5), min(255, b * 1.5)
+                v = math.sqrt((0.2126 * r + 0.7152 * g + 0.0722 * b) / 255)
+                c.put(x, y, ramp[min(9, 1 + int(v * 9))], (int(r) & 248, int(g) & 248, int(b) & 248))
+            return c.lines()
+
+    class MoonBall(Globe):
+        texture = "moon"
+        speed = 0.05
+
+    class AsciiVideo(Base):
+        """Vidéo en caractères et en couleurs, en boucle. Tes vidéos : ~/Vidéos/ascii."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.size, self.proc, self.buf, self.lock = (0, 0), None, None, threading.Lock()
+            clips = lg_art.loops()
+            self.src = app.video or (str(random.choice(clips)) if clips else "")
+
+        def start(self, w, h):
+            self.stop()
+            self.size = (w, h)
+            cmd = ["ffmpeg", "-v", "error", "-stream_loop", "-1", "-re", "-i", self.src, "-an", "-vf",
+                   f"fps={min(15, self.app.fps)},scale={w}:{h * 2}:force_original_aspect_ratio=increase,"
+                   f"crop={w}:{h * 2},scale={w}:{h}", "-pix_fmt", "rgb24", "-f", "rawvideo", "-"]
+            self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            threading.Thread(target=self.read, args=(self.proc, w * h * 3), daemon=True).start()
+
+        def read(self, proc, n):
+            while proc.poll() is None:
+                b = proc.stdout.read(n)
+                if not b or len(b) < n:
+                    return
+                with self.lock:
+                    self.buf = b
+
+        def stop(self):
+            if self.proc:
+                self.proc.terminate()
+                self.proc = None
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            if not self.src:
+                c.center(h // 2, "Aucune vidéo", a.dim)
+                return c.lines()
+            if self.size != (w, h):
+                self.start(w, h)
+            with self.lock:
+                b = self.buf
+            if b is None or len(b) < w * h * 3:
+                c.center(h // 2, "…", a.dim)
+                return c.lines()
+            out, ramp = [], lg_art.RAMP
+            for y in range(h):
+                row, last, i = [], None, y * w * 3
+                for _ in range(w):
+                    r, g, bl = b[i], b[i + 1], b[i + 2]
+                    i += 3
+                    ch = ramp[(r * 2 + g * 5 + bl) * 10 >> 11]
+                    k = (r >> 4, g >> 4, bl >> 4)
+                    if ch != " " and k != last:
+                        last = k
+                        row.append(f"\x1b[38;2;{r};{g};{bl}m")
+                    row.append(ch)
+                out.append("".join(row))
+            return out
+
+    class Dots:
+        """Toile en braille : 2×4 points par case, pour les traits fins."""
+        def __init__(self, w, h):
+            self.w, self.h, self.g = w, h, {}
+
+        def dot(self, x, y):
+            x, y = int(x), int(y)
+            if 0 <= x < self.w * 2 and 0 <= y < self.h * 4:
+                k = (x >> 1, y >> 2)
+                bit = (1, 8, 2, 16, 4, 32, 64, 128)[(y & 3) * 2 + (x & 1)]
+                self.g[k] = self.g.get(k, 0) | bit
+
+        def line(self, x0, y0, x1, y1):
+            n = int(max(abs(x1 - x0), abs(y1 - y0))) + 1
+            for i in range(n + 1):
+                self.dot(x0 + (x1 - x0) * i / n, y0 + (y1 - y0) * i / n)
+
+        def draw(self, c, col):
+            for (x, y), v in self.g.items():
+                c.put(x, y, chr(0x2800 + v), col)
+
+    class Hud(Base):
+        """Tableau de bord de science-fiction : anneau, réseau en constellation, processeur par
+        cœur, connexions, journal et processus. Tout est lu en direct sur la machine."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.cpu, self.cores, self.mem, self.rx, self.tx = 0.0, [], 0.0, [0.0] * 40, [0.0] * 40
+            self.conns, self.logs, self.procs, self.temp = [], [], [], ""
+            self.nodes = [[random.uniform(-1, 1), random.uniform(-1, 1), random.uniform(-.2, .2), random.uniform(-.2, .2)]
+                          for _ in range(26)]
+            self.prev, self.net, self.alive = {}, None, True
+            threading.Thread(target=self.poll, daemon=True).start()
+
+        def stop(self):
+            self.alive = False
+
+        @staticmethod
+        def sh(*cmd):
+            try:
+                return subprocess.run(cmd, capture_output=True, text=True, timeout=4).stdout
+            except (OSError, subprocess.SubprocessError):
+                return ""
+
+        def poll(self):
+            n = 0
+            while self.alive:
+                self.read_proc()
+                if n % 3 == 0:
+                    self.conns = [" ".join(x.split()[3:5]) for x in self.sh("ss", "-tn", "state", "established").splitlines()[1:]][:9]
+                    self.procs = [x.split(None, 1) for x in self.sh("ps", "-eo", "pcpu,comm", "--sort=-pcpu", "--no-headers").splitlines()[:7]]
+                    self.logs = [x[7:] for x in self.sh("journalctl", "--user", "-n", "9", "--no-pager", "-o", "short").splitlines()][-9:]
+                n += 1
+                time.sleep(1.2)
+
+        def read_proc(self):
+            try:
+                with open("/proc/stat") as f:
+                    rows = [x.split() for x in f if x.startswith("cpu")]
+                vals = []
+                for r in rows:
+                    v = list(map(int, r[1:9]))
+                    idle, tot = v[3] + v[4], sum(v)
+                    pi, pt = self.prev.get(r[0], (idle, tot))
+                    self.prev[r[0]] = (idle, tot)
+                    vals.append(1 - (idle - pi) / max(1, tot - pt))
+                self.cpu, self.cores = vals[0], vals[1:]
+                with open("/proc/meminfo") as f:
+                    m = {x.split(":")[0]: int(x.split()[1]) for x in f if x.startswith(("MemTotal", "MemAvailable"))}
+                self.mem = 1 - m["MemAvailable"] / m["MemTotal"]
+                with open("/proc/net/dev") as f:
+                    rx = tx = 0
+                    for x in f.readlines()[2:]:
+                        name, v = x.split(":")
+                        if name.strip() != "lo":
+                            v = v.split()
+                            rx, tx = rx + int(v[0]), tx + int(v[8])
+                if self.net:
+                    self.rx = self.rx[1:] + [(rx - self.net[0]) / 1024]
+                    self.tx = self.tx[1:] + [(tx - self.net[1]) / 1024]
+                self.net = (rx, tx)
+            except (OSError, ValueError, KeyError, IndexError):
+                pass
+
+        def spark(self, c, x, y, w, vals, col):
+            top = max(max(vals), 1.0)
+            for i, v in enumerate(vals[-w:]):
+                c.put(x + i, y, " ▁▂▃▄▅▆▇█"[min(8, int(v / top * 8))], col)
+
+        def frame(self, t, w, h):
+            dt, a, c = self.step(t), self.app, self.canvas(w, h)
+            dim, acc, alt = a.dim, a.acc, a.alt
+            line = mix(a.bg, a.fg, 0.28)
+            d = Dots(w, h)
+            cx, cy = w, h * 2
+            r = min(w * 0.62, h * 1.55) if w < 90 else min(w * 0.3, h * 1.5)
+            for n in self.nodes:
+                n[0] += n[2] * dt * (0.3 + self.cpu)
+                n[1] += n[3] * dt * (0.3 + self.cpu)
+                for i in (0, 1):
+                    if abs(n[i]) > 0.92:
+                        n[i + 2] = -n[i + 2]
+            pts = [(cx + n[0] * r * 0.8, cy + n[1] * r * 0.8) for n in self.nodes]
+            for i, p in enumerate(pts):
+                d.dot(*p)
+                for q in pts[i + 1:]:
+                    if (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2 < (r * 0.42) ** 2:
+                        d.line(*p, *q)
+            d.draw(c, acc)
+            ticks = Dots(w, h)
+            for i in range(120):
+                ang = i / 120 * math.tau + t * 0.05
+                long = 1.1 if i % 10 == 0 else 1.05
+                ticks.line(cx + math.cos(ang) * r, cy + math.sin(ang) * r, cx + math.cos(ang) * r * long, cy + math.sin(ang) * r * long)
+            for k, (v, sign) in enumerate(((self.cpu, -1), (self.mem, 1))):
+                for i in range(int(90 * v)):
+                    ang = math.pi / 2 + sign * (0.35 + i / 90 * 2.4)
+                    ticks.dot(cx + math.cos(ang) * r * 1.22, cy + math.sin(ang) * r * 1.22)
+            ticks.draw(c, alt)
+            c.center(h // 2 - 1, time.strftime("%H:%M:%S"), a.fg)
+            c.center(h // 2, f"CPU {self.cpu * 100:3.0f} %   RAM {self.mem * 100:3.0f} %", dim)
+            if w < 80:
+                return c.lines()
+            side = max(20, int(w / 2 - r / 2 * 1.25) - 3)
+            right = w - side
+            c.text(1, 0, "┌─ RÉSEAU", line)
+            c.text(2, 1, f"▼ {self.rx[-1]:7.1f} Kio/s", acc)
+            self.spark(c, 2, 2, min(side - 3, 40), self.rx, acc)
+            c.text(2, 3, f"▲ {self.tx[-1]:7.1f} Kio/s", alt)
+            self.spark(c, 2, 4, min(side - 3, 40), self.tx, alt)
+            c.text(1, 6, "┌─ CONNEXIONS", line)
+            for i, x in enumerate(self.conns[:max(0, h // 2 - 8)]):
+                c.text(2, 7 + i, x[:side - 3], dim)
+            y = max(h // 2 + 1, h - 11)
+            c.text(1, y, "┌─ JOURNAL", line)
+            for i, x in enumerate(self.logs[-(h - y - 1):]):
+                c.text(2, y + 1 + i, x[:side - 3], dim)
+            c.text(right, 0, "┌─ CŒURS", line)
+            per = max(1, min(8, (side - 2) // 4))
+            for i, v in enumerate(self.cores[:per * 4]):
+                c.text(right + 1 + (i % per) * 4, 1 + i // per, "◯◔◑◕●"[min(4, int(v * 5))], acc if v > 0.5 else line)
+            c.text(right, 7, "┌─ PROCESSUS", line)
+            for i, p in enumerate(self.procs[:7]):
+                if len(p) == 2:
+                    c.text(right + 1, 8 + i, f"{p[1][:side - 9]:<{side - 9}}{p[0]:>6}", dim)
+            y = h - 7
+            if y > 16:
+                c.text(right, y, "┌─ " + time.strftime("%B %Y").upper(), line)
+                weeks = calendar.monthcalendar(time.localtime().tm_year, time.localtime().tm_mon)
+                for i, wk in enumerate(weeks[:6]):
+                    for j, day in enumerate(wk):
+                        if day:
+                            c.text(right + 1 + j * 3, y + 1 + i, f"{day:2}", acc if day == time.localtime().tm_mday else dim)
+            return c.lines()
+
+    class WallFetch(Base):
+        """Un terminal qui a le fond d'écran pour fond : l'image en demi-blocs, assombrie,
+        avec la fiche système et l'heure par-dessus."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.size, self.rows, self.info = None, [], []
+
+        def load(self, w, h):
+            self.size = (w, h)
+            src = lg_art.wallpaper()
+            px = b""
+            if src:
+                out = subprocess.run(["magick", str(src) + "[0]", "-resize", f"{w}x{h * 2}^", "-gravity", "center",
+                                      "-extent", f"{w}x{h * 2}", "-depth", "8", "rgb:-"], capture_output=True, timeout=30).stdout
+                px = out if len(out) == w * h * 6 else b""
+            self.rows = []
+            for y in range(h if px else 0):
+                row = []
+                for x in range(w):
+                    i, j = (y * 2 * w + x) * 3, ((y * 2 + 1) * w + x) * 3
+                    row.append(((int(px[i] * .62), int(px[i + 1] * .62), int(px[i + 2] * .62)),
+                                (int(px[j] * .62), int(px[j + 1] * .62), int(px[j + 2] * .62))))
+                self.rows.append(row)
+            try:
+                out = subprocess.run(["fastfetch", "--pipe", "--logo", "none", "-s",
+                                      "title:os:kernel:uptime:packages:shell:wm:cpu:gpu:memory:disk"],
+                                     capture_output=True, text=True, timeout=8).stdout
+                # fastfetch aligne par des codes de curseur, même en --pipe.
+                clean = re.sub(r"\x1b\[\d*G", "  ", out)
+                clean = re.sub(r"\x1b\[[0-9;?]*[A-Za-z]", "", clean)
+                self.info = [x[:max(10, w - 6)] for x in clean.splitlines() if x.strip()]
+            except (OSError, subprocess.SubprocessError):
+                self.info = []
+
+        def frame(self, t, w, h):
+            a = self.app
+            if self.size != (w, h):
+                self.load(w, h)
+            over = {}
+            clock = time.strftime("%H:%M:%S")
+            y0 = max(1, (h - len(self.info) - 2) // 2)
+            for i, ch in enumerate(clock):
+                over[(3 + i, y0 - 1 if y0 > 1 else 0)] = (ch, a.acc)
+            for y, ln in enumerate(self.info):
+                for x, ch in enumerate(ln):
+                    over[(3 + x, y0 + y)] = (ch, (255, 255, 255))
+            out = []
+            for y in range(h):
+                row = self.rows[y] if y < len(self.rows) else None
+                parts = []
+                for x in range(w):
+                    u, l = row[x] if row else (a.bg, a.bg)
+                    hit = over.get((x, y))
+                    if hit:
+                        m = ((u[0] + l[0]) // 3, (u[1] + l[1]) // 3, (u[2] + l[2]) // 3)
+                        k = hit[1]
+                        parts.append(f"\x1b[38;2;{k[0]};{k[1]};{k[2]};48;2;{m[0]};{m[1]};{m[2]}m{hit[0]}")
+                    else:
+                        parts.append(f"\x1b[38;2;{u[0]};{u[1]};{u[2]};48;2;{l[0]};{l[1]};{l[2]}m▀")
+                parts.append("\x1b[0m")
+                out.append("".join(parts))
+            return out
+
+    return {"ascii": AsciiImage, "banner": Banner, "globe": Globe, "moonball": MoonBall, "asciivid": AsciiVideo,
+            "hud": Hud, "wallfetch": WallFetch, "video": Video, "stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
             "petals": Petals, "snow": Snow, "plasma": Plasma, "snake": Snake, "life": Life, "pipes": Pipes,
             "tunnel": Tunnel, "waves": Waves, "fire": Fire, "bounce": Bounce, "radar": Radar, "hex": Hex,
             "cpu": Cpu, "scope": Scope, "cal": Cal, "timer": Timer}

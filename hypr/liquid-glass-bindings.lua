@@ -67,8 +67,9 @@ o.bind("SUPER + SHIFT + K", "Omarchy keybindings", "omarchy-menu-keybindings")
 -- ⌘⇧L : clair / sombre ; ⌃⌘Q : verrouiller ; ⌘⌥M : paroles en karaoké (touches libres)
 o.bind("SUPER + SHIFT + L", "Toggle light / dark", "liquid-glass mode toggle")
 o.bind("SUPER + CTRL + Q", "Lock screen", "omarchy-system-lock")
--- Rice aussi sur le bureau Mac : lance la page active (le menu est sur les bureaux Linux).
-o.bind("SUPER + CTRL + M", "Rice : terminaux animés", "liquid-glass rice")
+-- Rice aussi sur le bureau Mac.
+o.bind("SUPER + CTRL + M", "Rice au hasard (1 à 13 terminaux)", "liquid-glass rice random")
+o.bind("SUPER + CTRL + SHIFT + M", "Fermer le rice", "liquid-glass rice stop")
 o.bind("SUPER + ALT + M", "Lyrics karaoke", shell("liquid-glass.spotify karaoke"))
 o.bind("SUPER + F3", "Show desktop", "liquid-glass show-desktop")
 

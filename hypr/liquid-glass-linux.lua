@@ -79,8 +79,9 @@ o.rebind("SUPER + CTRL + W", "Fonds d'écran (carrousel)", LG .. "wallpapers")
 
 -- ⌃⌘M : menu des rices (pages de 1 à 13 terminaux animés, scène par scène).
 -- ⌃⌘⇧M : page suivante sans passer par le menu.
-o.rebind("SUPER + CTRL + M", "Rice : pages de terminaux", LG .. "rice")
-o.rebind("SUPER + CTRL + SHIFT + M", "Rice : page suivante", "liquid-glass rice next")
+o.rebind("SUPER + CTRL + M", "Rice au hasard (1 à 13 terminaux)", "liquid-glass rice random")
+o.rebind("SUPER + CTRL + SHIFT + M", "Fermer le rice", "liquid-glass rice stop")
+o.rebind("SUPER + CTRL + ALT + M", "Rice : pages à composer", LG .. "rice")
 
 -- Paramètres (style Windows) : vraie fenêtre, flottante et centrée.
 hl.window_rule({

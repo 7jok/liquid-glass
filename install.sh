@@ -112,7 +112,7 @@ say "Polices du bureau Linux (Material Symbols, Google Sans Flex, Rubik)"
 
 # ---------------------------------------------------------------- 4. commandes
 say "Commandes"
-for b in liquid-glass liquid-glass-spotify liquid-glass-tty liquid-glass-keys; do link "$REPO/bin/$b" "$HOME/.local/bin/$b"; done
+for b in liquid-glass liquid-glass-spotify liquid-glass-tty liquid-glass-keys liquid-glass-fetch; do link "$REPO/bin/$b" "$HOME/.local/bin/$b"; done
 ok "liquid-glass, liquid-glass-spotify, liquid-glass-tty, liquid-glass-keys → ~/.local/bin"
 if [ "$DO_ANIMATED" = 1 ]; then
   say "Fonds d'écran animés"

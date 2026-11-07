@@ -20,7 +20,7 @@ Scènes (Espace / n : suivante, p : précédente, 1–9 : directe, q : quitter) 
 --list : scènes parcourues par --cycle et Espace. --minutes : durée du minuteur.
 Dans un même rice, un seul terminal lance cava, les autres lisent --audio (chemin).
 
-Couleurs : thème Omarchy courant (~/.config/omarchy/current/theme/colors.toml).
+Couleurs : thème Omarchy courant (~/.local/state/omarchy/current/theme/colors.toml).
 Musique : cava en sortie brute (si présent) ; sans musique, tout reste animé.
 Aucune dépendance hors bibliothèque standard ; la pochette passe par `magick`.
 """
@@ -62,7 +62,7 @@ def hex_rgb(h, d=(200, 200, 200)):
 
 
 def theme_colors():
-    f = HOME / ".config/omarchy/current/theme/colors.toml"
+    f = HOME / ".local/state/omarchy/current/theme/colors.toml"
     c = {}
     try:
         for line in f.read_text().splitlines():
@@ -77,6 +77,8 @@ def theme_colors():
     acc = hex_rgb(c.get("accent", "#8ab4f8"))
     alt = hex_rgb(c.get("magenta", c.get("blue", "#c58af9")))
     light = c.get("mode", "dark").strip('"') == "light"
+    if os.environ.get("LG_DARK"):         # rice : terminal forcé en sombre, quel que soit le thème
+        return (12, 12, 18), (230, 230, 235), mix(acc, (255, 255, 255), 0.25), mix(alt, (255, 255, 255), 0.25), False
     return bg, fg, acc, alt, light
 
 

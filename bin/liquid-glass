@@ -36,6 +36,8 @@ Commandes :
   liquid-glass profile [mac|linux|omarchy|toggle|pick|status|tone [nom]|blanc|sombre|jouet|violet[:nuit|aube|rose]|expressive|windows|mono|foret]
                                      Bureau Mac ou Linux, et style du bureau Linux
                                      (pick = sélecteur en cartes, ⌘⇧Espace)
+  liquid-glass fetch [--mode M]      Fiche système à la taille du terminal (ascii, color, image, text)
+  liquid-glass ascii [image]         Image en caractères ; --text "Salut" --font Isometric1 pour du texte
   liquid-glass export                Réglages et applications dans state/ (./install.sh --restore)
   liquid-glass lang fr|en            Langue des bureaux et des Réglages
   liquid-glass rice [launch [n]|next|stop [n]|reset]
@@ -53,6 +55,7 @@ from __future__ import annotations
 import datetime as dt
 import json
 import os
+import random
 import re
 import shlex
 import shutil
@@ -70,6 +73,9 @@ CONF_JSON = CONF_DIR / "config.json"
 HYPR_VARS = CONF_DIR / "hypr-vars.lua"
 # Le dépôt est retrouvé via le lien symbolique de ce script.
 REPO = Path(os.path.realpath(__file__)).parent.parent
+sys.path.insert(0, str(REPO / "bin"))
+import lg_art  # noqa: E402
+import lg_fetch  # noqa: E402
 THEMES = {"light": "liquid-glass", "dark": "liquid-glass-dark"}
 USER_THEMES = HOME / ".config/omarchy/themes"
 STATE_THEME = HOME / ".local/state/omarchy/current/theme.name"
@@ -1456,15 +1462,8 @@ def _ensure_linux_wallpapers() -> None:
 
 
 def apply_fastfetch(style: str | None) -> None:
-    """Fiche fastfetch du bureau : ~/.config/fastfetch/config.jsonc suit le style actif."""
-    src = REPO / "terminal/fastfetch" / (f"styles/{style}.jsonc" if style else "config.jsonc")
-    if not src.exists():
-        src = REPO / "terminal/fastfetch/config.jsonc"
-    dst = CONF_DIR.parent / "fastfetch/config.jsonc"
-    if dst.is_symlink() or not dst.exists():
-        dst.parent.mkdir(parents=True, exist_ok=True)
-        dst.unlink(missing_ok=True)
-        dst.symlink_to(src)
+    """Fiche du `fastfetch` tapé à la main : suit le bureau actif et la langue."""
+    lg_fetch.write_default(style or "mac", CONF_DIR.parent / "fastfetch/config.jsonc", load().get("linux", {}).get("lang", "fr"))
 
 
 def _omarchy_themes() -> list[str]:
@@ -1627,7 +1626,7 @@ def cmd_profile(args: list[str]) -> None:
 
 # Rice : pages de terminaux animés (⌃⌘M). Une page = un bureau, de 1 à 13 terminaux.
 RICE_FILE = CONF_DIR / "rice.json"
-RICE_SPECIAL = {"fetch": "Fiche système", "shell": "Terminal", "btop": "Moniteur btop"}
+RICE_SPECIAL = {"fetch": "Fiche système", "shell": "Terminal", "btop": "Moniteur btop", "clip": "Boucle vidéo"}
 RICE_SCENES = {
     "eye": "Œil", "heart": "Cœur", "donut": "Donut", "rain": "Pluie de code", "clock": "Horloge", "cava": "Spectre",
     "cover": "Pochette", "train": "Train", "stars": "Hyperespace", "orbit": "Planètes", "hole": "Trou noir",
@@ -1635,7 +1634,13 @@ RICE_SCENES = {
     "plasma": "Plasma", "snake": "Serpent", "life": "Jeu de la vie", "pipes": "Tuyaux", "tunnel": "Tunnel",
     "waves": "Mer", "fire": "Feu", "bounce": "Logo", "radar": "Radar", "hex": "Hexa", "cpu": "Processeur",
     "scope": "Oscilloscope", "cal": "Calendrier", "timer": "Minuteur", "video": "Vidéo",
+    "ascii": "Image ASCII", "banner": "Texte en grand", "globe": "Terre ASCII", "moonball": "Lune ASCII",
+    "asciivid": "Vidéo ASCII", "hud": "Tableau de bord", "wallfetch": "Terminal à fond d'écran",
 }
+RICE_RANDOM_PAGE = 99
+RICE_ART = {"ascii", "asciivid", "globe", "moonball", "clip", "hud", "wallfetch", "banner", "fetch", "btop"}
+RICE_NEW = ["ascii", "banner", "globe", "moonball", "asciivid", "clip", "hud", "wallfetch", "btop", "fetch"]
+RICE_HERO = ["ascii", "globe", "hud", "fetch", "clip", "asciivid", "wallfetch", "banner", "btop"]
 RICE_FONTS = ["JetBrainsMono Nerd Font", "VT323", "Space Mono", "IBM Plex Mono", "Share Tech Mono", "Press Start 2P",
               "Fira Code", "DM Mono", "Courier Prime", "Martian Mono", "iA Writer Mono S", "Adwaita Mono", "Noto Sans Mono"]
 # Taille relative : à corps égal, VT323 est petite et Press Start 2P très large.
@@ -1737,17 +1742,73 @@ def _lua_str(s: str) -> str:
     return "[==[" + s + "]==]"
 
 
-def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = False, monitor: str = "") -> None:
+def rice_random(ws: int | None = None, silent: bool = False, monitor: str = "", count: int = 0) -> None:
+    """⌃⌘M : un rice tiré au sort, de 1 à 13 terminaux, sans menu. Relancé, il retire au sort
+    sur le même bureau."""
+    style = linux_style()
+    open_now = _rice_clients()
+    if ws is None and open_now:
+        ws = open_now[0]["workspace"]["id"]
+        silent = True
+    rice_stop()
+    last = rice_last()
+    n = count or random.choice([x for x in range(1, 14) if x != last])
+    pool = [x for x in RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split() if x not in ("timer", "shell", "cover", "video")]
+    pool = list(dict.fromkeys(pool + RICE_NEW))
+    random.shuffle(pool)
+    heavy = 0
+    panes: list[str] = []
+    hero = random.choice(RICE_HERO)
+    if not count and random.random() < 0.2:      # terminal, moniteur et pluie de code, comme les rices classiques
+        n, panes = 3, ["btop", "fetch", "rain"]
+    else:
+        panes.append(hero)
+        if n >= 2 and hero != "fetch":
+            panes.append("fetch")
+        for x in pool:
+            if len(panes) >= n:
+                break
+            if x in panes:
+                continue
+            if x in ("asciivid", "clip"):
+                if heavy >= 2:
+                    continue
+                heavy += 1
+            panes.append(x)
+        while len(panes) < n:
+            panes.append(random.choice(["ascii", "banner", "fetch", "rain", "stars", "plasma", "pipes"]))
+    st_alpha = RICE_STYLES.get(style, RICE_STYLES["gouts"])[1]
+    rice_remember(n)
+    rice_launch(RICE_RANDOM_PAGE, ws, silent, monitor, panes=panes, alpha=random.choice([st_alpha, 0.72, 0.55]))
+
+
+def rice_last() -> int:
+    try:
+        return int((Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "liquid-glass-rice-last").read_text())
+    except (OSError, ValueError):
+        return 0
+
+
+def rice_remember(n: int) -> None:
+    (Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "liquid-glass-rice-last").write_text(str(n))
+
+
+def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = False, monitor: str = "",
+                panes: list[str] | None = None, alpha: float | None = None) -> None:
     style = linux_style()
     st = rice_state(style)
-    page = st["page"] if page is None else page % len(st["pages"])
-    pg = st["pages"][page]
-    if ws is None and (open_now := _rice_clients(page)):      # déjà ouverte : on y va
+    if panes is None:
+        page = st["page"] if page is None else page % len(st["pages"])
+        pg = st["pages"][page]
+    else:
+        pg = {"panes": panes, "cycle": 0}
+    if panes is None and ws is None and (open_now := _rice_clients(page)):      # déjà ouverte : on y va
         run("hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{open_now[0]["workspace"]["id"]}" }})')
         return
     rice_stop(page)
-    st["page"] = page
-    rice_save(style, st)
+    if panes is None:
+        st["page"] = page
+        rice_save(style, st)
     try:
         mons = json.loads(run("hyprctl", "monitors", "-j").stdout or "[]")
         used = {w.get("id") for w in json.loads(run("hyprctl", "workspaces", "-j").stdout or "[]")}
@@ -1771,8 +1832,7 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
     size = max(5, round(size * RICE_FONT_SCALE.get(font, 1)))
     fps = 24 if n <= 2 else 20 if n <= 5 else 12 if n <= 9 else 8
     tty = str(REPO / "bin/liquid-glass-tty")
-    box = str(REPO / "terminal/fastfetch/box.jsonc")
-    alpha = st["alpha"]
+    alpha = st["alpha"] if alpha is None else alpha
     bus = os.environ.get("XDG_RUNTIME_DIR", "/tmp") + f"/liquid-glass-rice-audio-{page}"
     loop = ",".join(x for x in RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split() if x in RICE_SCENES and x not in ("timer", "cover", "video"))
     label = style_label(style)
@@ -1785,9 +1845,16 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
         y = ay + cell[1] * (ah + gap)
         w = cell[2] * (aw + gap) - gap
         h = cell[3] * (ah + gap) - gap
+        if scene == "btop" and (w < 460 or h < 280):     # btop refuse de s'afficher en dessous de 80×24
+            scene = "rain"
+        scene, _, fetch_mode = scene.partition(":")      # fetch:image, fetch:text…
         if scene == "fetch":
-            logo = " --logo none" if n >= 6 else ""
-            argv = ["sh", "-c", f"clear; fastfetch -c {box}{logo}; exec \"${{SHELL:-bash}}\""]
+            argv = [str(REPO / "bin/liquid-glass-fetch"), "--style", style, "--shell"]
+            argv += ["--mode", fetch_mode] if fetch_mode else []
+        elif scene == "clip":
+            clips = lg_art.loops()
+            argv = (["mpv", "--vo=tct", "--no-audio", "--loop-file=inf", "--really-quiet", "--no-input-terminal",
+                     str(random.choice(clips))] if clips else ["btop"])
         elif scene == "shell":
             argv = ["sh", "-c", "exec \"${SHELL:-bash}\""]
         elif scene == "btop":
@@ -1800,9 +1867,19 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
             master_done = True
             if pg["cycle"] and scene not in ("timer", "cover", "video"):
                 argv += ["--cycle", str(round(pg["cycle"] * (1 + 0.13 * i), 1)), "--list", loop]
+        # Les images demandent une petite police : plus de caractères, plus de détail.
+        pfont, psize = font, size
+        if scene in RICE_ART:
+            pfont = "JetBrainsMono Nerd Font"
+            psize = {"fetch": 10 if n <= 2 else 8 if n <= 6 else 7, "banner": 9, "btop": 8 if n <= 2 else 7}.get(scene, 9 if n <= 2 else 7 if n <= 6 else 6)
         term = ["foot", "--app-id", f"liquid-glass-rice-{page}-{i}", "--title", RICE_SCENES.get(scene, RICE_SPECIAL.get(scene, scene)),
-                "-o", f"font={font}:size={size}", "-o", f"colors-dark.alpha={alpha}", "-o", f"colors-light.alpha={alpha}",
+                "-o", f"font={pfont}:size={psize},JetBrainsMono Nerd Font:size={psize}", "-o", f"colors-dark.alpha={alpha}", "-o", f"colors-light.alpha={alpha}",
                 "-o", "pad=6x4 center"]
+        pane_alpha = alpha if scene not in RICE_ART else max(alpha, 0.88)     # l'ASCII devient illisible sur un fond chargé
+        term = [x.replace(f"alpha={alpha}", f"alpha={pane_alpha}") for x in term]
+        if panes is not None and (style != "blanc" or scene in RICE_ART):
+            term += ["-o", "colors-dark.background=0c0c12", "-o", "colors-dark.foreground=e6e6eb", "-o", "initial-color-theme=dark"]
+            argv = ["env", "LG_DARK=1", *argv]
         cmd = " ".join(shlex.quote(a) for a in term + argv)
         rules = f'float = true, size = "{int(w)} {int(h)}", move = "{int(x)} {int(y)}", workspace = "{ws} silent"'
         run("hyprctl", "dispatch", f"hl.dsp.exec_cmd({_lua_str(cmd)}, {{ {rules} }})")
@@ -1833,6 +1910,15 @@ def cmd_rice(args: list[str]) -> None:
     elif want == "next":
         st = rice_state(style)
         rice_launch(st["page"] + 1)
+    elif want == "random":
+        opts = args[1:]
+        ws = int(opts[opts.index("--workspace") + 1]) if "--workspace" in opts else None
+        mon = opts[opts.index("--monitor") + 1] if "--monitor" in opts else ""
+        count = int(opts[opts.index("--count") + 1]) if "--count" in opts else 0
+        if "--panes" in opts:      # liste imposée : pour essayer une composition
+            rice_launch(RICE_RANDOM_PAGE, ws, "--silent" in opts, mon, panes=opts[opts.index("--panes") + 1].split(","), alpha=0.9)
+            return
+        rice_random(ws, "--silent" in opts, mon, count)
     elif want == "launch":
         opts = args[1:]
         ws = int(opts[opts.index("--workspace") + 1]) if "--workspace" in opts else None
@@ -1840,7 +1926,7 @@ def cmd_rice(args: list[str]) -> None:
         pos = [o for o in opts if o.isdigit() and (not ws or o != str(ws))]
         rice_launch(int(pos[0]) if pos else None, ws, "--silent" in opts, mon)
     else:
-        sys.exit("usage : liquid-glass rice [launch [n] | next | stop [n] | dump | save JSON | reset]")
+        sys.exit("usage : liquid-glass rice [random | launch [n] | next | stop [n] | dump | save JSON | reset]")
 
 
 def _wall_tint(path: Path) -> str | None:
@@ -1890,6 +1976,50 @@ def cmd_wall_colors(args: list[str]) -> None:
     print(f"{len(known)} fonds classés.")
 
 
+def cmd_fetch(args: list[str]) -> None:
+    """liquid-glass fetch [--mode ascii|color|image|text] : fiche à la taille du terminal.
+    apply : réécrit la fiche du `fastfetch` tapé à la main pour le bureau actif."""
+    if args[:1] == ["apply"]:
+        cfg = load()
+        apply_fastfetch(linux_style(cfg) if cfg.get("profile", {}).get("active") == "linux" else None)
+        return
+    os.execv(str(REPO / "bin/liquid-glass-fetch"), ["liquid-glass-fetch", *args])
+
+
+def cmd_ascii(args: list[str]) -> None:
+    """liquid-glass ascii [image] [--width N] [--color] [--invert] : image en caractères, dans le
+    terminal où tu es. --text "Bonjour" [--font Isometric1] : texte en grand. --fonts : les polices."""
+    cols, rows = lg_art.terminal_size()
+    opts = list(args)
+
+    def take(flag: str, default: str = "") -> str:
+        if flag not in opts:
+            return default
+        i = opts.index(flag)
+        opts.pop(i)
+        return opts.pop(i)
+
+    width = int(take("--width", "0")) or cols
+    font = take("--font")
+    text = take("--text")
+    if "--fonts" in opts:
+        print("\n".join(lg_art.fonts()))
+        return
+    if text:
+        lines, used = lg_art.banner(text, width if not font else 0, font)
+        print("\n".join(lines))
+        print(f"\x1b[2m{used.replace('_', ' ')}\x1b[0m", file=sys.stderr)
+        return
+    color, invert = "--color" in opts, True if "--invert" in opts else None
+    names = [o for o in opts if not o.startswith("--")]
+    src = Path(names[0]).expanduser() if names else random.choice(lg_art.gallery())
+    if not src.exists():
+        sys.exit(f"image introuvable : {src}")
+    probe = run("magick", "identify", "-format", "%w %h", str(src) + "[0]").stdout.split()
+    ratio = int(probe[1]) / int(probe[0]) if len(probe) == 2 else 1
+    print("\n".join(lg_art.render(src, width, max(4, int(width * ratio / 2)), color, "", invert)))
+
+
 def cmd_export(args: list[str]) -> None:
     """Copie tes réglages et ta liste d'applications dans state/, pour ./install.sh --restore."""
     out = REPO / "state"
@@ -1929,6 +2059,7 @@ def cmd_lang(args: list[str]) -> None:
         sys.exit("usage : liquid-glass lang fr|en")
     set_key("linux.lang", args[0])
     write_lang(args[0], [CONF_DIR.parent / "omarchy/plugins"])
+    apply_fastfetch(linux_style() if load().get("profile", {}).get("active") == "linux" else None)
     print("Langue : " + args[0])
 
 
@@ -1969,6 +2100,8 @@ COMMANDS = {
     "keys": cmd_keys,
     "rice": cmd_rice,
     "export": cmd_export,
+    "ascii": cmd_ascii,
+    "fetch": cmd_fetch,
     "lang": cmd_lang,
     "wall-colors": cmd_wall_colors,
     "profile": cmd_profile,

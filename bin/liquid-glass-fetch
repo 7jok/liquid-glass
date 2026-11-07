@@ -1,0 +1,77 @@
+#!/usr/bin/env python3
+"""Fiche système qui s'adapte à la taille du terminal : image en ASCII, en couleur, vraie image
+(sixel), texte en grand, ou logo de la distribution sur leurs bureaux.
+
+    liquid-glass-fetch [--style S] [--mode ascii|color|image|text] [--shell]
+
+--shell : garde la fiche affichée, une touche ouvre le shell (terminaux des rices).
+"""
+import json
+import os
+import pathlib
+import subprocess
+import sys
+import tempfile
+import time
+import tomllib
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import lg_art  # noqa: E402
+import lg_fetch  # noqa: E402
+
+CONF = pathlib.Path(os.environ.get("XDG_CONFIG_HOME", pathlib.Path.home() / ".config")) / "liquid-glass/config.toml"
+
+
+def settings() -> tuple[str, str]:
+    try:
+        cfg = tomllib.loads(CONF.read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return "gouts", "fr"
+    linux = cfg.get("linux", {})
+    active = cfg.get("profile", {}).get("active", "mac")
+    return ("mac" if active == "mac" else linux.get("style", "gouts")), linux.get("lang", "fr")
+
+
+def main() -> None:
+    args = sys.argv[1:]
+    if "-h" in args or "--help" in args:
+        print(__doc__.strip())
+        return
+    style, lang = settings()
+    mode = ""
+    if "--style" in args:
+        style = args[args.index("--style") + 1]
+    if "--mode" in args:
+        mode = args[args.index("--mode") + 1]
+    shell = "--shell" in args
+    if shell:
+        time.sleep(0.25)       # le gestionnaire de fenêtres vient de donner sa taille au terminal
+    cols, rows = lg_art.terminal_size()
+    logo, density = lg_fetch.choose(style, cols, rows, mode)
+    image = logo.pop("sixel", "")
+    conf = lg_fetch.config(style, density, lang, logo)
+    # fastfetch regarde ses parents : ici, il verrait python au lieu du shell et du terminal.
+    named = {"shell": pathlib.Path(os.environ.get("SHELL", "bash")).name, "terminal": os.environ.get("TERM", "foot").split("-")[0]}
+    conf["modules"] = [{"type": "custom", "key": m["key"], "format": named[m["type"]]}
+                       if isinstance(m, dict) and m.get("type") in named else m for m in conf["modules"]]
+    with tempfile.NamedTemporaryFile("w", suffix=".jsonc", delete=False) as f:
+        json.dump(conf, f, ensure_ascii=False)
+    sys.stdout.write("\x1b[H\x1b[2J")
+    if image:
+        sys.stdout.write("\x1b[2;2H" + pathlib.Path(image).read_text() + "\x1b[H")
+    sys.stdout.flush()
+    subprocess.run(["fastfetch", "-c", f.name])
+    os.unlink(f.name)
+    if shell:
+        # La fiche reste affichée ; une touche ouvre le shell.
+        sys.stdout.write("\x1b[?25l")
+        sys.stdout.flush()
+        sys.stdin.read(1)
+        sys.stdout.write("\x1b[?25h\x1b[H\x1b[2J")
+        sys.stdout.flush()
+        sh = os.environ.get("SHELL", "bash")
+        os.execvp(sh, [sh])
+
+
+if __name__ == "__main__":
+    main()

@@ -54,7 +54,7 @@ Item {
   function restorePasswordFocus() {
     if (inputEnabled && passwordInput.enabled && !passwordInput.activeFocus) forcePasswordFocus()
   }
-  onPasswordTextChanged: syncPasswordText()
+  onPasswordTextChanged: { syncPasswordText(); if (passwordText.length > 0) stopSaver() }
   onInputEnabledChanged: if (inputEnabled) Qt.callLater(forcePasswordFocus)
   onFailedAttemptsChanged: if (failedAttempts > 0) shake.restart()
   Window.onActiveFocusItemChanged: Qt.callLater(restorePasswordFocus)
@@ -91,8 +91,17 @@ Item {
     return ""
   }
   readonly property var lcfg: cfg.linux || ({})
+  readonly property var kcfg: cfg.lock || ({})
+  readonly property string lockVideo: {
+    var v = String(Quickshell.env("LG_LOCK_VIDEO") || kcfg.video || "")
+    if (v !== "") return v
+    return root.video ? root.backgroundPath : ""
+  }
+  readonly property bool drift: kcfg.drift !== false
+  readonly property bool saverOn: kcfg.saver !== false
+  readonly property int saverDelay: Math.max(15, Number(kcfg.saver_delay || 60))
   readonly property string style: String(Quickshell.env("LG_LOCK_STYLE") || lcfg.style || "blanc")
-  readonly property string vtone: String(lcfg.violet_tone || "nuit")
+  readonly property string vtone: tone("violet_tone", "nuit")
   function tone(key, def) { return String(Quickshell.env("LG_LOCK_TONE") || lcfg[key] || def) }
   readonly property string userName: {
     var u = String(Quickshell.env("USER") || "")
@@ -109,6 +118,27 @@ Item {
     rose: {
       dark:  { a: "#ffe4ee", b: "#e58fb2", ink: "#ffe4ee", sub: "#d9a9bd", pill: Qt.rgba(0.45, 0.18, 0.32, 0.55), acc: "#f4b3cc", accInk: "#4a1a2c", veil: Qt.rgba(0.12, 0.03, 0.08, 0.12), danger: "#ff7a9a" },
       light: { a: "#4a2533", b: "#c06a8c", ink: "#4a2533", sub: "#8c5c6e", pill: Qt.rgba(1, 1, 1, 0.72), acc: "#8a3e5c", accInk: "#fff3f7", veil: Qt.rgba(0.99, 0.93, 0.95, 0.6), danger: "#d6365a" } },
+    crepuscule: {
+      dark:  { a: "#f6e9f2", b: "#ffb38a", ink: "#f6e9f2", sub: "#c7aec4", pill: Qt.rgba(0.27, 0.19, 0.31, 0.55), acc: "#ffb38a", accInk: "#0f0a1a", veil: Qt.rgba(0.06, 0.04, 0.10, 0.12), danger: "#ff98a6" },
+      light: { a: "#0f0a1a", b: "#bf8668", ink: "#0f0a1a", sub: "#6d606c", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#2c1f44", accInk: "#ffffff", veil: Qt.rgba(0.98, 0.96, 0.97, 0.6), danger: "#c0364e" } },
+    lavande: {
+      dark:  { a: "#faf9fd", b: "#a39ac8", ink: "#faf9fd", sub: "#a09bb8", pill: Qt.rgba(0.18, 0.16, 0.25, 0.55), acc: "#a39ac8", accInk: "#1a1528", veil: Qt.rgba(0.10, 0.08, 0.16, 0.12), danger: "#ff7a8a" },
+      light: { a: "#2e2840", b: "#7b6fb0", ink: "#2e2840", sub: "#6a6383", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#3d3554", accInk: "#faf9fd", veil: Qt.rgba(0.95, 0.95, 0.97, 0.6), danger: "#c0445e" } },
+    prune: {
+      dark:  { a: "#f4e2ee", b: "#e88ab8", ink: "#f4e2ee", sub: "#c2a0b6", pill: Qt.rgba(0.29, 0.12, 0.24, 0.55), acc: "#e88ab8", accInk: "#0e060c", veil: Qt.rgba(0.05, 0.02, 0.05, 0.12), danger: "#ff8fa2" },
+      light: { a: "#0e060c", b: "#ae688a", ink: "#0e060c", sub: "#6b5864", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#2a1426", accInk: "#ffffff", veil: Qt.rgba(0.98, 0.94, 0.96, 0.6), danger: "#c0364e" } },
+    ete: {
+      dark:  { a: "#fffaf6", b: "#eb919a", ink: "#fffaf6", sub: "#c08f9c", pill: Qt.rgba(0.25, 0.13, 0.23, 0.55), acc: "#eb919a", accInk: "#2a1024", veil: Qt.rgba(0.16, 0.06, 0.14, 0.12), danger: "#ff7a8a" },
+      light: { a: "#40213a", b: "#e2626f", ink: "#40213a", sub: "#85566e", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#e2626f", accInk: "#fffaf6", veil: Qt.rgba(1.00, 0.96, 0.93, 0.6), danger: "#d23a52" } },
+    automne: {
+      dark:  { a: "#f6e8de", b: "#f0915a", ink: "#f6e8de", sub: "#c8a796", pill: Qt.rgba(0.29, 0.16, 0.15, 0.55), acc: "#f0915a", accInk: "#10090b", veil: Qt.rgba(0.06, 0.04, 0.04, 0.12), danger: "#ff8a7a" },
+      light: { a: "#10090b", b: "#b46d44", ink: "#10090b", sub: "#6e5c52", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#2d1d22", accInk: "#ffffff", veil: Qt.rgba(0.98, 0.96, 0.93, 0.6), danger: "#c0364e" } },
+    hiver: {
+      dark:  { a: "#fafcff", b: "#8fa5de", ink: "#fafcff", sub: "#98a5c2", pill: Qt.rgba(0.12, 0.16, 0.27, 0.55), acc: "#8fa5de", accInk: "#111a30", veil: Qt.rgba(0.07, 0.10, 0.19, 0.12), danger: "#ff7a8a" },
+      light: { a: "#1f2a44", b: "#5f7fd0", ink: "#1f2a44", sub: "#5a6788", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#2c3a5e", accInk: "#fafcff", veil: Qt.rgba(0.95, 0.96, 0.98, 0.6), danger: "#c43c5a" } },
+    printemps: {
+      dark:  { a: "#fdfcf8", b: "#e094ae", ink: "#fdfcf8", sub: "#9db2a2", pill: Qt.rgba(0.15, 0.21, 0.16, 0.55), acc: "#e094ae", accInk: "#14211a", veil: Qt.rgba(0.08, 0.13, 0.10, 0.12), danger: "#ff7a8a" },
+      light: { a: "#26352a", b: "#d2668c", ink: "#26352a", sub: "#5f7364", pill: Qt.rgba(1.00, 1.00, 1.00, 0.72), acc: "#d2668c", accInk: "#fdfcf8", veil: Qt.rgba(0.97, 0.96, 0.94, 0.6), danger: "#cc3d5e" } },
     mono: {
       dark:  { a: "#f2f2f2", b: "#8c8c8c", ink: "#ededed", sub: "#9a9a9a", pill: Qt.rgba(0.04, 0.04, 0.04, 0.6), acc: "#f2f2f2", accInk: "#0a0a0a", veil: Qt.rgba(0, 0, 0, 0.25), danger: "#ff6b6b" },
       light: { a: "#141414", b: "#9a9a9a", ink: "#141414", sub: "#6e6e6e", pill: Qt.rgba(1, 1, 1, 0.8), acc: "#141414", accInk: "#fafafa", veil: Qt.rgba(0.97, 0.97, 0.97, 0.66), danger: "#c0392b" } },
@@ -123,10 +153,10 @@ Item {
       light: { a: "#c9c2cc", b: "#8a8490", ink: "#d8d2da", sub: "#8a8490", pill: Qt.rgba(0.07, 0.06, 0.08, 0.85), acc: "#c9c2cc", accInk: "#17151b", veil: Qt.rgba(0.09, 0.08, 0.11, 0.25), danger: "#e8857c" } }
   })
   readonly property bool ile: style === "ile"
-  readonly property var palSet: ile ? pals.ile : style === "violet" ? (vtone === "rose" ? pals.rose : pals.violet)
+  readonly property var palSet: ile ? pals.ile : style === "violet" ? (vtone === "rose" ? pals.rose : (pals[vtone] || pals.violet))
                               : style === "jouet" ? pals.jouet
                               : style === "expressive" ? pals.expressive : pals.mono
-  readonly property bool defaultLight: (style === "violet" && vtone !== "nuit") || style === "blanc" || style === "jouet"
+  readonly property bool defaultLight: (style === "violet" && ["nuit", "minuit", "crepuscule", "prune", "automne"].indexOf(vtone) < 0) || style === "blanc" || style === "jouet"
   property bool light: defaultLight
   onDefaultLightChanged: light = defaultLight
 
@@ -168,14 +198,32 @@ Item {
     return best
   }
   readonly property bool hasTrack: !!player && (player.trackTitle || "") !== ""
+  // Paroles synchronisées (cache now-playing.json du lecteur), pour les écrans qui les montrent.
+  readonly property var lyricLines: hasTrack && np.title === player.trackTitle && Array.isArray(np.lyrics) ? np.lyrics : []
+  property int lineIndex: -1
+  readonly property string lyricNow: lineIndex >= 0 && lineIndex < lyricLines.length ? String(lyricLines[lineIndex].text || lyricLines[lineIndex].l || "") : ""
+  Timer {
+    interval: 250; repeat: true
+    running: root.lyricLines.length > 0 && root.loadBackground
+    onTriggered: {
+      var pl = root.player
+      if (!pl) return
+      if (pl.positionSupported) pl.positionChanged()
+      var t = (pl.position || 0) + 0.25, lines = root.lyricLines, i = -1
+      while (i + 1 < lines.length && lines[i + 1].t <= t) i++
+      if (i !== root.lineIndex) root.lineIndex = i
+    }
+  }
 
   // Géométrie partagée par les deux scènes (et le vrai champ de saisie).
   readonly property real clockSize: Math.round(Math.min(height * 0.2, 150))
   // Un style peut avoir son propre écran (LockFace<Nom>.qml) : il dessine tout et dit
   // où se trouve son champ (fieldBox) ; le vrai champ de saisie s'y pose.
-  readonly property string faceName: ({ ile: "Ile", ruban: "Ruban", espace: "Espace", cosmos: "Espace", foret: "Foret",
+  readonly property string faceChoice: String(Quickshell.env("LG_LOCK_STYLE") ? "auto" : (kcfg.linux_face || "auto"))
+  readonly property string faceStyle: faceChoice === "auto" ? style : faceChoice
+  readonly property string faceName: faceChoice === "classic" ? "" : ({ ile: "Ile", ruban: "Ruban", espace: "Espace", cosmos: "Espace", foret: "Foret",
                                         mono: "Mono", sombre: "Sombre", blanc: "Blanc", jouet: "Jouet", windows: "Windows",
-                                        lain: "Lain", expressive: "Expressive" })[style] || ""
+                                        lain: "Lain", expressive: "Expressive" })[faceStyle] || ""
   readonly property var box: face.item && face.item.fieldBox ? face.item.fieldBox : null
   readonly property real fieldW: box ? box.width : Math.min(360, width - 48)
   readonly property real fieldH: box ? box.height : 36
@@ -195,6 +243,12 @@ Item {
     cached: true
     constrainDecode: true
     decodeSize: Qt.size(width, height)
+  }
+  LockVideo {
+    anchors.fill: parent
+    path: root.lockVideo
+    active: root.lockVideo !== "" && face.status !== Loader.Ready && root.loadBackground
+    visible: active
   }
 
   // Scène de base (interactive), puis la scène de l'autre ambiance dans le
@@ -640,5 +694,20 @@ Item {
         }
       }
     }
+  }
+
+  // Écran de veille feu ASCII : après [lock] saver_delay secondes sans rien toucher.
+  property bool saving: String(Quickshell.env("LG_LOCK_SAVER") || "") !== ""
+  Timer { id: saverTimer; interval: root.saverDelay * 1000; running: root.saverOn && !root.saving && root.passwordText.length === 0; onTriggered: root.saving = true }
+  function stopSaver() { root.saving = false; saverTimer.restart() }
+  onWakeRequested: stopSaver()
+  HoverHandler { id: saverHover }
+  readonly property point saverPos: saverHover.point.position
+  onSaverPosChanged: if (saving) stopSaver(); else saverTimer.restart()
+  FireSaver {
+    anchors.fill: parent
+    shown: root.saving
+    z: 100
+    MouseArea { anchors.fill: parent; enabled: root.saving; hoverEnabled: true; onPositionChanged: root.stopSaver(); onClicked: { root.stopSaver(); root.forcePasswordFocus() } }
   }
 }

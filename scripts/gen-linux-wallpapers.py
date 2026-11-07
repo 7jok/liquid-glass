@@ -204,6 +204,8 @@ def main():
     only = set(sys.argv[2:])
     for d in (v, va, r, b, s, j, w, wd, mo, fo):
         d.mkdir(parents=True, exist_ok=True)
+    if "saisons" in only:
+        return seasons(root)
     if only:
         return extra(w, wd, mo, fo, only)
     extra(w, wd, mo, fo, {"windows", "mono", "foret"})
@@ -238,6 +240,40 @@ def main():
     mountains(j / "01-jouet-bonbon.jpg", "#b9a2ff", "#ffd9ea", "#6ec6ff", "#ff5fa2", "#fff8ee", seed=7, fog_a=0.6,
               sun=(980, 200, 80, "#ffd23f"))
     mountains(j / "02-jouet-menthe.jpg", "#e9e0ff", "#7ee8cf", "#3ddbb4", "#1b1030", "#fffdf7", seed=17, fog_a=0.6)
+    seasons(root)
+
+
+def seasons(root):
+    """Teintes du style violet ajoutées : crépuscule, lavande, prune et les quatre saisons."""
+    d = {n: root / f"violet-{n}" / "backgrounds" for n in ("crepuscule", "lavande", "prune", "ete", "automne", "hiver", "printemps")}
+    for p in d.values():
+        p.mkdir(parents=True, exist_ok=True)
+    mountains(d["crepuscule"] / "01-violet-crepuscule.jpg", "#2a1d55", "#e08a7a", "#8a5a9e", "#120a22", "#f0a88a", seed=19,
+              sun=(760, 330, 80, "#ffd3a0"), fog_a=0.5)
+    mountains(d["crepuscule"] / "02-crepuscule-etoiles.jpg", "#1a1240", "#b06a8e", "#6a4a8e", "#0c0718", "#d898b0", seed=37,
+              stars=True, fog_a=0.45)
+    mountains(d["lavande"] / "01-violet-lavande.jpg", "#f4f2fa", "#e2ddf0", "#cfc6e6", "#3d3554", "#faf8ff", seed=23, fog_a=0.72)
+    mountains(d["lavande"] / "02-lavande-soleil.jpg", "#f7f4fb", "#e6def2", "#d2c4ea", "#4a3f6a", "#fdfbff", seed=41, fog_a=0.7,
+              sun=(420, 240, 56, "#fff5e6"))
+    mountains(d["prune"] / "01-violet-prune.jpg", "#3a1030", "#6e2550", "#5a1e44", "#12040e", "#b0507e", seed=13, fog_a=0.42,
+              stars=True)
+    mountains(d["prune"] / "02-prune-or.jpg", "#2a0a22", "#8a3a58", "#6a2a4a", "#0e030a", "#e09a8a", seed=29,
+              sun=(1040, 280, 62, "#ffcf7a"))
+    mountains(d["ete"] / "01-ete-coucher.jpg", "#ffd9b8", "#ffb0a0", "#e88aa0", "#5a2a5e", "#fff0e0", seed=8, fog_a=0.6,
+              sun=(640, 300, 96, "#fff1b8"))
+    mountains(d["ete"] / "02-ete-lilas.jpg", "#fde6d6", "#e8c6ee", "#f0a6b0", "#4a2a6a", "#fff6ee", seed=33, fog_a=0.62,
+              sun=(1000, 220, 70, "#ffe08a"))
+    mountains(d["automne"] / "01-automne-braise.jpg", "#3a1a24", "#c0603a", "#8a3a2e", "#140808", "#f0915a", seed=17, fog_a=0.45,
+              sun=(980, 320, 70, "#ffc65a"))
+    mountains(d["automne"] / "02-automne-prune.jpg", "#2a1426", "#8a4a3a", "#6a2e3a", "#0e0608", "#d9876a", seed=43, stars=True,
+              fog_a=0.4)
+    mountains(d["hiver"] / "01-hiver-neige.jpg", "#e8eef8", "#cdd8ee", "#b8c6e6", "#2c3a5e", "#ffffff", seed=11, fog_a=0.78)
+    mountains(d["hiver"] / "02-hiver-aube.jpg", "#eef0fb", "#d8d2f0", "#c2c8ea", "#33406a", "#ffffff", seed=47, fog_a=0.75,
+              sun=(760, 260, 58, "#fff8ee"))
+    mountains(d["printemps"] / "01-printemps-cerisier.jpg", "#fdf0f4", "#f6d0de", "#b8dcc4", "#2f5a40", "#fff8fa", seed=25,
+              fog_a=0.66, sun=(360, 230, 60, "#fff9e0"))
+    mountains(d["printemps"] / "02-printemps-menthe.jpg", "#f1f8f2", "#d6ecdc", "#e8b8cc", "#334a38", "#fbfffb", seed=53,
+              fog_a=0.66)
 
 
 def extra(w, wd, mo, fo, only):

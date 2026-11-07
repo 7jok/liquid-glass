@@ -1,0 +1,37 @@
+# Liquid Glass — violet lavande — gris lilas doux (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#7b6fb0"
+selection = "#dcd4f0"
+muted = "#a09bb8"
+
+background = "#f3f1f8"
+dark_background = "#e9e5f2"
+darker_background = "#dcd6ea"
+lighter_background = "#faf9fd"
+
+foreground = "#2e2840"
+dark_foreground = "#6a6383"
+light_foreground = "#3d3554"
+bright_foreground = "#1a1528"
+
+hyprland_active_border = "rgba(3d3554ff) rgba(9b8fd0ff) 45deg"
+
+hyprland_inactive_border = "rgba(dcd6eaff)"
+
+red = "#c0445e"
+green = "#3a8a62"
+yellow = "#9a7000"
+blue = "#4a62c0"
+magenta = "#7b6fb0"
+cyan = "#2a8a96"
+orange = "#ad5a2f"
+brown = "#644c20"
+
+bright_red = "#d65a74"
+bright_green = "#4ea676"
+bright_yellow = "#b88a10"
+bright_blue = "#647ad8"
+bright_magenta = "#978ad0"
+bright_cyan = "#3ea3ae"

@@ -79,7 +79,7 @@ Item {
   // Teintes de chaque style : [clé de config, [valeur, nom, couleur d'aperçu]…] (menus, sélecteur).
   readonly property var toneDefs: ({
     gouts: ["gouts_theme", omarchyThemes],
-    violet: ["violet_tone", [["nuit", T.t("Nuit"), "#4a3687"], ["aube", T.t("Aube"), "#d9c8f5"], ["rose", "Rose", "#f6cfdc"]]],
+    violet: ["violet_tone", [["nuit", T.t("Nuit"), "#4a3687"], ["aube", T.t("Aube"), "#d9c8f5"], ["rose", "Rose", "#f6cfdc"], ["minuit", T.t("Minuit"), "#2a3480"], ["crepuscule", T.t("Crépuscule"), "#46304f"], ["lavande", T.t("Lavande"), "#dcd4f0"], ["prune", T.t("Prune"), "#4a1f3e"], ["ete", T.t("Été"), "#ffb0a0"], ["automne", T.t("Automne"), "#c0603a"], ["hiver", T.t("Hiver"), "#cdd8ee"], ["printemps", T.t("Printemps"), "#f6d0de"]]],
     blanc: ["blanc_tone", [["pur", T.t("Pur"), "#f7f7f7"], ["creme", T.t("Crème"), "#efe3c8"]]],
     sombre: ["sombre_tone", [["encre", T.t("Encre"), "#f2f2f2"], ["ambre", T.t("Ambre"), "#ffb454"], ["glace", T.t("Glace"), "#9fd8ff"],
                             ["sang", T.t("Sang"), "#ff5a6e"], ["indigo", "Indigo", "#a6b1ff"]]],
@@ -171,7 +171,7 @@ Item {
   readonly property int radius: Number(opt("radius", skin.radius))
   readonly property int borderW: skin.border
   readonly property string shadowMode: skin.shadow
-  readonly property bool darkSkin: style === "violet" ? (vtone === "nuit" || vtone === "minuit") : (style === "windows" ? wtone === "sombre" : (style === "mono" ? mtone === "noir" : (style === "gouts" ? themeMode !== "light" : skin.dark)))
+  readonly property bool darkSkin: style === "violet" ? ["nuit", "minuit", "crepuscule", "prune", "automne"].indexOf(vtone) >= 0 : (style === "windows" ? wtone === "sombre" : (style === "mono" ? mtone === "noir" : (style === "gouts" ? themeMode !== "light" : skin.dark)))
   // Windows : mode clair (défaut, comme une installation neuve) ou sombre.
   readonly property string wtone: String(opt("windows_tone", "clair")) === "sombre" ? "sombre" : "clair"
   // Forêt : « mousse » (olive, accents pêche) ou « cendre » (nuit rosée).
@@ -187,7 +187,7 @@ Item {
   readonly property string mtone: ["noir", "papier", "sakura"].indexOf(String(opt("mono_tone", "noir"))) >= 0 ? String(opt("mono_tone", "noir")) : "noir"
   // Cadre et barre latérale de Mono (noir pur, blanc pur ou prune) ; suit le fond en mode « fond ».
   readonly property color monoFrame: mc("frame", darkSkin ? "#000000" : "#ffffff")
-  readonly property string vtone: ["nuit", "aube", "rose", "minuit"].indexOf(String(opt("violet_tone", "nuit"))) >= 0 ? String(opt("violet_tone", "nuit")) : "nuit"
+  readonly property string vtone: ["nuit", "aube", "rose", "minuit", "crepuscule", "lavande", "prune", "ete", "automne", "hiver", "printemps"].indexOf(String(opt("violet_tone", "nuit"))) >= 0 ? String(opt("violet_tone", "nuit")) : "nuit"
 
   // « Mes goûts » : la palette vient du thème Omarchy choisi (colors.toml).
   readonly property string goutsTheme: String(opt("gouts_theme", ""))
@@ -382,7 +382,42 @@ Item {
       primary: "#9b6bff", on_primary: "#1b0b3a", secondary: "#ffb347", secondary_container: "#ffe0b8", tertiary: "#3ddbb4",
       surface: "#eee6ff", surface_container_low: "#faf6ff", surface_container: "#fdfbff", surface_container_high: "#f1e9ff",
       surface_container_highest: "#e0d2ff", on_surface: "#22104a", on_surface_variant: "#5e4b8a" } : {}),
-    violet: vtone === "minuit" ? {
+    violet: vtone === "crepuscule" ? {
+      primary: "#ffb38a", on_primary: "#0f0a1a", primary_container: "#66474d", on_primary_container: "#ffd9c7",
+      secondary: "#e6b6f0", secondary_container: "#46304f", on_secondary_container: "#f6e9f2", tertiary: "#c48fd0",
+      tertiary_container: "#503960", on_tertiary_container: "#ffd9c7", surface: "#1e1430", surface_container_low: "#241838",
+      surface_container: "#2c1f44", surface_container_high: "#382749", surface_container_highest: "#46304f", on_surface: "#f6e9f2",
+      on_surface_variant: "#c7aec4", outline: "#9a7a9c", outline_variant: "#46304f", error: "#ff98a6" } : vtone === "lavande" ? {
+      primary: "#3d3554", on_primary: "#faf9fd", primary_container: "#dcd4f0", on_primary_container: "#2e2840",
+      secondary: "#7b6fb0", secondary_container: "#ebe6f6", on_secondary_container: "#2e2840", tertiary: "#9b8fd0",
+      tertiary_container: "#ebe9f6", on_tertiary_container: "#1a1528", surface: "#e9e5f2", surface_container_low: "#f3f1f8",
+      surface_container: "#faf9fd", surface_container_high: "#e5e0f0", surface_container_highest: "#dcd6ea", on_surface: "#2e2840",
+      on_surface_variant: "#6a6383", outline: "#a09bb8", outline_variant: "#dcd6ea", error: "#d65a74" } : vtone === "prune" ? {
+      primary: "#e88ab8", on_primary: "#0e060c", primary_container: "#5d354d", on_primary_container: "#ffd9ea",
+      secondary: "#f2a8cc", secondary_container: "#4a1f3e", on_secondary_container: "#f4e2ee", tertiary: "#ffcf7a",
+      tertiary_container: "#604737", on_tertiary_container: "#ffd9ea", surface: "#1c0d1a", surface_container_low: "#22101f",
+      surface_container: "#2a1426", surface_container_high: "#381931", surface_container_highest: "#4a1f3e", on_surface: "#f4e2ee",
+      on_surface_variant: "#c2a0b6", outline: "#8e5f80", outline_variant: "#4a1f3e", error: "#ff8fa2" } : vtone === "ete" ? {
+      primary: "#e2626f", on_primary: "#fffaf6", primary_container: "#ffd9c8", on_primary_container: "#40213a",
+      secondary: "#e2626f", secondary_container: "#ffeadf", on_secondary_container: "#40213a", tertiary: "#8a63c9",
+      tertiary_container: "#e8e0f4", on_tertiary_container: "#2a1024", surface: "#fde8dc", surface_container_low: "#fff4ec",
+      surface_container: "#fffaf6", surface_container_high: "#fce2d4", surface_container_highest: "#f8d4c2", on_surface: "#40213a",
+      on_surface_variant: "#85566e", outline: "#c08f9c", outline_variant: "#f6d6c8", error: "#e8566a" } : vtone === "automne" ? {
+      primary: "#f0915a", on_primary: "#10090b", primary_container: "#623c2d", on_primary_container: "#ffd3b0",
+      secondary: "#eaa6c2", secondary_container: "#4a2a26", on_secondary_container: "#f6e8de", tertiary: "#c9708a",
+      tertiary_container: "#52303a", on_tertiary_container: "#ffd3b0", surface: "#1f1418", surface_container_low: "#25181c",
+      surface_container: "#2d1d22", surface_container_high: "#3a2324", surface_container_highest: "#4a2a26", on_surface: "#f6e8de",
+      on_surface_variant: "#c8a796", outline: "#9a7466", outline_variant: "#4a2a26", error: "#ff8a7a" } : vtone === "hiver" ? {
+      primary: "#2c3a5e", on_primary: "#fafcff", primary_container: "#d6e0f6", on_primary_container: "#1f2a44",
+      secondary: "#5f7fd0", secondary_container: "#e8eefa", on_secondary_container: "#1f2a44", tertiary: "#9b8fd0",
+      tertiary_container: "#ebe9f6", on_tertiary_container: "#111a30", surface: "#e6ecf6", surface_container_low: "#f2f5fb",
+      surface_container: "#fafcff", surface_container_high: "#e1e8f3", surface_container_highest: "#d4dded", on_surface: "#1f2a44",
+      on_surface_variant: "#5a6788", outline: "#98a5c2", outline_variant: "#d4dded", error: "#d85670" } : vtone === "printemps" ? {
+      primary: "#d2668c", on_primary: "#fdfcf8", primary_container: "#f6d6e2", on_primary_container: "#26352a",
+      secondary: "#d2668c", secondary_container: "#fae9ed", on_secondary_container: "#26352a", tertiary: "#d2668c",
+      tertiary_container: "#f6e0e8", on_tertiary_container: "#14211a", surface: "#eff0e6", surface_container_low: "#f8f6f0",
+      surface_container: "#fdfcf8", surface_container_high: "#eaede1", surface_container_highest: "#e0e6d6", on_surface: "#26352a",
+      on_surface_variant: "#5f7364", outline: "#9db2a2", outline_variant: "#e0e6d6", error: "#e05a78" } : vtone === "minuit" ? {
       primary: "#8f9bff", on_primary: "#0b1040", primary_container: "#2a3480", on_primary_container: "#dde0ff",
       secondary: "#b4a8ff", secondary_container: "#1d1850", on_secondary_container: "#e2ddff",
       tertiary: "#ff9ad6", tertiary_container: "#4a1a40", on_tertiary_container: "#ffd8ef",
@@ -593,7 +628,7 @@ Item {
   // fenêtres arrondies et ombrées comme end4. Réappliqué après chaque rechargement
   // de la config Hyprland ; le style lain recharge la config pour revenir au carré.
   Timer { id: hyprDebounce; interval: 350; onTriggered: svc.applyHypr() }
-  onM3Changed: hyprDebounce.restart()
+  onM3Changed: { hyprDebounce.restart(); if (m3 && m3.primary && !testing) m3Cache.setText(JSON.stringify({ colors: m3 })) }
   onStyleChanged: { hyprDebounce.restart(); readTheme() }
   onThemeColorsChanged: hyprDebounce.restart()
   onVtoneChanged: hyprDebounce.restart()
@@ -751,7 +786,6 @@ Item {
   FileView { id: weatherCache; path: Quickshell.env("HOME") + "/.cache/liquid-glass/weather.json"; printErrors: false }
   onWeatherChanged: if (weather && !testing) weatherCache.setText(JSON.stringify(weather))
   FileView { id: m3Cache; path: Quickshell.env("HOME") + "/.cache/liquid-glass/m3/current.json"; printErrors: false }
-  onM3Changed: if (m3 && m3.primary && !testing) m3Cache.setText(JSON.stringify({ colors: m3 }))
   property var coords: null
   property string timezone: ""
   Process {

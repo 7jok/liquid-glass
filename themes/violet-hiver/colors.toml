@@ -1,0 +1,37 @@
+# Liquid Glass — hiver — neige, glace et lilas (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#5f7fd0"
+selection = "#d6e0f6"
+muted = "#98a5c2"
+
+background = "#f2f5fb"
+dark_background = "#e6ecf6"
+darker_background = "#d4dded"
+lighter_background = "#fafcff"
+
+foreground = "#1f2a44"
+dark_foreground = "#5a6788"
+light_foreground = "#2c3a5e"
+bright_foreground = "#111a30"
+
+hyprland_active_border = "rgba(2c3a5eff) rgba(9b8fd0ff) 45deg"
+
+hyprland_inactive_border = "rgba(d4ddedff)"
+
+red = "#c43c5a"
+green = "#2e8a66"
+yellow = "#9a7400"
+blue = "#3a5ec8"
+magenta = "#7a62c0"
+cyan = "#1f8aa0"
+orange = "#af582d"
+brown = "#5c4f22"
+
+bright_red = "#d85670"
+bright_green = "#44a67c"
+bright_yellow = "#b88c10"
+bright_blue = "#5a7ae0"
+bright_magenta = "#957ed6"
+bright_cyan = "#33a4ba"

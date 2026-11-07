@@ -115,7 +115,14 @@ Item {
         { id: "nuit", name: T.t("Nuit"), acc: "#9b7bdc" },
         { id: "aube", name: T.t("Aube"), bg: themes + "violet-aube/backgrounds/01-violet-aube.jpg", ink: "#2c1b4d", sub2: "#8a63c9", acc: "#c8b2f0" },
         { id: "rose", name: "Rose", bg: themes + "rose/backgrounds/01-rose-pastel.jpg", ink: "#4a2533", sub2: "#c06a8c", acc: "#f2a7c3" },
-        { id: "minuit", name: T.t("Minuit"), acc: "#8f9bff", sub2: "#a3a8d6" }
+        { id: "minuit", name: T.t("Minuit"), acc: "#8f9bff", sub2: "#a3a8d6" },
+        { id: "crepuscule", name: T.t("Crépuscule"), bg: themes + "violet-crepuscule/backgrounds/01-violet-crepuscule.jpg", ink: "#f6e9f2", sub2: "#c7aec4", acc: "#ffb38a" },
+        { id: "lavande", name: T.t("Lavande"), bg: themes + "violet-lavande/backgrounds/01-violet-lavande.jpg", ink: "#2e2840", sub2: "#6a6383", acc: "#7b6fb0" },
+        { id: "prune", name: T.t("Prune"), bg: themes + "violet-prune/backgrounds/01-violet-prune.jpg", ink: "#f4e2ee", sub2: "#c2a0b6", acc: "#e88ab8" },
+        { id: "ete", name: T.t("Été"), bg: themes + "violet-ete/backgrounds/01-ete-coucher.jpg", ink: "#40213a", sub2: "#85566e", acc: "#e2626f" },
+        { id: "automne", name: T.t("Automne"), bg: themes + "violet-automne/backgrounds/01-automne-braise.jpg", ink: "#f6e8de", sub2: "#c8a796", acc: "#f0915a" },
+        { id: "hiver", name: T.t("Hiver"), bg: themes + "violet-hiver/backgrounds/01-hiver-neige.jpg", ink: "#1f2a44", sub2: "#5a6788", acc: "#5f7fd0" },
+        { id: "printemps", name: T.t("Printemps"), bg: themes + "violet-printemps/backgrounds/01-printemps-cerisier.jpg", ink: "#26352a", sub2: "#5f7364", acc: "#d2668c" }
       ] },
     { id: "expressive", name: "Expressive", sub: T.t("Material 3, couleurs du fond"), bg: themes + "lain/backgrounds/08-lain.png",
       ink: "#e2e2e9", sub2: "#adc6ff", acc: "#adc6ff", font: "Rubik", mock: "cookie", key: "scheme",

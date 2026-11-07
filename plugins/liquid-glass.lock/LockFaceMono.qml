@@ -33,7 +33,7 @@ Item {
     return Qt.rect(c.x, c.y, field.width, field.height)
   }
 
-  LockData { id: data; running: f.visible }
+  LockData { id: sys; running: f.visible }
 
   component Icon: Text {
     property string icon: ""
@@ -99,15 +99,15 @@ Item {
         Column {
           anchors.centerIn: parent
           spacing: 3 * f.k
-          Text { anchors.horizontalCenter: parent.horizontalCenter; text: data.weather ? T.t(data.wDesc) : T.t("Météo"); color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 12 * f.k }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: sys.weather ? T.t(sys.wDesc) : T.t("Météo"); color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 12 * f.k }
           Row {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 8 * f.k
-            Text { text: data.weather ? data.weather.temp + "°C" : "--"; color: f.p.ink; font.family: "Google Sans Flex"; font.pixelSize: 30 * f.k; font.weight: Font.Bold }
-            Icon { anchors.verticalCenter: parent.verticalCenter; icon: data.wIcon; size: 30 * f.k; fill: 0 }
+            Text { text: sys.weather ? sys.weather.temp + "°C" : "--"; color: f.p.ink; font.family: "Google Sans Flex"; font.pixelSize: 30 * f.k; font.weight: Font.Bold }
+            Icon { anchors.verticalCenter: parent.verticalCenter; icon: sys.wIcon; size: 30 * f.k; fill: 0 }
           }
-          Text { anchors.horizontalCenter: parent.horizontalCenter; text: data.weather ? T.t("Ressenti") + " " + data.weather.feels + "°C" : ""; color: f.p.ink; font.family: "Google Sans Flex"; font.pixelSize: 12 * f.k }
-          Text { anchors.horizontalCenter: parent.horizontalCenter; text: data.weather ? T.t("Max") + " " + data.weather.max + "°C • " + T.t("Min") + " " + data.weather.min + "°C" : ""; color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 11 * f.k }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: sys.weather ? T.t("Ressenti") + " " + sys.weather.feels + "°C" : ""; color: f.p.ink; font.family: "Google Sans Flex"; font.pixelSize: 12 * f.k }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: sys.weather ? T.t("Max") + " " + sys.weather.max + "°C • " + T.t("Min") + " " + sys.weather.min + "°C" : ""; color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 11 * f.k }
         }
       }
       Card {
@@ -128,8 +128,8 @@ Item {
           Column {
             spacing: 2 * f.k
             Repeater {
-              model: [["WM", "Hyprland"], ["USER", f.lk ? f.lk.userName : ""], ["UP", data.uptime],
-                      ["BATT", data.battery < 0 ? "—" : (data.charging ? "(+) " : "") + data.battery + "%"]]
+              model: [["WM", "Hyprland"], ["USER", f.lk ? f.lk.userName : ""], ["UP", sys.uptime],
+                      ["BATT", sys.battery < 0 ? "—" : (sys.charging ? "(+) " : "") + sys.battery + "%"]]
               Text {
                 required property var modelData
                 width: panel.colW - 100 * f.k; elide: Text.ElideRight
@@ -319,9 +319,9 @@ Item {
           spacing: 10 * f.k
           Repeater {
             // [icône, valeur 0..1, sommets, rotation, ligne du haut]
-            model: [["memory", data.cpu, 6, 0, data.temp ? data.temp + "°C" : ""],
-                    ["memory_alt", data.memPct, 4, 45, ""],
-                    [data.charging ? "battery_charging_full" : "battery_full", data.battery < 0 ? 1 : data.battery / 100, 8, 22.5, ""]]
+            model: [["memory", sys.cpu, 6, 0, sys.temp ? sys.temp + "°C" : ""],
+                    ["memory_alt", sys.memPct, 4, 45, ""],
+                    [sys.charging ? "battery_charging_full" : "battery_full", sys.battery < 0 ? 1 : sys.battery / 100, 8, 22.5, ""]]
             Item {
               id: gauge
               required property var modelData
@@ -364,13 +364,13 @@ Item {
       Card {
         width: parent.width
         height: panel.height - panel.pad * 3 - 92 * f.k
-        Text { x: 12 * f.k; y: 10 * f.k; text: data.notifs.length + T.t(" notifications"); color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 11 * f.k }
+        Text { x: 12 * f.k; y: 10 * f.k; text: sys.notifs.length + T.t(" notifications"); color: f.p.sub; font.family: "Google Sans Flex"; font.pixelSize: 11 * f.k }
         Column {
           x: 8 * f.k; y: 30 * f.k
           width: parent.width - 16 * f.k
           spacing: 6 * f.k
           Repeater {
-            model: f.groups(data.notifs).slice(0, 4)
+            model: f.groups(sys.notifs).slice(0, 4)
             Rectangle {
               id: grp
               required property var modelData
@@ -420,7 +420,7 @@ Item {
     var out = [], by = {}
     for (var i = 0; i < list.length; i++) {
       var n = list[i], a = String(n.app || n.source || "?")
-      if (!by[a]) { by[a] = { app: a, ago: data.ago(n.ts || n.time || n.timestamp), count: 0, items: [] }; out.push(by[a]) }
+      if (!by[a]) { by[a] = { app: a, ago: sys.ago(n.ts || n.time || n.timestamp), count: 0, items: [] }; out.push(by[a]) }
       by[a].count++; by[a].items.push({ summary: String(n.summary || ""), body: String(n.body || "") })
     }
     return out

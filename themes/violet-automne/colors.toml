@@ -1,0 +1,37 @@
+# Liquid Glass — automne — rouille, prune et ambre (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#f0915a"
+selection = "#4a2a26"
+muted = "#9a7466"
+
+background = "#1f1418"
+dark_background = "#180f12"
+darker_background = "#10090b"
+lighter_background = "#2d1d22"
+
+foreground = "#f6e8de"
+dark_foreground = "#c8a796"
+light_foreground = "#ffd3b0"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(f0915aff) rgba(c9708aff) 45deg"
+
+hyprland_inactive_border = "rgba(4a2a26aa)"
+
+red = "#ff6a5a"
+green = "#a8d68a"
+yellow = "#ffc65a"
+blue = "#8faaf0"
+magenta = "#d987a8"
+cyan = "#8ad0c8"
+orange = "#ff985a"
+brown = "#96713e"
+
+bright_red = "#ff8a7a"
+bright_green = "#c0e6a6"
+bright_yellow = "#ffd88a"
+bright_blue = "#adc2ff"
+bright_magenta = "#eaa6c2"
+bright_cyan = "#a8e2da"

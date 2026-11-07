@@ -47,6 +47,15 @@ Item {
     }
   }
 
+  LockData { id: sys; running: f.visible }
+  WeatherFx { anchors.fill: parent; code: sys.weather ? Number(sys.weather.code) : -1; tint: f.acc }
+  Row {
+    anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: 22 * f.k
+    spacing: 8 * f.k
+    visible: !!sys.weather
+    Text { anchors.verticalCenter: parent.verticalCenter; text: sys.wIcon; font.family: "Material Symbols Rounded"; font.pixelSize: 22 * f.k; color: f.acc }
+    Text { anchors.verticalCenter: parent.verticalCenter; text: sys.weather ? sys.weather.temp + "°  " + T.t(sys.wDesc) : ""; font.family: "Inter"; font.pixelSize: 13 * f.k; font.letterSpacing: 2; color: f.ink }
+  }
   // Orbites et planètes autour de l'heure
   Item {
     id: orbits

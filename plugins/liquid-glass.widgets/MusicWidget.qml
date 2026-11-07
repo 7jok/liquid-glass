@@ -278,8 +278,8 @@ Tile {
     width: 28; height: 28; radius: 14
     // Pochette en fond d'écran : la bulle met les paroles sur le fond (comme la vidéo) ;
     // sinon elle retourne la carte. Clic droit : toujours retourner la carte.
-    readonly property bool onWall: !!svc && svc.coverWallpaper
-    readonly property bool lit: onWall ? (!!svc && svc.lyricsDesktop) : w.lyricsMode
+    readonly property bool wallMode: !!svc && svc.coverWallpaper
+    readonly property bool lit: wallMode ? (!!svc && svc.lyricsDesktop) : w.lyricsMode
     color: lit ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, bubbleMouse.containsMouse ? 0.2 : 0.12)
     opacity: w.hasLyrics ? 1 : 0.55
     scale: bubbleMouse.pressed ? 0.82 : 1
@@ -292,8 +292,8 @@ Tile {
       hoverEnabled: true; cursorShape: Qt.PointingHandCursor
       acceptedButtons: Qt.LeftButton | Qt.RightButton
       onClicked: function(m) {
-        if (!w.hasLyrics && !(m.button === Qt.LeftButton && parent.onWall && svc && svc.lyricsDesktop)) { noLyrics.restart(); return }
-        if (m.button === Qt.RightButton || !parent.onWall) w.lyricsToggled()
+        if (!w.hasLyrics && !(m.button === Qt.LeftButton && parent.wallMode && svc && svc.lyricsDesktop)) { noLyrics.restart(); return }
+        if (m.button === Qt.RightButton || !parent.wallMode) w.lyricsToggled()
         else Quickshell.execDetached(["omarchy-shell", "liquid-glass.spotify", "desktop"])
       }
     }

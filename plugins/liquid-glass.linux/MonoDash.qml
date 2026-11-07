@@ -31,7 +31,7 @@ PanelWindow {
   readonly property color ink: s.colOnSurface
   readonly property color sub: s.colOnSurfaceVariant
   readonly property color acc: s.primary
-  readonly property color onAcc: s.colOnPrimary
+  readonly property color inkAcc: s.colOnPrimary
   readonly property color line: s.outlineVariant
   readonly property string font: "Rubik"
   readonly property string mono: "JetBrainsMono Nerd Font"
@@ -459,10 +459,10 @@ PanelWindow {
         Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: batCard.height * batCard.lvl; color: win.acc
           Behavior on height { NumberAnimation { duration: 600; easing.type: Easing.OutCubic } } }
         Column { x: 12; y: 12; spacing: 4
-          MIcon { icon: s.charging ? "battery_charging_full" : "battery_full"; size: 16; color: batCard.lvl > 0.85 ? win.onAcc : win.ink }
-          Text { text: T.t("Batterie"); font.family: win.font; font.pixelSize: 11; color: batCard.lvl > 0.85 ? win.onAcc : win.ink } }
+          MIcon { icon: s.charging ? "battery_charging_full" : "battery_full"; size: 16; color: batCard.lvl > 0.85 ? win.inkAcc : win.ink }
+          Text { text: T.t("Batterie"); font.family: win.font; font.pixelSize: 11; color: batCard.lvl > 0.85 ? win.inkAcc : win.ink } }
         Text { anchors.right: parent.right; anchors.rightMargin: 10; anchors.bottom: parent.bottom; anchors.bottomMargin: 8
-               text: (s.batteryPct >= 0 ? s.batteryPct : 100) + "%"; font.family: win.font; font.pixelSize: 22; font.weight: Font.Medium; color: win.onAcc }
+               text: (s.batteryPct >= 0 ? s.batteryPct : 100) + "%"; font.family: win.font; font.pixelSize: 22; font.weight: Font.Medium; color: win.inkAcc }
       }
       function total(b) { return b < 0 ? "--" : b > 1073741824 ? (b / 1073741824).toFixed(1) + "G" : (b / 1048576).toFixed(0) + "M" }
     }

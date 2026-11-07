@@ -1,0 +1,37 @@
+# Liquid Glass — violet prune — vin et or (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#e88ab8"
+selection = "#4a1f3e"
+muted = "#8e5f80"
+
+background = "#1c0d1a"
+dark_background = "#150913"
+darker_background = "#0e060c"
+lighter_background = "#2a1426"
+
+foreground = "#f4e2ee"
+dark_foreground = "#c2a0b6"
+light_foreground = "#ffd9ea"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(e88ab8ff) rgba(ffcf7aff) 45deg"
+
+hyprland_inactive_border = "rgba(4a1f3eaa)"
+
+red = "#ff6f86"
+green = "#9be0b0"
+yellow = "#ffcf7a"
+blue = "#a0aaff"
+magenta = "#e88ab8"
+cyan = "#8fdde0"
+orange = "#ff9f80"
+brown = "#947150"
+
+bright_red = "#ff8fa2"
+bright_green = "#b6eec6"
+bright_yellow = "#ffdd9c"
+bright_blue = "#bcc4ff"
+bright_magenta = "#f2a8cc"
+bright_cyan = "#aeeaee"

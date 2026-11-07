@@ -20,12 +20,20 @@ Item {
     printErrors: false
     onLoaded: { try { f.m3 = JSON.parse(text()) } catch (e) {} }
   }
-  function mc(key, d) { var c = f.m3[key] || (f.m3.colors && f.m3.colors[key]); return c ? c : d }
+  // Le cache contient les couleurs de matugen : { primary: { dark: { color }, light: … } }.
+  function mc(key, d) {
+    var c = f.m3[key] || (f.m3.colors && f.m3.colors[key])
+    if (!c) return d
+    if (typeof c === "string") return c
+    var v = (c.dark && c.dark.color) || (c.default && c.default.color)
+    return v ? v : d
+  }
   readonly property color primary: mc("primary", "#adc6ff")
-  readonly property color onPrimary: mc("on_primary", "#102f60")
+  readonly property color inkPrimary: mc("on_primary", "#102f60")
   readonly property color pc: mc("primary_container", "#284777")
   readonly property color tc: mc("tertiary_container", "#57395d")
-  readonly property color onPc: mc("on_primary_container", "#d8e2ff")
+  readonly property color inkPc: mc("on_primary_container", "#d8e2ff")
+  readonly property color inkTc: mc("on_tertiary_container", "#ffd6fe")
   readonly property color surf: mc("surface_container_high", "#282a2f")
   readonly property color ink: mc("on_surface", "#e2e2e9")
   readonly property int typed: lk ? lk.passwordText.length : 0
@@ -41,7 +49,8 @@ Item {
     property int bumps: 12
     property real depth: 0.08
     property color fill: "white"
-    preferredRendererType: Shape.CurveRenderer
+    antialiasing: true
+    layer.enabled: true; layer.samples: 4
     ShapePath {
       fillColor: blob.fill; strokeColor: "transparent"
       PathPolyline {
@@ -63,7 +72,7 @@ Item {
     y: f.height * 0.1
     spacing: -20 * f.k
     Repeater {
-      model: [[f.lk ? f.lk.hh : "", 12, 0.07, f.pc, f.onPc, 60000], [f.lk ? f.lk.mm : "", 6, 0.13, f.tc, f.onPc, -45000]]
+      model: [[f.lk ? f.lk.hh : "", 12, 0.07, f.pc, f.inkPc, 60000], [f.lk ? f.lk.mm : "", 6, 0.13, f.tc, f.inkPc, -45000]]
       Item {
         id: cell
         required property var modelData
@@ -73,8 +82,8 @@ Item {
           anchors.fill: parent; bumps: cell.modelData[1]; depth: cell.modelData[2]; fill: cell.index === 0 ? f.pc : f.tc
           NumberAnimation on rotation { from: 0; to: 360; duration: Math.abs(cell.modelData[5]); loops: Animation.Infinite }
         }
-        Text { anchors.centerIn: parent; text: cell.modelData[0]; color: f.onPc
-               font.family: "Google Sans Flex"; font.pixelSize: 120 * f.k; font.variableAxes: ({ "wght": 800, "ROND": 100, "wdth": 110 }) }
+        Text { anchors.centerIn: parent; text: cell.modelData[0]; color: cell.index === 0 ? f.inkPc : f.inkTc
+               font.family: "Google Sans Flex"; font.pixelSize: 120 * f.k; font.weight: Font.ExtraBold }
       }
     }
   }
@@ -88,6 +97,7 @@ Item {
 
   Row {
     anchors.horizontalCenter: parent.horizontalCenter
+    anchors.horizontalCenterOffset: f.lk ? f.lk.shakeX : 0
     y: f.height * 0.7
     spacing: 10 * f.k
     ClippingRectangle {
@@ -97,8 +107,6 @@ Item {
     Rectangle {
       id: field
       anchors.verticalCenter: parent.verticalCenter
-      anchors.verticalCenterOffset: 0
-      x: f.lk ? f.lk.shakeX : 0
       width: 300 * f.k; height: 52 * f.k; radius: height / 2
       color: f.surf
       border.color: f.lk && f.lk.errorState ? "#ffb4ab" : "transparent"; border.width: 2
@@ -120,7 +128,7 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       width: 52 * f.k; height: width; radius: goMa.pressed ? 14 * f.k : width / 2; color: f.primary
       Behavior on radius { NumberAnimation { duration: 160 } }
-      Text { anchors.centerIn: parent; text: "arrow_forward"; font.family: "Material Symbols Rounded"; font.pixelSize: 24 * f.k; color: f.onPrimary }
+      Text { anchors.centerIn: parent; text: "arrow_forward"; font.family: "Material Symbols Rounded"; font.pixelSize: 24 * f.k; color: f.inkPrimary }
       MouseArea { id: goMa; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (f.lk) f.lk.accept() }
     }
   }

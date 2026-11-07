@@ -1458,6 +1458,38 @@ Item {
     id: pLock
     Column {
       spacing: Style.space(14)
+      // Profil Linux : quel écran, vidéo de fond, mouvement, écran de veille.
+      Group {
+        Row_ {
+          label: T.t("Écran (bureau Linux)")
+          sub: T.t("Automatique : celui du style de bureau")
+          Picker {
+            options: [["auto", T.t("Automatique")], ["classic", T.t("Bonbon")], ["mono", "Mono (Caelestia)"], ["foret", T.t("Forêt")],
+                      ["ile", T.t("Île")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["sombre", T.t("Sombre")], ["blanc", T.t("Blanc")],
+                      ["jouet", T.t("Jouet")], ["windows", "Windows"], ["lain", "Lain"], ["expressive", "Expressive"]]
+            value: String(root.val("lock.linux_face", "auto"))
+            onPicked: function(v) { root.set("lock.linux_face", v) }
+          }
+        }
+        Row_ {
+          label: T.t("Vidéo de fond")
+          sub: String(root.val("lock.video", "")) !== "" ? String(root.val("lock.video", "")).replace(/^.*\//, "") : T.t("Aucune : le fond d'écran (s'il est une vidéo, elle joue)")
+          Row {
+            spacing: Style.space(6)
+            Btn {
+              text: T.t("Choisir…"); secondary: true
+              onClicked: root.run(["sh", "-c", "f=$(zenity --file-selection --title='Vidéo du verrouillage' --file-filter='Vidéos | *.mp4 *.webm *.mkv *.mov *.gif') && \"$HOME/.local/bin/liquid-glass\" set lock.video \"$f\""])
+            }
+            Btn {
+              visible: String(root.val("lock.video", "")) !== ""
+              text: T.t("Retirer"); secondary: true
+              onClicked: root.set("lock.video", "")
+            }
+          }
+        }
+        ToggleRow { label: T.t("Fond qui bouge lentement"); key: "lock.drift"; def: true; sub: T.t("Zoom et glissement très lents de l'image") }
+        ToggleRow { label: T.t("Écran de veille feu ASCII"); key: "lock.saver"; def: true; sub: T.t("Après une minute sans rien toucher") }
+      }
       Group {
         Row_ {
           label: T.t("Lecture en cours")
@@ -1657,7 +1689,7 @@ Item {
           visible: lp.st === "violet"
           sub: T.t("Nuit (violet profond), aube (lilas clair) ou rose pastel")
           Seg {
-            options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"], ["minuit", T.t("Minuit")]]
+            options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"], ["minuit", T.t("Minuit")], ["crepuscule", T.t("Crépuscule")], ["lavande", T.t("Lavande")], ["prune", T.t("Prune")], ["ete", T.t("Été")], ["automne", T.t("Automne")], ["hiver", T.t("Hiver")], ["printemps", T.t("Printemps")]]
             value: root.val("linux.violet_tone", "nuit")
             onPicked: function(v) { lp.pick("violet:" + v, "linux.violet_tone", v) }
           }

@@ -58,7 +58,7 @@ Item {
     spacing: 22 * f.k
     IleWord {
       anchors.horizontalCenter: parent.horizontalCenter
-      text: f.lk ? Qt.locale("en_US").toString(f.lk.now, "hh:mm AP").toUpperCase() : ""
+      text: !f.lk ? "" : (f.lk.kcfg.clock_24h === false ? Qt.locale("en_US").toString(f.lk.now, "hh:mm AP").toUpperCase() : f.lk.hh + ":" + f.lk.mm)
       px: Math.round(78 * f.k); color: f.ink
     }
     IleWord {

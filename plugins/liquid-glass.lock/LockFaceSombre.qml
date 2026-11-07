@@ -37,7 +37,9 @@ Item {
     spacing: 10 * f.k
     Text {
       anchors.right: parent.right
-      text: f.words[f.wi]
+      text: f.lk && f.lk.lyricNow !== "" ? f.lk.lyricNow.toUpperCase() : f.words[f.wi]
+      width: Math.min(implicitWidth, f.width * 0.5); horizontalAlignment: Text.AlignRight
+      wrapMode: Text.WordWrap; maximumLineCount: 3; elide: Text.ElideRight
       font.family: "Rubik"; font.pixelSize: 64 * f.k; font.weight: Font.Black; color: "white"
       SequentialAnimation on opacity { running: true; loops: Animation.Infinite; PauseAnimation { duration: 2300 } NumberAnimation { to: 0.15; duration: 150 } NumberAnimation { to: 1; duration: 150 } }
     }

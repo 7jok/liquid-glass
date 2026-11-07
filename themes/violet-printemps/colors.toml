@@ -1,0 +1,37 @@
+# Liquid Glass — printemps — fleurs de cerisier et menthe (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#d2668c"
+selection = "#f6d6e2"
+muted = "#9db2a2"
+
+background = "#f8f6f0"
+dark_background = "#eff0e6"
+darker_background = "#e0e6d6"
+lighter_background = "#fdfcf8"
+
+foreground = "#26352a"
+dark_foreground = "#5f7364"
+light_foreground = "#334a38"
+bright_foreground = "#14211a"
+
+hyprland_active_border = "rgba(4f8a64ff) rgba(d2668cff) 45deg"
+
+hyprland_inactive_border = "rgba(e0e6d6ff)"
+
+red = "#cc3d5e"
+green = "#3a8a54"
+yellow = "#9a7a00"
+blue = "#3f68c0"
+magenta = "#b04f8a"
+cyan = "#2a8a8a"
+orange = "#b35b2f"
+brown = "#605715"
+
+bright_red = "#e05a78"
+bright_green = "#4fa66a"
+bright_yellow = "#b8961a"
+bright_blue = "#5e84d8"
+bright_magenta = "#c96aa3"
+bright_cyan = "#3ea6a6"

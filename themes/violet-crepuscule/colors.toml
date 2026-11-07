@@ -1,0 +1,37 @@
+# Liquid Glass — violet crépuscule — prune et pêche (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#ffb38a"
+selection = "#46304f"
+muted = "#9a7a9c"
+
+background = "#1e1430"
+dark_background = "#170f26"
+darker_background = "#0f0a1a"
+lighter_background = "#2c1f44"
+
+foreground = "#f6e9f2"
+dark_foreground = "#c7aec4"
+light_foreground = "#ffd9c7"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(ffb38aff) rgba(c48fd0ff) 45deg"
+
+hyprland_inactive_border = "rgba(46304faa)"
+
+red = "#ff7a8a"
+green = "#a6e3b8"
+yellow = "#ffd38a"
+blue = "#9fb2ff"
+magenta = "#d49be0"
+cyan = "#9fe0e6"
+orange = "#ffa68a"
+brown = "#957967"
+
+bright_red = "#ff98a6"
+bright_green = "#bff0cc"
+bright_yellow = "#ffe1a8"
+bright_blue = "#bccaff"
+bright_magenta = "#e6b6f0"
+bright_cyan = "#bdeef2"

@@ -1293,12 +1293,12 @@ LINUX_THEME = "lain"   # thème de repli du style « expressive » (couleurs tir
 # Styles du bureau Linux et leur thème Omarchy (terminaux, bordures, fonds).
 LINUX_STYLES = ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
                 "ruban", "espace", "cosmos", "ile", "gouts", "debian", "fedora", "mint", "kali", "arch"]
-LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "windows", "windows-sombre", "mono", "mono-papier",
+LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "violet-crepuscule", "violet-lavande", "violet-prune", "violet-ete", "violet-automne", "violet-hiver", "violet-printemps", "windows", "windows-sombre", "mono", "mono-papier",
                 "mono-sakura", "foret", "ruban", "espace", "cosmos", "ile", "debian", "fedora", "mint", "kali", "arch"]
-VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose", "minuit": "violet"}
+VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose", "minuit": "violet", "crepuscule": "violet-crepuscule", "lavande": "violet-lavande", "prune": "violet-prune", "ete": "violet-ete", "automne": "violet-automne", "hiver": "violet-hiver", "printemps": "violet-printemps"}
 # Teintes de chaque style (un seul style, plusieurs couleurs) : clé de [linux] et valeurs.
 STYLE_TONES = {
-    "violet": ("violet_tone", ["nuit", "aube", "rose", "minuit"]),
+    "violet": ("violet_tone", ["nuit", "aube", "rose", "minuit", "crepuscule", "lavande", "prune", "ete", "automne", "hiver", "printemps"]),
     "blanc": ("blanc_tone", ["pur", "creme"]),
     "sombre": ("sombre_tone", ["encre", "ambre", "glace", "sang", "indigo"]),
     "jouet": ("jouet_tone", ["bonbon", "menthe", "peche", "lagon", "lilas"]),
@@ -1362,7 +1362,7 @@ def _ensure_linux_theme_files(theme: str) -> None:
     if not any((d / "backgrounds").glob("*.jpg")):
         print("Génération des fonds (une seule fois)…")
         fam = theme.split("-")[0] if theme.startswith(("windows", "mono")) else theme
-        extra = [fam] if fam in ("windows", "mono", "foret") else []
+        extra = [fam] if fam in ("windows", "mono", "foret") else (["saisons"] if theme.startswith("violet-") and theme != "violet-aube" else [])
         run("nice", "-n", "10", str(REPO / "scripts/gen-linux-wallpapers.py"), str(REPO / "themes"), *extra)
     if not any((d / "backgrounds").glob("*.jpg")):    # thèmes sans fonds générés : pris sur le web
         run("nice", "-n", "10", str(REPO / "scripts/fetch-style-wallpapers.py"), theme)
@@ -1543,7 +1543,8 @@ def cmd_profile(args: list[str]) -> None:
         want = "linux" if now == "mac" else "mac"
     # Un style, éventuellement avec sa teinte (« violet:aube »), ou un ancien nom de teinte.
     tones = {"violet-nuit": ("violet", "nuit"), "violet-aube": ("violet", "aube"), "aube": ("violet", "aube"),
-             "rose": ("violet", "rose"), "nuit": ("violet", "nuit")}
+             "rose": ("violet", "rose"), "nuit": ("violet", "nuit"), "ete": ("violet", "ete"), "automne": ("violet", "automne"),
+             "hiver": ("violet", "hiver"), "printemps": ("violet", "printemps")}
     style, _, tone = want.partition(":")
     if style in tones:
         style, tone = tones[style][0], tone or tones[style][1]

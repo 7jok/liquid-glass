@@ -27,7 +27,7 @@ Item {
     return Qt.rect(c.x, c.y, field.width, field.height)
   }
 
-  LockData { id: data; running: f.awake }
+  LockData { id: sys; running: f.awake }
 
   // Réveil : une touche ou la souris ; retour au repos après 12 s sans rien.
   property bool awake: false
@@ -167,8 +167,8 @@ Item {
         anchors.top: field.bottom; anchors.topMargin: 12 * f.k
         spacing: 14 * f.k
         Row { spacing: 4; Icon { icon: "keyboard"; size: 11 * f.k; color: f.p.sub } Mono { text: "FR"; font.pixelSize: 8 * f.k } }
-        Row { spacing: 4; Icon { icon: data.charging ? "battery_charging_full" : "battery_full"; size: 11 * f.k; color: f.p.sub }
-              Mono { text: (data.battery < 0 ? "--" : data.battery) + "%"; font.pixelSize: 8 * f.k } }
+        Row { spacing: 4; Icon { icon: sys.charging ? "battery_charging_full" : "battery_full"; size: 11 * f.k; color: f.p.sub }
+              Mono { text: (sys.battery < 0 ? "--" : sys.battery) + "%"; font.pixelSize: 8 * f.k } }
       }
     }
 
@@ -181,26 +181,26 @@ Item {
       Rectangle {
         id: wcard
         width: parent.width; height: 84 * f.k; radius: 10 * f.k; color: f.p.tile
-        Icon { x: 10 * f.k; y: 8 * f.k; icon: data.wIcon; size: 26 * f.k; color: "#c8d4ff" }
+        Icon { x: 10 * f.k; y: 8 * f.k; icon: sys.wIcon; size: 26 * f.k; color: "#c8d4ff" }
         Column {
           anchors.right: parent.right; anchors.rightMargin: 10 * f.k; y: 8 * f.k
-          Mono { anchors.right: parent.right; text: data.weather ? data.weather.city : ""; font.pixelSize: 9 * f.k; font.bold: true }
-          Mono { anchors.right: parent.right; text: T.t(data.wDesc); font.pixelSize: 7 * f.k; color: f.p.sub }
+          Mono { anchors.right: parent.right; text: sys.weather ? sys.weather.city : ""; font.pixelSize: 9 * f.k; font.bold: true }
+          Mono { anchors.right: parent.right; text: T.t(sys.wDesc); font.pixelSize: 7 * f.k; color: f.p.sub }
         }
         Column {
           x: 10 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 8 * f.k
-          Mono { text: data.weather ? data.weather.temp + "°" : "--"; font.pixelSize: 20 * f.k; font.bold: true }
-          Mono { text: data.weather ? T.t("Ressenti") + " " + data.weather.feels + "°" : ""; font.pixelSize: 7 * f.k; color: f.p.sub }
+          Mono { text: sys.weather ? sys.weather.temp + "°" : "--"; font.pixelSize: 20 * f.k; font.bold: true }
+          Mono { text: sys.weather ? T.t("Ressenti") + " " + sys.weather.feels + "°" : ""; font.pixelSize: 7 * f.k; color: f.p.sub }
         }
         Row {
           anchors.right: parent.right; anchors.rightMargin: 8 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 8 * f.k
           spacing: 6 * f.k
           Repeater {
-            model: data.weather && data.weather.hourly ? f.nextHours(data.weather.hourly) : []
+            model: sys.weather && sys.weather.hourly ? f.nextHours(sys.weather.hourly) : []
             Column {
               required property var modelData
               Mono { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData.temp + "°"; font.pixelSize: 7 * f.k }
-              Icon { anchors.horizontalCenter: parent.horizontalCenter; icon: data.weatherInfo(parent.modelData.code)[1]; size: 10 * f.k; color: f.p.sub }
+              Icon { anchors.horizontalCenter: parent.horizontalCenter; icon: sys.weatherInfo(parent.modelData.code)[1]; size: 10 * f.k; color: f.p.sub }
               Mono { anchors.horizontalCenter: parent.horizontalCenter; text: parent.modelData.h; font.pixelSize: 6 * f.k; color: f.p.sub }
             }
           }
@@ -211,9 +211,9 @@ Item {
         anchors.top: wcard.bottom; anchors.topMargin: 6 * f.k
         spacing: 6 * f.k
         Repeater {
-          model: [["memory", "CPU", data.cpu, Math.round(data.cpu * 100) + "%"],
-                  ["memory_alt", "RAM", data.memPct, data.memUsed.toFixed(1) + "G"],
-                  ["device_thermostat", "Temp", Math.min(1, data.temp / 100), data.temp + "°"]]
+          model: [["memory", "CPU", sys.cpu, Math.round(sys.cpu * 100) + "%"],
+                  ["memory_alt", "RAM", sys.memPct, sys.memUsed.toFixed(1) + "G"],
+                  ["device_thermostat", "Temp", Math.min(1, sys.temp / 100), sys.temp + "°"]]
           ClippingRectangle {
             id: bar
             required property var modelData
@@ -238,11 +238,11 @@ Item {
         spacing: 6 * f.k
         ClippingRectangle {
           width: card.colW * 0.6; height: 64 * f.k; radius: 8 * f.k; color: f.p.tile
-          Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: parent.height * data.diskPct; color: f.p.acc; opacity: 0.75 }
+          Rectangle { anchors.bottom: parent.bottom; width: parent.width; height: parent.height * sys.diskPct; color: f.p.acc; opacity: 0.75 }
           Icon { x: 6 * f.k; y: 6 * f.k; icon: "hard_drive"; size: 9 * f.k; color: f.p.sub }
-          Mono { anchors.right: parent.right; anchors.rightMargin: 6 * f.k; y: 5 * f.k; text: data.diskTotal.toFixed(0) + "G"; font.pixelSize: 7 * f.k; color: f.p.sub }
-          Mono { x: 6 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 4 * f.k; text: data.diskUsed.toFixed(0) + "G"; font.pixelSize: 7 * f.k; color: f.p.accInk }
-          Mono { anchors.right: parent.right; anchors.rightMargin: 6 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 4 * f.k; text: Math.round(data.diskPct * 100) + "%"; font.pixelSize: 11 * f.k; font.bold: true; color: f.p.accInk }
+          Mono { anchors.right: parent.right; anchors.rightMargin: 6 * f.k; y: 5 * f.k; text: sys.diskTotal.toFixed(0) + "G"; font.pixelSize: 7 * f.k; color: f.p.sub }
+          Mono { x: 6 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 4 * f.k; text: sys.diskUsed.toFixed(0) + "G"; font.pixelSize: 7 * f.k; color: f.p.accInk }
+          Mono { anchors.right: parent.right; anchors.rightMargin: 6 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 4 * f.k; text: Math.round(sys.diskPct * 100) + "%"; font.pixelSize: 11 * f.k; font.bold: true; color: f.p.accInk }
         }
         Rectangle {
           width: card.colW * 0.4 - 6 * f.k; height: 64 * f.k; radius: 8 * f.k; color: f.p.tile
@@ -250,8 +250,8 @@ Item {
           Mono { anchors.right: parent.right; anchors.rightMargin: 6 * f.k; y: 5 * f.k; text: T.t("Réseau"); font.pixelSize: 7 * f.k; color: f.p.sub }
           Column {
             x: 6 * f.k; anchors.bottom: parent.bottom; anchors.bottomMargin: 6 * f.k; spacing: 2
-            Mono { text: "↑ " + data.human(data.up); font.pixelSize: 7 * f.k }
-            Mono { text: "↓ " + data.human(data.down); font.pixelSize: 7 * f.k }
+            Mono { text: "↑ " + sys.human(sys.up); font.pixelSize: 7 * f.k }
+            Mono { text: "↓ " + sys.human(sys.down); font.pixelSize: 7 * f.k }
           }
         }
       }
@@ -275,14 +275,14 @@ Item {
         Column {
           x: 6 * f.k; y: 28 * f.k; width: parent.width - 12 * f.k; spacing: 4 * f.k
           Repeater {
-            model: data.notifs.slice(0, 4)
+            model: sys.notifs.slice(0, 4)
             Rectangle {
               required property var modelData
               width: parent.width; height: 30 * f.k; radius: 6 * f.k; color: f.p.tile2
               Icon { x: 6 * f.k; anchors.verticalCenter: parent.verticalCenter; icon: "notifications"; size: 11 * f.k; color: f.p.acc }
               Column {
                 x: 22 * f.k; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 28 * f.k
-                Mono { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: parent.parent.modelData.summary + "  · " + data.ago(parent.parent.modelData.ts); font.pixelSize: 7 * f.k; font.bold: true }
+                Mono { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: parent.parent.modelData.summary + "  · " + sys.ago(parent.parent.modelData.ts); font.pixelSize: 7 * f.k; font.bold: true }
                 Mono { width: parent.width; elide: Text.ElideRight; textFormat: Text.PlainText; text: String(parent.parent.modelData.body || "").replace(/\n/g, " "); font.pixelSize: 6.5 * f.k; color: f.p.sub }
               }
             }

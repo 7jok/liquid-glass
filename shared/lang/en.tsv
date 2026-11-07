@@ -77,6 +77,7 @@ Application…	Application…
 Applications installées	Installed applications
 Appliquer	Apply
 Appliqué tout de suite à Hyprland (souris et TrackPoint). Le trackpad a sa propre page.	Applied to Hyprland right away (mouse and TrackPoint). The trackpad has its own page.
+Après une minute sans rien toucher	After a minute without input
 À propos	About
 À propos de ce Mac	About This Mac
  » à quitter ? Les modifications non enregistrées seront perdues.	” to quit? Unsaved changes will be lost.
@@ -97,6 +98,7 @@ Aucune connexion Internet	No Internet connection
 Aucune fenêtre ouverte pour 	No open window for 
 Aucune fenêtre sur ce bureau	No window on this desktop
 Aucune interface réseau	No network interface
+Aucune : le fond d'écran (s'il est une vidéo, elle joue)	None: the wallpaper (plays if it is a video)
 Aucun élément · Ouvrir  ›	No items · Open  ›
 Aucune musique	No music
 Aucune	None
@@ -116,7 +118,9 @@ Au repos	Idle
 Aurore	Aurora
 Aussi dans le Centre de contrôle	Also in Control Center
 Automatique	Automatic
+Automatique : celui du style de bureau	Automatic: the desktop style's one
 Automatique, tirée de l'arrière-plan	Automatic, taken from the wallpaper
+Automne	Autumn
  autre notification	 other notification
  autres apps : affinez la recherche.	 more apps: refine your search.
  autres notifications	 other notifications
@@ -219,6 +223,7 @@ Chargé	Charged
 Charge	Load
 Chercher en orbite…	Search local orbit…
 Chiffres hauts	Tall digits
+Choisir…	Choose…
 Choisir parmi les fonds (carrousel)	Choose from wallpapers (carousel)
 Choisir un bureau  ⌘⇧␣	Choose a desktop  ⌘⇧␣
 Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste.	Choose the round buttons in Control Center (dark mode is always shown). Order follows this list.
@@ -295,6 +300,7 @@ Couper le son	Mute
 couvert	overcast
 Couvert	Overcast
 Crème	Cream
+Crépuscule	Dusk
 Dans la barre (de gauche à droite)	In the bar (left to right)
 Dans la barre	In the bar
 Dans l'île dynamique	In the Dynamic Island
@@ -350,6 +356,8 @@ Dynamiques	Dynamic
 Éclairage nocturne	Night light
 Économie d'énergie, équilibré ou performances	Power saver, balanced or performance
 Économie	Saver
+Écran (bureau Linux)	Screen (Linux desktop)
+Écran de veille feu ASCII	ASCII fire screensaver
 Écran de verrouillage	Lock screen
 Écran	Display
 Écran précédent	Previous display
@@ -434,6 +442,7 @@ Essentiels	Essentials
 éteindre	shutdown
 Éteindre	Shut Down
 Éteindre…	Shut Down…
+Été	Summer
 Étire les chiffres pour remplir l'espace, comme iOS 26	Stretches digits to fill the space, like iOS 26
 Exécuter dans le terminal	Run in terminal
 Expérience	Experience
@@ -484,6 +493,7 @@ Fond : flou	Wallpaper: blur
 Fond normal	Normal wallpaper
 Fond : pochette	Wallpaper: cover
 Fond quand la pochette est agrandie	Wallpaper when the cover is enlarged
+Fond qui bouge lentement	Slowly moving background
 Fonds d'écran	Wallpapers
  fonds	 wallpapers
 Fonds	Wallpapers
@@ -535,6 +545,7 @@ Heure par heure	Hour by hour
 Historique des notifications	Notification history
 Historique du presse-papiers	Clipboard history
 Historique	History
+Hiver	Winter
 Horloge 24 heures	24-hour clock
 Horloge bonbon	Candy clock
 Horloge	Clock
@@ -580,6 +591,7 @@ Lance Spotify ♪	Start Spotify ♪
 Langue d'affichage	Display language
 Langue	Language
 La semaine commence le lundi	Week starts on Monday
+Lavande	Lavender
 Le café d'abord.	Coffee first.
 Le compteur vient de démarrer. Reviens dans quelques minutes.	The counter just started. Come back in a few minutes.
 Le contenu suit le mouvement de la molette	Content follows the wheel
@@ -844,9 +856,11 @@ Premier quartier	First quarter
 Présentation	View
 Presse-papiers	Clipboard
 Presse-papiers…	Clipboard…
+Printemps	Spring
 Proc.	CPU
 Processeur	Processor
 Profil	Profile
+Prune	Plum
 Pseudo-mosaïque	Pseudo-tiling
 Puce	Chip
 Puces flottantes, météo en orbite, spectre musical (rice c01)	Floating chips, orbiting weather, music spectrum (rice c01)
@@ -936,6 +950,7 @@ Rester éveillé	Stay awake
 Résumé	Summary
 Rétablir la largeur	Restore width
 Rétablir	Redo
+Retirer	Remove
 Retour au fond après pause	Back to wallpaper after pause
 Retour	Back
 Rétroéclairage	Backlight
@@ -1100,6 +1115,7 @@ verrou	lock
 Vers le groupe $1	To group $1
 Vert	Green
 Vide	Empty
+Vidéo de fond	Background video
 Vidéo	Video
 Vif	Vivid
 Ville de la météo	Weather city
@@ -1130,3 +1146,4 @@ Wiktionnaire	Wiktionary
 Xfce, menu des outils	Xfce, tools menu
 Zoom arrière	Zoom Out
 Zoom avant	Zoom In
+Zoom et glissement très lents de l'image	Very slow zoom and pan of the image

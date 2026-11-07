@@ -105,7 +105,7 @@ Panel {
     Commons.I18n.t("power.chargingPhrase8"),
     Commons.I18n.t("power.chargingPhrase9")
   ]
-  readonly property var onBatteryPhrases: [
+  readonly property var batteryPhrases: [
     Commons.I18n.t("power.dischargingPhrase1"),
     Commons.I18n.t("power.dischargingPhrase2"),
     Commons.I18n.t("power.dischargingPhrase3"),
@@ -122,7 +122,7 @@ Panel {
   readonly property var activePhrases: {
     if (fullyCharged) return []
     if (charging) return chargingPhrases
-    if (discharging) return onBatteryPhrases
+    if (discharging) return batteryPhrases
     return []
   }
   readonly property bool rotatingPhrases: activePhrases.length > 0

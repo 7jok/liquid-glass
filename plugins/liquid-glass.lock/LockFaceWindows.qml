@@ -21,7 +21,7 @@ Item {
     var c = field.mapToItem(f, 0, 0)
     return Qt.rect(c.x, c.y, field.width, field.height)
   }
-  LockData { id: data; running: true }
+  LockData { id: sys; running: true }
 
   property bool up: false
   onTypedChanged: if (typed > 0) up = true
@@ -33,6 +33,7 @@ Item {
   Behavior on u { NumberAnimation { duration: 420; easing.type: Easing.OutCubic } }
   FaceWall { anchors.fill: parent; lk: f.lk; blur: 0.9 * f.u; brightness: -0.12 * f.u }
 
+  WeatherFx { anchors.fill: parent; code: sys.weather ? Number(sys.weather.code) : -1; opacity: 1 - f.u * 0.7 }
   // Rideau
   Column {
     anchors.horizontalCenter: parent.horizontalCenter
@@ -49,7 +50,7 @@ Item {
     anchors.right: parent.right; anchors.bottom: parent.bottom; anchors.margins: 24 * f.k
     spacing: 16 * f.k
     Repeater {
-      model: ["wifi", data.charging ? "battery_charging_full" : "battery_full", "power_settings_new"]
+      model: ["wifi", sys.charging ? "battery_charging_full" : "battery_full", "power_settings_new"]
       Text {
         required property var modelData
         required property int index

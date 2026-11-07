@@ -1,0 +1,37 @@
+# Liquid Glass — été — corail, lilas et soleil (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#e2626f"
+selection = "#ffd9c8"
+muted = "#c08f9c"
+
+background = "#fff4ec"
+dark_background = "#fde8dc"
+darker_background = "#f8d4c2"
+lighter_background = "#fffaf6"
+
+foreground = "#40213a"
+dark_foreground = "#85566e"
+light_foreground = "#57294a"
+bright_foreground = "#2a1024"
+
+hyprland_active_border = "rgba(e2626fff) rgba(8a63c9ff) 45deg"
+
+hyprland_inactive_border = "rgba(f6d6c8ff)"
+
+red = "#d23a52"
+green = "#2f8a5a"
+yellow = "#c27a00"
+blue = "#3e64c8"
+magenta = "#a24fae"
+cyan = "#1f8a9a"
+orange = "#ca5a29"
+brown = "#814d1d"
+
+bright_red = "#e8566a"
+bright_green = "#43a670"
+bright_yellow = "#e09a1a"
+bright_blue = "#5a80e0"
+bright_magenta = "#bf6dc8"
+bright_cyan = "#33a5b2"

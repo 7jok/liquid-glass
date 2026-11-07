@@ -92,7 +92,7 @@ PanelWindow {
         id: faceTime
         visible: win.face === 0
         anchors.horizontalCenter: parent.horizontalCenter
-        text: win.en("hh:mm:ss AP")
+        text: Qt.formatTime(win.now, "HH:mm:ss")
         px: 26
         color: win.ink
       }

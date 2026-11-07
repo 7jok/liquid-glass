@@ -1,0 +1,26 @@
+{
+ "violet/music": {
+  "x": 8,
+  "y": 32
+ },
+ "jouet/music": {
+  "x": 40,
+  "y": 288
+ },
+ "jouet/pixclock": {
+  "x": 16,
+  "y": 40
+ },
+ "jouet/weather": {
+  "x": 960,
+  "y": 24
+ },
+ "blanc/music": {
+  "x": 24,
+  "y": 128
+ },
+ "ile:card": {
+  "x": 80,
+  "y": 520
+ }
+}

@@ -1,0 +1,158 @@
+{
+ "fedora": {
+  "page": 1,
+  "font": "Adwaita Mono",
+  "alpha": 0.92,
+  "gap": 8,
+  "size": 0,
+  "minutes": 25,
+  "pages": [
+   {
+    "name": "Duo",
+    "panes": [
+     "bounce",
+     "waves"
+    ],
+    "cycle": 0
+   },
+   {
+    "name": "Mosaïque",
+    "panes": [
+     "bounce",
+     "waves",
+     "cpu",
+     "fetch",
+     "clock"
+    ],
+    "cycle": 60
+   },
+   {
+    "name": "Mur",
+    "panes": [
+     "bounce",
+     "waves",
+     "cpu",
+     "fetch",
+     "clock",
+     "cal",
+     "cava",
+     "timer",
+     "btop",
+     "plasma",
+     "scope",
+     "snow",
+     "shell"
+    ],
+    "cycle": 120
+   }
+  ]
+ },
+ "cosmos": {
+  "page": 0,
+  "font": "Press Start 2P",
+  "alpha": 0.55,
+  "gap": 10,
+  "size": 0,
+  "minutes": 25,
+  "pages": [
+   {
+    "name": "Duo",
+    "panes": [
+     "hole",
+     "radar",
+     "hole",
+     "radar",
+     "cava",
+     "cal",
+     "cpu",
+     "clock",
+     "scope"
+    ],
+    "cycle": 0
+   },
+   {
+    "name": "Mosaïque",
+    "panes": [
+     "stars",
+     "orbit",
+     "hole",
+     "radar",
+     "cava"
+    ],
+    "cycle": 60
+   },
+   {
+    "name": "Mur",
+    "panes": [
+     "stars",
+     "orbit",
+     "hole",
+     "radar",
+     "cava",
+     "cal",
+     "cpu",
+     "clock",
+     "scope",
+     "timer",
+     "tunnel",
+     "cover",
+     "shell"
+    ],
+    "cycle": 120
+   }
+  ],
+  "video": ""
+ },
+ "jouet": {
+  "page": 0,
+  "font": "Press Start 2P",
+  "alpha": 0.8,
+  "gap": 14,
+  "size": 0,
+  "minutes": 25,
+  "pages": [
+   {
+    "name": "Duo",
+    "panes": [
+     "rain",
+     "shell",
+     "heart",
+     "life",
+     "snow"
+    ],
+    "cycle": 0
+   },
+   {
+    "name": "Mosaïque",
+    "panes": [
+     "fish",
+     "snake",
+     "heart",
+     "bounce",
+     "donut"
+    ],
+    "cycle": 60
+   },
+   {
+    "name": "Mur",
+    "panes": [
+     "fish",
+     "snake",
+     "heart",
+     "bounce",
+     "donut",
+     "clock",
+     "cava",
+     "life",
+     "timer",
+     "plasma",
+     "cal",
+     "snow",
+     "shell"
+    ],
+    "cycle": 120
+   }
+  ],
+  "video": ""
+ }
+}

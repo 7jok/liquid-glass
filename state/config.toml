@@ -1,0 +1,203 @@
+# ============================================================================
+#  Liquid Glass — configuration centrale
+#  ~/.config/liquid-glass/config.toml
+#
+#  Modifie ce fichier à la main ou via l'app Réglages, puis :
+#      liquid-glass apply          (réapplique tout)
+#  Les réglages Spotify/paroles/dock sont relus à chaud par le shell.
+#  Raccourci : liquid-glass set <section.clé> <valeur>   ex. glass.blur_size 9
+# ============================================================================
+
+[appearance]
+# light | dark | auto (bascule selon les heures ci-dessous)
+mode = "light"
+auto_light_at = "07:30"
+auto_dark_at = "19:30"
+# Police de l'interface (barre, dock, panneaux Liquid Glass) et police mono.
+font_ui = "iA Writer Quattro S"
+font_mono = "JetBrainsMono Nerd Font"
+# Logo de la barre : pomme | arch | tux | omarchy | orb | goutte | custom
+# (custom : image SVG/PNG de logo_path, chemin absolu).
+logo = "arch"
+logo_path = ""
+
+[glass]
+# Flou Hyprland : taille et nombre de passes (plus = plus flou, plus coûteux).
+blur_size = 2
+blur_passes = 3
+# Multiplicateur d'opacité des surfaces du shell (barre, menus, notifications).
+# 1.0 = défaut ; 0.8 = plus transparent ; 1.2 = plus opaque.
+opacity = 0.75
+# Opacité des fenêtres d'applications (active, inactive).
+window_opacity_active = 0.93
+window_opacity_inactive = 0.90
+# Arrondi des coins (px) et espacements.
+rounding = 10
+gaps_in = 5
+gaps_out = 10
+# Animations à ressort (false = aucune animation).
+animations = true
+
+style = "standard"
+titlebars = true
+[terminal]
+# Opacité du fond des terminaux (foot) en verre.
+opacity_light = 0.80
+opacity_dark = 0.76
+
+[dock]
+# Taille des icônes (px), facteur de grossissement au survol, masquage auto.
+icon_size = 38
+magnification = 1.6
+autohide = true
+# Visible sur tous les bureaux (true) ou seulement les bureaux flottants (false).
+always_visible = true
+
+[spotify]
+# Fond d'écran dynamique : off | cover (pochette nette sur fond flou)
+#                          | blur (pochette floutée plein écran) | gradient
+wallpaper = "cover"
+# Retour au fond normal après N minutes de pause (0 = jamais).
+restore_after_minutes = 5
+# Couleurs dynamiques extraites de la pochette (bordures, barre, dock, terminal).
+dynamic_colors = true
+
+[lyrics]
+# Paroles synchronisées (LRCLIB). Chaque mode s'active indépendamment.
+desktop = true        # en grand sur le bureau, derrière les fenêtres
+widget = false        # petit widget flottant déplaçable
+bar = false            # ligne actuelle dans la barre du haut
+# Le mode karaoké plein écran s'ouvre avec SUPER+ALT+M (⌘⌥M).
+
+[visualizer]
+# Visualiseur cava en bas du fond d'écran (coûteux sur iGPU : off par défaut).
+enabled = false
+bars = 64
+
+[keys]
+# Raccourcis façon macOS (⌘Espace Spotlight, ⌘Q quitter, ⌘Tab, ⌘⇧3/4/5…).
+# false = garder uniquement les raccourcis Omarchy. Voir README pour la liste.
+macos_shortcuts = true
+# Son de clavier mécanique sur tout le système (liquid-glass keys on|off|test).
+# Demande une fois : sudo usermod -aG input $USER (puis se reconnecter).
+sound = true
+sound_pack = "auto"    # eg-oreo (« creamy oreo » de Mechvibes) | creamy | thocky | clicky | tout pack Mechvibes importé
+sound_volume = 1.0
+sound_release = true
+
+[widgets]
+# Widgets du bureau façon macOS (sur le fond d'écran, sous les fenêtres).
+enabled = true
+# left | right
+position = "left"
+clock = false
+calendar = false
+weather = false
+battery = false
+# Lecture en cours aux couleurs de la pochette (avec la palette cliquable).
+music = true
+# Ville de la météo ("" = celle du fuseau horaire). Données : Open-Meteo, sans clé.
+weather_city = ""
+# Masquer les widgets quand la pochette sert de fond d'écran.
+hide_on_cover = true
+
+music_size = "medium"
+music_position = "middle-left"
+music_x = 0.1106
+music_y = 0.6332
+calendar_size = "small"
+music_cover_x = 0
+music_cover_y = 0.9498
+[hotcorners]
+# Coins actifs : pointer dans un coin de l'écran déclenche une action.
+# Actions : mission | desktop | spotlight | control | karaoke | lock | settings | "" (rien)
+# Les coins du haut sont libres par défaut (la barre et le logo y sont).
+top_left = ""
+top_right = ""
+bottom_left = "mission"
+bottom_right = "desktop"
+
+[lock]
+# Écran de verrouillage façon macOS Tahoe (relu à chaud).
+# Horloge : glass (verre dégradé) | bold | light ; 24 h ou 12 h.
+clock_style = "liquid"
+clock_24h = true
+# Police de l'horloge ("" = police de l'interface).
+clock_font = ""
+# Notifications récentes en haut à droite :
+# full (titre + texte) | summary (appli + titre) | count (nombre) | off
+notifications = "summary"
+# Pendant la lecture : art (pochette nette + fond flou) | wallpaper (fond Spotify)
+#                      | blur (pochette floutée) | off (fond normal)
+music_background = "art"
+music_card = true     # carte « lecture en cours » sous l'horloge
+lyrics = true         # paroles synchronisées à droite
+status = true         # batterie en haut à droite
+
+clock_tall = false
+clock_color = "#ffffff"#c4dcff"
+music_last = true
+music_x = 0
+music_y = 0.7609
+[control]
+# Boutons ronds du Centre de contrôle, dans l'ordre (4 par ligne).
+# Disponibles : nightshift awake screenshot record glass lyrics karaoke mission
+#               desktop lock calculator clipboard emoji settings
+buttons = ["nightshift","awake","screenshot","record","glass","lyrics","mission","settings"]
+
+[island]
+# Île dynamique façon Alcove : capsule noire en haut au centre (fausse encoche).
+enabled = true
+# Au repos : hidden (n'apparaît qu'avec une activité) | notch (petite encoche noire).
+idle = "hidden"
+music = true          # Lecture en cours : pochette + égaliseur, clic = commandes
+battery = true        # Branchement / débranchement du secteur
+bluetooth = true      # Casque ou appareil Bluetooth connecté (avec sa batterie)
+focus = true          # Changement de mode Concentration
+hud = false           # Volume dans l'île (l'OSD Liquid Glass le montre déjà)
+
+lyrics = true
+[corners]
+# Coins d'écran arrondis façon MacBook (surcouche noire, les clics passent au travers)
+enabled = true
+radius = 10
+
+[menubar]
+# Horloge de la barre et calendrier (Réglages → Barre des menus)
+clock_24h = true
+show_date = true
+show_seconds = false
+week_monday = true
+
+[input]
+trackpad_scroll = 0.4
+
+[windows]
+# Fenêtres flottantes comme sur Mac (ouvertes au centre, barre de titre à feux tricolores)
+floating = true
+
+[shortcuts]
+apps = ["claude-code","spotify-launcher"]
+
+[profile]
+active = "linux"
+
+[linux]
+style = "mono"
+violet_tone = "rose"
+windows_tone = "clair"
+blanc_tone = "creme"
+scheme = "fruit-salad"
+foret_tone = "mousse"
+gouts_theme = "nord"
+espace_tone = "bleu"
+debian_colors = "theme"
+debian_accent = "#4c9aff"
+sombre_tone = "encre"
+jouet_tone = "bonbon"
+ruban_tone = "or"
+cosmos_tone = "orbite"
+lang = "fr"
+ruban_colors = "theme"
+ruban_accent = "#8bc34a"#18b98f"#e8475f"#4c9aff"
+mono_tone = "papier"

@@ -2078,6 +2078,17 @@ def cmd_export(args: list[str]) -> None:
     for f in ("config.toml", "rice.json", "linux-layout.json"):
         if (CONF_DIR / f).exists():
             shutil.copy2(CONF_DIR / f, out / f)
+    # Fond d'écran actuel : copié tel quel (ceux de Wallhaven ne reviennent pas forcément
+    # à l'identique), et la photo du compte.
+    for old in out.glob("background.*"):
+        old.unlink()
+    bg = HOME / ".local/state/omarchy/current/background"
+    if bg.exists():
+        src = bg.resolve()
+        shutil.copy2(src, out / ("background" + src.suffix.lower()))
+    if (HOME / ".face").exists():
+        shutil.copy2(HOME / ".face", out / "face")
+    (out / "theme.txt").write_text(current_theme() + "\n")
     (out / "packages.txt").write_text(run("pacman", "-Qqen").stdout)
     (out / "aur.txt").write_text(run("pacman", "-Qqem").stdout)
     print(f"Réglages et applications enregistrés dans {out}")

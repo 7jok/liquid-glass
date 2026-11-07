@@ -240,6 +240,15 @@ omarchy hyprland window transparency glassy >/dev/null 2>&1 || true
 say "Application"
 "$HOME/.local/bin/liquid-glass" apply
 "$HOME/.local/bin/liquid-glass" system || warn "réglages GTK : installer les paquets puis relancer « liquid-glass system »"
+if ((DO_RESTORE)); then
+  [ -f "$REPO/state/face" ] && cp "$REPO/state/face" "$HOME/.face" && ok "photo du compte remise"
+  bgfile="$(ls "$REPO"/state/background.* 2>/dev/null | head -1)"
+  if [ -n "$bgfile" ]; then
+    mkdir -p "$HOME/.local/share/liquid-glass"
+    cp "$bgfile" "$HOME/.local/share/liquid-glass/restored-${bgfile##*/}"
+    omarchy-theme-bg-set "$HOME/.local/share/liquid-glass/restored-${bgfile##*/}" >/dev/null 2>&1 && ok "fond d'écran remis" || warn "fond d'écran : à choisir à la main"
+  fi
+fi
 hyprctl reload >/dev/null
 errors="$(hyprctl configerrors)"
 [ -z "$errors" ] && ok "Hyprland : aucune erreur" || { warn "Hyprland signale :"; echo "$errors"; }

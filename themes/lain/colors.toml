@@ -1,0 +1,35 @@
+# Liquid Glass — thème « lain » du bureau Linux (⌘⇧Espace), d'après les
+# dotfiles Teiguuu (Hyprland, Waybar, couleurs pywal sur fonds Serial Experiments Lain).
+mode = "dark"
+
+accent = "#2f9e9e"
+selection = "#16313a"
+muted = "#24343c"
+
+background = "#0a0f14"
+dark_background = "#070a0e"
+darker_background = "#050709"
+lighter_background = "#121a21"
+
+foreground = "#b9d7dc"
+dark_foreground = "#5d7a82"
+light_foreground = "#9fc3c9"
+bright_foreground = "#dff2f4"
+
+hyprland_active_border = "rgba(2f9e9eee) rgba(111111cc) 45deg"
+
+red = "#c25b6e"
+yellow = "#7fb0a8"
+orange = "#5aa7a0"
+green = "#3e9e8a"
+cyan = "#4fb8c4"
+blue = "#3f7fb5"
+magenta = "#6b8fc4"
+brown = "#2a6a6a"
+
+bright_red = "#e07a8c"
+bright_yellow = "#a6d2cb"
+bright_green = "#62c4ae"
+bright_cyan = "#86dbe4"
+bright_blue = "#6aa6d8"
+bright_magenta = "#93b2e0"

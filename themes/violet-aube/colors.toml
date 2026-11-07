@@ -1,0 +1,37 @@
+# Liquid Glass — violet aube — lilas clair (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#8a63c9"
+selection = "#d9c8f5"
+muted = "#a593c7"
+
+background = "#f6f1fd"
+dark_background = "#eee6fb"
+darker_background = "#e0d3f5"
+lighter_background = "#fbf8ff"
+
+foreground = "#2c1b4d"
+dark_foreground = "#6d5a91"
+light_foreground = "#3b2463"
+bright_foreground = "#1a0d33"
+
+hyprland_active_border = "rgba(3b2463ff) rgba(b06bd6ff) 45deg"
+
+hyprland_inactive_border = "rgba(d5c8ecff)"
+
+red = "#c2365e"
+green = "#2f8a5a"
+yellow = "#9a6a00"
+blue = "#3a5bc4"
+magenta = "#8a63c9"
+cyan = "#1f8a9a"
+orange = "#ae502f"
+brown = "#634226"
+
+bright_red = "#d64b6a"
+bright_green = "#3fa56f"
+bright_yellow = "#b88400"
+bright_blue = "#5577de"
+bright_magenta = "#a37de0"
+bright_cyan = "#2ba3b5"

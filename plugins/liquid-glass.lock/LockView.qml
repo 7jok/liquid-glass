@@ -40,10 +40,11 @@ Item {
   property bool syncingPasswordText: false
 
   readonly property string placeholderText: "Mot de passe"
-  readonly property int fieldWidth: 210
-  readonly property int fieldHeight: 32
-  readonly property int fieldFontSize: 13
-  readonly property int passwordDotFontSize: 14
+  // Champ du vrai macOS : petite capsule de verre tout en bas (≈ 132 × 22 pt).
+  readonly property int fieldWidth: 132
+  readonly property int fieldHeight: 22
+  readonly property int fieldFontSize: 11
+  readonly property int passwordDotFontSize: 10
   readonly property int passwordDotLetterSpacing: 3
   readonly property real fingerprintReserve: fingerprintConfigured ? Math.round(fingerprintIcon.implicitWidth + 8) : 0
   readonly property real passwordDotScale: dotMetrics.advanceWidth > 0
@@ -125,8 +126,18 @@ Item {
   readonly property bool showStatus: lopt("status", true) !== false
   // Fond d'écran net (comme macOS) ou flouté.
   readonly property bool wallpaperBlur: lopt("wallpaper_blur", false) === true
-  // glass (verre dégradé) | bold | light
+  // glass (verre dégradé) | bold (classique) | serif | liquid (verre liquide : contour lumineux) | light (fine)
   readonly property string clockStyle: String(lopt("clock_style", "glass"))
+  // Graisse 100…900 (0 = celle du style), luminosité 0,4…1, teinte, chiffres hauts, format de date.
+  readonly property int clockWeight: {
+    var w = Number(lopt("clock_weight", 0)) || 0
+    if (w >= 100) return Math.max(100, Math.min(900, Math.round(w / 100) * 100))
+    return clockStyle === "light" ? Font.Thin : (clockStyle === "glass" || clockStyle === "liquid" ? Font.DemiBold : (clockStyle === "serif" ? Font.Medium : Font.Bold))
+  }
+  readonly property real clockBrightness: Math.max(0.4, Math.min(1, Number(lopt("clock_brightness", 1)) || 1))
+  readonly property color clockColor: { var c = String(lopt("clock_color", "#ffffff")); return /^#[0-9a-fA-F]{6}$/.test(c) ? c : "#ffffff" }
+  readonly property bool tallDigits: lopt("clock_tall", false) === true
+  readonly property string dateFormat: String(lopt("date_format", "long"))
   readonly property bool clock24: lopt("clock_24h", true) !== false
   readonly property string uiFont: (cfg.appearance && cfg.appearance.font_ui) || "Inter"
   readonly property string clockFont: String(lopt("clock_font", "")) || uiFont
@@ -152,21 +163,46 @@ Item {
     onFileChanged: reload()
     onLoaded: { try { root.nowPlaying = JSON.parse(text()) } catch (e) { root.nowPlaying = ({}) } }
   }
+  // Dernier morceau écouté (écrit par liquid-glass.spotify) : quand Spotify est
+  // fermé, la carte reste là avec sa pochette, et ▶ relance la chanson.
+  property var lastTrack: ({})
+  FileView {
+    path: root.home + "/.cache/liquid-glass/last-track.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.lastTrack = JSON.parse(text()) } catch (e) { root.lastTrack = ({}) } }
+  }
+  readonly property bool resumeMode: !musicActive && lopt("music_last", true) !== false
+    && String(lastTrack.title || "") !== "" && String(lastTrack.cover || "") !== ""
+  readonly property bool musicShown: musicActive || resumeMode
+  readonly property string trackTitle: musicActive ? (player.trackTitle || "") : (resumeMode ? String(lastTrack.title) : "")
+  readonly property string trackArtist: musicActive ? (player.trackArtist || "") : (resumeMode ? String(lastTrack.artist || "") : "")
+  // ▶ pressé : Spotify démarre en arrière-plan (quelques secondes), la carte patiente.
+  property bool resuming: false
+  onMusicActiveChanged: if (musicActive) resuming = false
+  Timer { id: resumeTimeout; interval: 30000; onTriggered: root.resuming = false }
+  function resumeMusic() {
+    if (resuming) return
+    resuming = true
+    resumeTimeout.restart()
+    Quickshell.execDetached(["liquid-glass", "resume-music"])
+  }
   // Les données en cache ne valent que pour le morceau affiché.
   readonly property bool npMatches: musicActive && nowPlaying.title === player.trackTitle
   readonly property string coverSource: {
-    if (!musicActive) return ""
+    if (!musicActive) return resumeMode ? "file://" + lastTrack.cover : ""
     if (npMatches && nowPlaying.cover) return "file://" + nowPlaying.cover
     var art = String(player.trackArtUrl || "")
     return art.indexOf("file://") === 0 ? art : ""
   }
-  readonly property var palette: npMatches ? (nowPlaying.palette || null) : null
+  readonly property var palette: npMatches ? (nowPlaying.palette || null) : (resumeMode ? (lastTrack.palette || null) : null)
   readonly property color tintA: palette && palette.colors && palette.colors.length > 1 ? palette.colors[1] : "#1c1c1e"
   readonly property color tintB: palette && palette.accent ? palette.accent : "#3a3a3c"
   // Le fond « musique » ne remplace le fond d'écran que pendant la lecture.
   // Widget agrandi (bulle des paroles) : la pochette floutée devient le fond.
   property bool musicExpanded: false
-  readonly property bool musicScene: musicActive && musicExpanded && musicBackground !== "off" && coverSource !== ""
+  readonly property bool musicScene: musicShown && musicExpanded && musicBackground !== "off" && coverSource !== ""
   readonly property bool artMode: musicScene && musicBackground === "art"
 
   // Position extrapolée (MPRIS ne pousse pas la position) et ligne de paroles.
@@ -364,7 +400,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         textFormat: Text.PlainText
         text: {
-          var s = Qt.locale("fr_FR").toString(clock.date, "dddd d MMMM")
+          var s = Qt.locale("fr_FR").toString(clock.date, root.dateFormat === "short" ? "ddd d MMM" : "dddd d MMMM")
           return s.charAt(0).toUpperCase() + s.slice(1)
         }
         font.family: root.uiFont; font.pixelSize: Math.round(root.height * 0.028); font.weight: Font.DemiBold
@@ -375,8 +411,20 @@ Item {
 
       // Grande horloge. Style « glass » : remplissage blanc dégradé, comme du
       // verre dépoli éclairé par le haut, avec une ombre douce.
+      // Chiffres hauts (comme iOS 26) : l'horloge s'étire en hauteur et se resserre.
+      Item {
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: bigClock.width * bigClock.sx
+        height: bigClock.height * bigClock.sy
+        Behavior on height { NumberAnimation { duration: 520; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
       Item {
         id: bigClock
+        readonly property real sx: root.tallDigits ? 0.86 : 1
+        readonly property real sy: root.tallDigits ? 1.45 : 1
+        transform: Scale { origin.x: bigClock.width / 2; origin.y: 0; xScale: bigClock.sx; yScale: bigClock.sy
+          Behavior on yScale { NumberAnimation { duration: 520; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
+          Behavior on xScale { NumberAnimation { duration: 520; easing.type: Easing.OutBack; easing.overshoot: 1.6 } } }
+        opacity: root.clockBrightness
         // Marge autour du texte : les chiffres débordent de leur boîte (approche
         // négative), et le masque ne doit pas les rogner.
         readonly property real pad: Math.round(root.height * 0.03)
@@ -387,12 +435,15 @@ Item {
           id: clockText
           textFormat: Text.PlainText
           text: Qt.formatTime(clock.date, root.clock24 ? "HH:mm" : "h:mm")
-          font.family: root.clockFont
+          font.family: root.clockStyle === "serif" ? "Noto Serif" : root.clockFont
           font.pixelSize: Math.round(root.height * 0.13)
-          font.weight: root.clockStyle === "light" ? Font.Light : (root.clockStyle === "glass" ? Font.DemiBold : Font.Bold)
+          font.weight: root.clockWeight
           font.letterSpacing: -Math.round(root.height * 0.003)
           font.features: { "tnum": 1 }
-          color: "white"
+          // Verre liquide : chiffres presque transparents cernés d'un liseré lumineux.
+          color: root.clockStyle === "liquid" ? Qt.rgba(root.clockColor.r, root.clockColor.g, root.clockColor.b, 0.22) : root.clockColor
+          style: root.clockStyle === "liquid" ? Text.Outline : Text.Normal
+          styleColor: Qt.rgba(root.clockColor.r, root.clockColor.g, root.clockColor.b, 0.9)
           opacity: root.clockStyle === "glass" ? 0 : 0.92
           layer.enabled: root.clockStyle !== "glass"
           layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.8; shadowColor: "#38000000"; shadowVerticalOffset: 2 }
@@ -418,9 +469,9 @@ Item {
           visible: false
           layer.enabled: true
           gradient: Gradient {
-            GradientStop { position: 0.15; color: Qt.rgba(1, 1, 1, 0.97) }
-            GradientStop { position: 0.6; color: Qt.rgba(1, 1, 1, 0.80) }
-            GradientStop { position: 0.9; color: Qt.rgba(1, 1, 1, 0.60) }
+            GradientStop { position: 0.15; color: Qt.rgba(root.clockColor.r, root.clockColor.g, root.clockColor.b, 0.97) }
+            GradientStop { position: 0.6; color: Qt.rgba(root.clockColor.r, root.clockColor.g, root.clockColor.b, 0.80) }
+            GradientStop { position: 0.9; color: Qt.rgba(root.clockColor.r, root.clockColor.g, root.clockColor.b, 0.60) }
           }
         }
         MultiEffect {
@@ -437,6 +488,7 @@ Item {
           shadowOpacity: 0.3
           shadowVerticalOffset: 3
         }
+      }
       }
     }
 
@@ -488,8 +540,9 @@ Item {
       id: notifColumn
       anchors.right: parent.right; anchors.rightMargin: 18
       y: statusRow.visible ? 44 : 18
-      width: 330
-      spacing: 8
+      // Liste compacte comme sur la vidéo : rangées de verre serrées, 4 au plus.
+      width: 252
+      spacing: 4
       visible: root.notifMode !== "off" && root.notifications.length > 0
 
       // Mode « count » : une seule pastille.
@@ -508,29 +561,33 @@ Item {
       }
 
       Repeater {
-        model: root.notifMode === "count" ? [] : root.notifications.slice(0, 3)
+        model: root.notifMode === "count" ? [] : root.notifications.slice(0, 4)
         delegate: Rectangle {
           id: card
           required property var modelData
           required property int index
           width: notifColumn.width
-          height: cardCol.implicitHeight + 22
-          radius: 18
-          color: Qt.rgba(1, 1, 1, 0.17)
+          height: Math.max(40, cardCol.implicitHeight + 14)
+          radius: 12
+          color: Qt.rgba(1, 1, 1, 0.14)
           border.width: 1
-          border.color: Qt.rgba(1, 1, 1, 0.28)
+          border.color: Qt.rgba(1, 1, 1, 0.22)
           // Apparition en cascade.
           opacity: 0
           Component.onCompleted: appear.start()
-          NumberAnimation { id: appear; target: card; property: "opacity"; to: 1; duration: 320; easing.type: Easing.OutCubic }
+          SequentialAnimation {
+            id: appear
+            PauseAnimation { duration: card.index * 60 }
+            NumberAnimation { target: card; property: "opacity"; to: 1; duration: 320; easing.type: Easing.OutCubic }
+          }
 
           Item {
             id: icon
-            x: 12; y: 12
-            width: 30; height: 30
+            x: 9; anchors.verticalCenter: parent.verticalCenter
+            width: 22; height: 22
             readonly property string iconPath: card.modelData.appIcon ? Quickshell.iconPath(card.modelData.appIcon, true) : ""
             Rectangle {
-              anchors.fill: parent; radius: 8
+              anchors.fill: parent; radius: 6
               visible: iconImg.status !== Image.Ready
               gradient: Gradient {
                 GradientStop { position: 0; color: "#5ac8fa" }
@@ -540,24 +597,25 @@ Item {
                 anchors.centerIn: parent
                 textFormat: Text.PlainText
                 text: card.modelData.glyph || String.fromCodePoint(0xF009A)
-                font.family: Style.font.family; font.pixelSize: 16
+                font.family: Style.font.family; font.pixelSize: 12
                 color: "white"
               }
             }
-            Image { id: iconImg; anchors.fill: parent; source: icon.iconPath; sourceSize: Qt.size(60, 60); asynchronous: true; visible: status === Image.Ready }
+            Image { id: iconImg; anchors.fill: parent; source: icon.iconPath; sourceSize: Qt.size(48, 48); asynchronous: true; visible: status === Image.Ready }
           }
           Column {
             id: cardCol
-            anchors.left: icon.right; anchors.leftMargin: 10
-            anchors.right: parent.right; anchors.rightMargin: 12
-            y: 11
-            spacing: 1
+            anchors.left: icon.right; anchors.leftMargin: 8
+            anchors.right: parent.right; anchors.rightMargin: 10
+            anchors.verticalCenter: parent.verticalCenter
+            spacing: 0
+            // Comme la vidéo : nom de l'app en gras, l'heure à droite, le titre dessous.
             Item {
               width: parent.width; height: appText.implicitHeight
-              Text { id: appText; anchors.left: parent.left; anchors.right: when.left; anchors.rightMargin: 6; textFormat: Text.PlainText; elide: Text.ElideRight; text: root.appLabel(card.modelData).toUpperCase(); font.family: root.uiFont; font.pixelSize: 10; font.weight: Font.DemiBold; font.letterSpacing: 0.4; color: "white"; opacity: 0.65 }
-              Text { id: when; anchors.right: parent.right; textFormat: Text.PlainText; text: root.ago(card.modelData.ts); font.family: root.uiFont; font.pixelSize: 10; color: "white"; opacity: 0.6 }
+              Text { id: appText; anchors.left: parent.left; anchors.right: when.left; anchors.rightMargin: 6; textFormat: Text.PlainText; elide: Text.ElideRight; text: root.appLabel(card.modelData); font.family: root.uiFont; font.pixelSize: 12; font.weight: Font.DemiBold; color: "white" }
+              Text { id: when; anchors.right: parent.right; anchors.verticalCenter: appText.verticalCenter; textFormat: Text.PlainText; text: root.ago(card.modelData.ts); font.family: root.uiFont; font.pixelSize: 10; color: "white"; opacity: 0.55 }
             }
-            Text { width: parent.width; textFormat: Text.PlainText; elide: Text.ElideRight; text: card.modelData.summary || ""; font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold; color: "white" }
+            Text { width: parent.width; textFormat: Text.PlainText; elide: Text.ElideRight; text: card.modelData.summary || ""; font.family: root.uiFont; font.pixelSize: 11; color: "white"; opacity: 0.72 }
             Text {
               width: parent.width
               visible: root.notifMode === "full" && text !== ""
@@ -571,11 +629,12 @@ Item {
         }
       }
       Text {
-        visible: root.notifMode !== "count" && root.notifications.length > 3
-        anchors.right: parent.right; anchors.rightMargin: 6
+        visible: root.notifMode !== "count" && root.notifications.length > 4
+        anchors.horizontalCenter: parent.horizontalCenter
+        topPadding: 2
         textFormat: Text.PlainText
-        text: "+ " + (root.notifications.length - 3) + " autres"
-        font.family: root.uiFont; font.pixelSize: 11; font.weight: Font.Medium
+        text: (root.notifications.length - 4) + (root.notifications.length - 4 > 1 ? " autres notifications" : " autre notification")
+        font.family: root.uiFont; font.pixelSize: 10; font.weight: Font.Medium
         color: "white"; opacity: 0.7
       }
     }
@@ -585,12 +644,12 @@ Item {
       id: userColumn
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom
-      anchors.bottomMargin: Math.round(parent.height * 0.065)
-      spacing: 9
+      anchors.bottomMargin: Math.round(parent.height * 0.035)
+      spacing: 7
 
       Item {
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 62; height: 62
+        width: 40; height: 40
         Image {
           id: face
           anchors.fill: parent
@@ -606,16 +665,14 @@ Item {
           anchors.fill: parent
           radius: width / 2
           visible: face.status !== Image.Ready
-          gradient: Gradient {
-            GradientStop { position: 0; color: "#a5b4c8" }
-            GradientStop { position: 1; color: "#6b7a90" }
-          }
-          border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.4)
+          // Bulle de verre discrète avec l'initiale, comme la vidéo.
+          color: Qt.rgba(1, 1, 1, 0.14)
+          border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.3)
           Text {
             anchors.centerIn: parent
             textFormat: Text.PlainText
             text: root.displayName.charAt(0).toUpperCase()
-            font.family: root.uiFont; font.pixelSize: 27; font.weight: Font.DemiBold
+            font.family: root.uiFont; font.pixelSize: 18; font.weight: Font.DemiBold
             color: "white"
           }
         }
@@ -625,7 +682,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         textFormat: Text.PlainText
         text: root.displayName
-        font.family: root.uiFont; font.pixelSize: 15; font.weight: Font.DemiBold
+        font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold
         color: "white"
         layer.enabled: true
         layer.effect: MultiEffect { shadowEnabled: true; shadowBlur: 0.5; shadowColor: "#40000000"; shadowVerticalOffset: 1 }
@@ -645,7 +702,7 @@ Item {
           readonly property int borderLeft: 1
           width: parent.width; height: parent.height
           radius: height / 2
-          color: Qt.rgba(1, 1, 1, passwordInput.activeFocus ? 0.22 : 0.16)
+          color: Qt.rgba(1, 1, 1, passwordInput.activeFocus ? 0.2 : 0.14)
           border.width: 1
           border.color: root.errorState ? Qt.rgba(1, 0.35, 0.33, 0.85) : Qt.rgba(1, 1, 1, 0.36)
           clip: true
@@ -785,8 +842,8 @@ Item {
         text: root.fingerprintConfigured
           ? "Touchez le lecteur d'empreintes ou saisissez le mot de passe"
           : "Saisissez votre mot de passe pour déverrouiller"
-        font.family: root.uiFont; font.pixelSize: 11
-        color: "white"; opacity: 0.62
+        font.family: root.uiFont; font.pixelSize: 10
+        color: "white"; opacity: 0.55
       }
     }
   }

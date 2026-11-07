@@ -5,6 +5,7 @@
 #   ./install.sh               installe / met à jour
 #   ./install.sh --packages    installe aussi les paquets (sudo + yay, interactif)
 #   ./install.sh --no-backup   ne crée pas de sauvegarde (déconseillé au 1er lancement)
+#   ./install.sh --animated    génère aussi les fonds d'écran animés (ffmpeg, ~10 min)
 #
 # Ce que fait le script (rien dans /usr/share/omarchy n'est touché) :
 #   1. sauvegarde ~/.config-backup-<date> (+ restore.sh) au premier lancement
@@ -22,10 +23,12 @@ MARKER="$STATE/.installed"
 
 DO_PACKAGES=0
 DO_BACKUP=1
+DO_ANIMATED=0
 for arg in "$@"; do
   case "$arg" in
     --packages) DO_PACKAGES=1 ;;
     --no-backup) DO_BACKUP=0 ;;
+    --animated) DO_ANIMATED=1 ;;
     -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
     *) echo "Option inconnue : $arg" >&2; exit 2 ;;
   esac
@@ -82,12 +85,25 @@ done
 [[ -e $REPO/themes/liquid-glass/backgrounds/01-tahoe-day.jpg ]] || "$REPO/scripts/fetch-wallpapers.sh" || warn "fonds Mac non téléchargés (hors ligne ?)"
 link "$REPO/themes/liquid-glass" "$CFG/omarchy/themes/liquid-glass"
 link "$REPO/themes/liquid-glass-dark" "$CFG/omarchy/themes/liquid-glass-dark"
+# Thèmes du bureau Linux (⌘⇧Espace). lain : fonds des dotfiles Teiguuu
+# (récupérés par `liquid-glass profile linux` au premier passage) ; les autres
+# styles ont des fonds générés (montagnes dans la brume, ondes en traits).
+link "$REPO/themes/lain" "$CFG/omarchy/themes/lain"
+"$REPO/scripts/gen-linux-themes.py" >/dev/null
+compgen -G "$REPO/themes/violet/backgrounds/*.jpg" >/dev/null || nice -n 10 "$REPO/scripts/gen-linux-wallpapers.py" >/dev/null
+for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
 ok "thèmes liés dans ~/.config/omarchy/themes"
+say "Polices du bureau Linux (Material Symbols, Google Sans Flex, Rubik)"
+"$REPO/scripts/fetch-fonts.sh" && ok "polices dans ~/.local/share/fonts/liquid-glass"
 
 # ---------------------------------------------------------------- 4. commandes
 say "Commandes"
-for b in liquid-glass liquid-glass-spotify; do link "$REPO/bin/$b" "$HOME/.local/bin/$b"; done
-ok "liquid-glass, liquid-glass-spotify → ~/.local/bin"
+for b in liquid-glass liquid-glass-spotify liquid-glass-tty liquid-glass-keys; do link "$REPO/bin/$b" "$HOME/.local/bin/$b"; done
+ok "liquid-glass, liquid-glass-spotify, liquid-glass-tty, liquid-glass-keys → ~/.local/bin"
+if [ "$DO_ANIMATED" = 1 ]; then
+  say "Fonds d'écran animés"
+  nice -n 15 "$REPO/bin/liquid-glass" animated-wallpapers && ok "vidéos en boucle dans themes/*/backgrounds"
+fi
 
 # ---------------------------------------------------------------- 5. config centrale
 say "Configuration centrale"
@@ -115,6 +131,8 @@ fi
 say "Hyprland"
 link "$REPO/hypr/liquid-glass.lua" "$CFG/hypr/liquid-glass.lua"
 link "$REPO/hypr/liquid-glass-bindings.lua" "$CFG/hypr/liquid-glass-bindings.lua"
+link "$REPO/hypr/liquid-glass-linux.lua" "$CFG/hypr/liquid-glass-linux.lua"
+link "$REPO/hypr/liquid-glass-keys.lua" "$CFG/hypr/liquid-glass-keys.lua"
 if ! grep -q 'require("hypr.liquid-glass")' "$CFG/hypr/hyprland.lua"; then
   cp "$CFG/hypr/hyprland.lua" "$CFG/hypr/hyprland.lua.bak.$(date +%s)"
   printf '\n-- Liquid Glass (doit rester en dernier : passe devant le mode glassy)\nrequire("hypr.liquid-glass")\n' >> "$CFG/hypr/hyprland.lua"
@@ -169,17 +187,24 @@ print(json.dumps({"iconSize": d.get("icon_size", 42), "magnification": d.get("ma
   def ids: map(.id);
   .plugins |= addids(["liquid-glass.dock","liquid-glass.spotify","liquid-glass.spotlight","liquid-glass.mission",
                       "liquid-glass.switcher","liquid-glass.cheatsheet","liquid-glass.settings","liquid-glass.appearance",
-                      "liquid-glass.lock","liquid-glass.osd","liquid-glass.widgets","liquid-glass.hotcorners"])
+                      "liquid-glass.lock","liquid-glass.osd","liquid-glass.widgets","liquid-glass.hotcorners",
+                      "liquid-glass.island","liquid-glass.about","liquid-glass.forcequit","liquid-glass.corners","liquid-glass.standby","liquid-glass.tilemenu"])
+  | .plugins |= map(select((if type=="object" then .id else . end) != "liquid-glass.appname"))
   | .disabledPlugins |= addstr(["omarchy.dock","omarchy.lock","omarchy.osd"])
   | .cloneSourceRestores |= addstr(["liquid-glass.dock","liquid-glass.lock","liquid-glass.osd"])
   | .dock = ((.dock // {}) + {position: "bottom"} + $dock)
-  # Barre : logo + nom de l app à gauche ; mini-lecteur, centre de contrôle et horloge à droite.
-  | .bar.layout.left = ([{id:"liquid-glass.logo"},{id:"liquid-glass.appname"}]
-                        + [(.bar.layout.left // [])[] | select(.id != "liquid-glass.logo" and .id != "liquid-glass.appname")])
-  | .bar.layout.right = ([{id:"liquid-glass.spotify"}]
-                        + [(.bar.layout.right // [])[] | select(.id != "liquid-glass.spotify" and .id != "liquid-glass.control"
-                                                                 and .id != "liquid-glass.clock" and .id != "omarchy.clock")]
-                        + [{id:"liquid-glass.control"},{id:"liquid-glass.clock"}])
+  # Barre : logo + menus de l app (Fichier, Édition…) à gauche ; mini-lecteur, centre de contrôle et horloge à droite.
+  | .bar.layout.left = ([{id:"liquid-glass.logo"},{id:"liquid-glass.menubar"}]
+                        + [(.bar.layout.left // [])[] | select(.id != "liquid-glass.logo" and .id != "liquid-glass.appname"
+                                                               and .id != "liquid-glass.menubar" and .id != "omarchy.workspaces")])
+  # Raccourcis d apps (Claude Code par défaut, Réglages → Raccourcis) puis, comme macOS : batterie, Wi-Fi, Spotlight, Centre de contrôle, horloge. Bluetooth, son,
+  # bureaux, agents et morceau en cours se réactivent dans Réglages → Barre des menus.
+  | .bar.layout.right = ([(.bar.layout.right // [])[] | select(.id as $i | ["liquid-glass.spotify","liquid-glass.control",
+                            "liquid-glass.clock","omarchy.clock","omarchy.agents","omarchy.bluetooth","omarchy.audio",
+                            "omarchy.power","omarchy.network","liquid-glass.power","liquid-glass.search",
+                            "liquid-glass.shortcuts","claude"] | index($i) | not)]
+                        + [{id:"liquid-glass.shortcuts"},{id:"liquid-glass.power"},{id:"omarchy.network"},{id:"liquid-glass.search"},
+                           {id:"liquid-glass.control"},{id:"liquid-glass.clock"}])
 ' "$SJ" > "$tmp"
 jq empty "$tmp" && mv "$tmp" "$SJ"
 ok "plugins activés, omarchy.dock/lock/osd remplacés par leurs clones, barre réorganisée"

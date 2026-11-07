@@ -373,6 +373,10 @@ Item {
     // The layout commands call this after changing a workspace's mode.
     function refresh(): void { root.refresh() }
     function apps(): void { appGrid.toggle() }
+    // Ouvre le menu contextuel ou les aperçus de la n-ième app (clavier, tests).
+    function menu(index: string): void { var w = docks.instances[0]; if (w) w.openAt("menu", parseInt(index)) }
+    function preview(index: string): void { var w = docks.instances[0]; if (w) w.openAt("preview", parseInt(index)) }
+    function close(): void { var w = docks.instances[0]; if (w) { w.closeMenu(); w.closePreview() } }
   }
 
   // An app dragged out of the app grid: the grid holds the pointer and
@@ -417,6 +421,94 @@ Item {
       }
     }
   }
+
+  // ------------------------------------------------------------ pastilles
+  // Comme sur macOS : une pastille rouge compte les notifications d'une app
+  // arrivées depuis la dernière fois qu'une de ses fenêtres a eu le focus.
+  // Lues dans l'état du service de notifications d'Omarchy (live + historique).
+  readonly property string home: Quickshell.env("HOME")
+  property var liveNotifs: []
+  property var pastNotifs: []
+  FileView {
+    path: root.home + "/.local/state/omarchy/notifications/live.json"
+    watchChanges: true; printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.liveNotifs = JSON.parse(text()) || [] } catch (e) { root.liveNotifs = [] } }
+  }
+  FileView {
+    path: root.home + "/.local/state/omarchy/notifications/history.json"
+    watchChanges: true; printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.pastNotifs = JSON.parse(text()) || [] } catch (e) { root.pastNotifs = [] } }
+  }
+  // Dernière consultation de chaque app (clé du dock → secondes), gardée sur disque.
+  property var seen: ({})
+  FileView {
+    id: seenFile
+    path: root.home + "/.cache/liquid-glass/dock-seen.json"
+    printErrors: false
+    onLoaded: { try { root.seen = JSON.parse(text()) || ({}) } catch (e) { root.seen = ({}) } }
+  }
+  function markSeen(key) {
+    if (!key) return
+    var next = Object.assign({}, root.seen)
+    next[key] = Date.now() / 1000
+    root.seen = next
+    seenSave.restart()
+  }
+  Timer { id: seenSave; interval: 800; onTriggered: seenFile.setText(JSON.stringify(root.seen)) }
+  // Voir une fenêtre de l'app = ses notifications sont lues.
+  Connections {
+    target: Hyprland
+    function onActiveToplevelChanged() {
+      var t = Hyprland.activeToplevel
+      var w = t && t.wayland
+      if (!w || !w.appId) return
+      var entry = root.entryForAppId(w.appId)
+      root.markSeen(entry ? entry.id : w.appId)
+    }
+  }
+  function norm(s) { return String(s || "").toLowerCase().replace(/\.desktop$/, "").replace(/[^a-z0-9]/g, "") }
+  // Noms sous lesquels une app peut signer ses notifications.
+  function namesFor(item) {
+    var names = {}
+    names[norm(item.key)] = true
+    var entry = DesktopEntries.byId(item.key)
+    if (entry) { names[norm(entry.name)] = true; names[norm(entry.icon)] = true }
+    for (var i = 0; i < item.windows.length; i++) if (item.windows[i].toplevel) names[norm(item.windows[i].toplevel.appId)] = true
+    // Quelques alias courants (lanceurs et navigateurs).
+    var k = norm(item.key)
+    if (k.indexOf("spotify") >= 0) names["spotify"] = true
+    if (k.indexOf("chrom") >= 0) { names["chromium"] = true; names["googlechrome"] = true }
+    if (k.indexOf("discord") >= 0 || k.indexOf("vesktop") >= 0) names["discord"] = true
+    delete names[""]
+    return names
+  }
+  readonly property var badges: {
+    var out = {}
+    var now = Date.now() / 1000
+    var all = [].concat(root.liveNotifs || [], root.pastNotifs || [])
+    var dedup = {}
+    for (var i = 0; i < root.items.length; i++) {
+      var item = root.items[i]
+      var names = root.namesFor(item)
+      var since = Number(root.seen[item.key] || 0)
+      var count = 0
+      for (var j = 0; j < all.length; j++) {
+        var n = all[j]
+        if (!n || !n.ts || n.transient || n.ts <= since || now - n.ts > 24 * 3600) continue
+        var id = item.key + "|" + n.key
+        if (dedup[id]) continue
+        if (names[norm(n.app)] || names[norm(n.source)] || names[norm(String(n.groupKey || "").replace(/^app:/, ""))]) {
+          dedup[id] = true
+          count++
+        }
+      }
+      if (count > 0) out[item.key] = count
+    }
+    return out
+  }
+  function badgeFor(key) { return root.badges[key] || 0 }
 
   AppGrid {
     id: appGrid

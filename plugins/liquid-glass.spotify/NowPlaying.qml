@@ -88,7 +88,7 @@ Panel {
         id: artImg
         anchors.fill: parent
         source: root.s && root.s.coverPath !== "" ? "file://" + root.s.coverPath
-              : (root.s && root.s.artUrl.indexOf("https://") === 0 ? root.s.artUrl : "")
+              : (root.s && root.s.artUrl.indexOf("file://") === 0 ? root.s.artUrl : "")
         sourceSize: Qt.size(64, 64)
         fillMode: Image.PreserveAspectCrop
         visible: false

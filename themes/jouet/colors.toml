@@ -1,0 +1,37 @@
+# Liquid Glass — jouet — bonbon, contours épais, ombres dures (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#ff5fa2"
+selection = "#ffd9ea"
+muted = "#b9a2ff"
+
+background = "#fff8ee"
+dark_background = "#ffeedd"
+darker_background = "#ffe4cc"
+lighter_background = "#fffdf7"
+
+foreground = "#1b1030"
+dark_foreground = "#5b4a7a"
+light_foreground = "#2d1f48"
+bright_foreground = "#0d0618"
+
+hyprland_active_border = "rgba(ff5fa2ff) rgba(6ec6ffff) 45deg"
+
+hyprland_inactive_border = "rgba(1b1030ff)"
+
+red = "#ff3b6b"
+green = "#1fb98f"
+yellow = "#e0a800"
+blue = "#2f8fe0"
+magenta = "#c14fd6"
+cyan = "#12a9b8"
+orange = "#ef7135"
+brown = "#7d5c18"
+
+bright_red = "#ff5fa2"
+bright_green = "#3ddbb4"
+bright_yellow = "#ffd23f"
+bright_blue = "#6ec6ff"
+bright_magenta = "#b9a2ff"
+bright_cyan = "#5ee6e6"

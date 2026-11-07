@@ -41,10 +41,13 @@ Item {
   readonly property var spCfg: cfg.spotify || ({})
   readonly property var lyCfg: cfg.lyrics || ({})
   readonly property var vzCfg: cfg.visualizer || ({})
-  readonly property string wallMode: spCfg.wallpaper || "cover"
+  // Profil « Linux » (⌘⇧Espace) : ni pochette en fond d'écran ni couleurs
+  // dynamiques, le bureau lain garde son fond ; les paroles restent chargées.
+  readonly property bool linuxProfile: (cfg.profile || {}).active === "linux"
+  readonly property string wallMode: linuxProfile ? "off" : (spCfg.wallpaper || "cover")
   readonly property real restoreMinutes: spCfg.restore_after_minutes !== undefined ? Number(spCfg.restore_after_minutes) : 5
-  readonly property bool dynamicColors: spCfg.dynamic_colors !== false
-  readonly property bool lyricsDesktop: lyCfg.desktop !== false
+  readonly property bool dynamicColors: !linuxProfile && spCfg.dynamic_colors !== false
+  readonly property bool lyricsDesktop: !linuxProfile && lyCfg.desktop !== false
   readonly property bool lyricsWidget: lyCfg.widget === true
   readonly property bool lyricsBar: lyCfg.bar !== false
   readonly property bool visualizer: vzCfg.enabled === true
@@ -121,10 +124,38 @@ Item {
     atomicWrites: true
     printErrors: false
   }
+  // Dernier morceau écouté (gardé quand Spotify est fermé) : l'écran verrouillé
+  // l'affiche et peut le relancer (`liquid-glass resume-music`).
+  FileView {
+    id: lastTrackFile
+    path: svc.home + "/.cache/liquid-glass/last-track.json"
+    atomicWrites: true
+    printErrors: false
+  }
+  function trackUri() {
+    var md = player && player.metadata ? player.metadata : ({})
+    var u = String(md["xesam:url"] || "")
+    var m = u.match(/open\.spotify\.com\/(track|episode)\/([A-Za-z0-9]+)/)
+    if (m) return "spotify:" + m[1] + ":" + m[2]
+    var id = String(md["mpris:trackid"] || "")
+    m = id.match(/\/com\/spotify\/(track|episode)\/([A-Za-z0-9]+)/)
+    if (m) return "spotify:" + m[1] + ":" + m[2]
+    return /^spotify:(track|episode):[A-Za-z0-9]+$/.test(id) ? id : ""
+  }
+  function writeLastTrack() {
+    if (!hasTrack || coverPath === "" || !player || !isSpotify(player)) return
+    lastTrackFile.setText(JSON.stringify({
+      title: title, artist: artist, album: album, cover: coverPath, wallpaper: wallpaperPath,
+      palette: palette, uri: trackUri(), length: length, at: Date.now()
+    }) + "\n")
+  }
   function writeNowPlaying() {
+    writeLastTrack()
     nowPlayingFile.setText(JSON.stringify({
       title: title, artist: artist, album: album, cover: coverPath,
       palette: palette, coverWallpaper: showingCover, wallLayout: wallMode,
+      // Où la pochette nette est dessinée sur le fond (le widget musique se met dessous).
+      wallAlign: (lyricsDesktop && wallMode === "cover") ? "left" : "center",
       wallpaper: wallpaperPath,
       // Paroles synchronisées pour l'écran de verrouillage : [{t, text}].
       lyrics: lyricsSynced ? lyricLines : []
@@ -139,7 +170,14 @@ Item {
     lyricLines = []
     lyricsSynced = false
     lyricsPlain = ""
-    if (hasTrack) fetchDebounce.restart()
+    if (hasTrack) { fetchDebounce.restart(); return }
+    // Plus de lecteur (ou morceau vide) : on efface le morceau publié, sinon
+    // l'écran verrouillé, l'île et les widgets gardent l'ancien titre et sa pochette.
+    fetchDebounce.stop()
+    coverPath = ""
+    palette = null
+    wallpaperPath = ""
+    writeNowPlaying()
   }
   onPlayingChanged: {
     if (playing) {
@@ -153,6 +191,10 @@ Item {
   onDynamicColorsChanged: { if (!dynamicColors && colorsActive) resetColors(); else if (dynamicColors && playing && palette) applyColors() }
   onWallModeChanged: if (hasTrack) fetch(true)
   onLyricsDesktopChanged: if (hasTrack && wallMode === "cover") fetch(true)
+
+  // Au démarrage sans lecteur : le fichier peut contenir le morceau d'une session
+  // précédente ; on le vide (après un délai, le temps que MPRIS énumère les lecteurs).
+  Timer { running: true; interval: 2500; onTriggered: if (!svc.hasTrack) svc.writeNowPlaying() }
 
   // Changements de morceau rapprochés (on zappe) : on attend que ça se stabilise.
   Timer { id: fetchDebounce; interval: 450; onTriggered: svc.fetch(false) }
@@ -328,7 +370,7 @@ Item {
     }
     function karaoke(): void { svc.karaokeOpen = !svc.karaokeOpen }
     function widget(): void { svc.setConfig("lyrics.widget", !svc.lyricsWidget) }
-    function desktop(): void { svc.setConfig("lyrics.desktop", !svc.lyricsDesktop) }
+    function desktop(): void { svc.setConfig("lyrics.desktop", svc.lyCfg.desktop === false) }
     function refresh(): void { svc.fetch(true) }
     function restore(): void { svc.restoreAll() }
     function playPause(): void { if (svc.player) svc.player.togglePlaying() }

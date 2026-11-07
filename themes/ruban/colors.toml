@@ -1,0 +1,37 @@
+# Liquid Glass — rubans — bleu nuit, cyan, aplats en biais (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#19d3ff"
+selection = "#0a3a8c"
+muted = "#4f8fd0"
+
+background = "#06102e"
+dark_background = "#050c24"
+darker_background = "#03081a"
+lighter_background = "#0d2050"
+
+foreground = "#ffffff"
+dark_foreground = "#a8dfff"
+light_foreground = "#d8f6ff"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(19d3ffff) rgba(ffffffff) 45deg"
+
+hyprland_inactive_border = "rgba(1d3f8aff)"
+
+red = "#ff5a6e"
+green = "#3ddbb4"
+yellow = "#ffc800"
+blue = "#19a3ff"
+magenta = "#c58bff"
+cyan = "#19d3ff"
+orange = "#ff9137"
+brown = "#867428"
+
+bright_red = "#ff8a9a"
+bright_green = "#6fe8cc"
+bright_yellow = "#ffe080"
+bright_blue = "#60c0ff"
+bright_magenta = "#dcb0ff"
+bright_cyan = "#8fe8ff"

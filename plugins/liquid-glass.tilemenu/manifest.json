@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.tilemenu",
+  "name": "Liquid Glass — Menu du bouton vert",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Menu Plein écran / Déplacer et redimensionner (moitiés, quarts, remplir, centrer) du bouton vert, façon macOS Tahoe",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "TileMenu.qml" }
+}

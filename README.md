@@ -92,6 +92,81 @@ Les paquets installés ne sont pas désinstallés : la liste d'avant se trouve d
 
 ---
 
+## Bureau Linux (⌘⇧ Espace)
+
+Un second bureau, sans rien de macOS, partagé seulement par les apps.
+**⌘⇧ Espace** ouvre le **sélecteur de bureaux** : des cartes d'aperçu (fond du
+thème + maquette du style) pour le Mac, l'**Omarchy d'origine** et chaque style
+Linux (←/→/↑/↓ ou 1–0, Entrée). Les styles qui ne diffèrent que par la couleur
+sont réunis : leurs **teintes** sont des pastilles sous la carte (touche **T**),
+et **⌃⌘T** passe à la teinte suivante. En ligne de commande :
+`liquid-glass profile <style>[:<teinte>]`, `liquid-glass profile tone [nom]`,
+`liquid-glass profile omarchy`.
+
+| Style | Allure | Teintes |
+|---|---|---|
+| **blanc** (défaut) | Barre de texte en bas façon dwm, bords durs, ombres décalées, fiche système, grande heure | pur, crème |
+| **sombre** | Mur de tuiles : pochette, paroles, système, labyrinthe, signal, blobs, anneau, spectre, mot chanté géant | encre, ambre, glace, sang, indigo |
+| **jouet** | Pas de barre en haut : gros dock en bas, bureaux en blocs de couleur, autocollants penchés, ombres dures | bonbon, menthe, pêche |
+| **violet** | Montagnes dans la brume, grosse horloge « bonbon » empilée, anneau de batterie ondulé | nuit, aube, rose |
+| **expressive** | Material 3 Expressive façon [end4-pC](https://github.com/pctrade/end4-pC) / [Serpantinum](https://github.com/ilyamiro/serpantinum), couleurs **Material You** tirées du fond (matugen) | 5 palettes matugen |
+| **windows** | Clone de Windows 11 : barre des tâches centrée, menu Démarrer (épinglés, toutes les applis, recommandés), paramètres rapides, calendrier, widgets, vue des tâches, fenêtre **Paramètres** complète (Informations, Personnalisation…) | clair, sombre |
+| **mono** | Façon caelestia : cadre noir arrondi autour de l'écran, barre latérale, tableau de bord (météo, calendrier, média, performances), session au bord droit, fonds en trame | noir, papier, sakura |
+| **foret** | Rice « c01 » : puces flottantes, horloge à secondes, météo heure par heure en orbite, spectre musical à curseurs, volets batterie et réseau | mousse, cendre |
+| **ruban** | Bandes en biais, date géante, batterie qui ondule, lanceur oblique qui glisse | bleu, rouge, or |
+| **espace** | Barre fine, paroles qui défilent au centre, horloge à planètes, grille d'activité, tableau de bord central | bleu, mars, nébuleuse |
+| **gouts** | « Mes goûts » : horloge empilée, planètes, vinyle, mot chanté géant, aux couleurs du thème Omarchy choisi | tous les thèmes installés |
+| **debian**, **fedora** | Bureau GNOME : barre noire, Activités, vue d'ensemble, grille d'applications, dash | — |
+| **mint** | Bureau Cinnamon : panneau en bas, menu avec favoris et catégories | — |
+| **kali** | Bureau Xfce : panneau en haut, menu des outils par catégorie (installation en un clic, `sudo` demandé dans le terminal) | — |
+| **arch** | Bureau Plasma : panneau flottant, Kickoff | — |
+
+Aucune interface d'Omarchy sur le bureau Linux : chaque style a son **lanceur**
+(⌘Espace ; menu Démarrer en Windows), ses **réglages** (⌘⌥Espace ; Paramètres en
+Windows) et son **alimentation** (⌘Échap). Le profil **Omarchy** remet au contraire
+Omarchy exactement comme livré (sa barre, son thème, ses menus) ; seul ⌘⇧Espace y
+ouvre le sélecteur pour revenir.
+
+Chaque style a son thème Omarchy (terminaux, bordures, menus, fonds générés :
+`scripts/gen-linux-themes.py`, `scripts/gen-linux-wallpapers.py`), sa peau (polices,
+arrondis, bordures, ombres) et son jeu de widgets ; les widgets se déplacent à la
+souris (élan + grille) et chaque style garde ses places.
+
+**La musique partout** (Réglages → Bureau Linux → Musique, ou `[linux]`) :
+- visualiseur cava en bas de l'écran : barres, vague, miroir, blocs pixel, ligne
+  d'oscilloscope ou anneau radial ; hauteur, sensibilité, opacité, couleur (thème,
+  pochette, arc-en-ciel, encre) ;
+- paroles synchronisées : le **mot chanté en géant** au centre, la ligne entière,
+  dans la carte du lecteur, ou rien ; position et taille ;
+- halo qui respire sur les basses, horloges et lecteur qui **rebondissent** sur le beat ;
+- lecteur vinyle : disque qui tourne, anneau cava autour, égaliseur ;
+- petit égaliseur dans la barre.
+
+**Écran de verrouillage Linux** : horloge « bonbon » empilée, date en pastille,
+champ en carrés qui apparaissent à chaque touche, utilisateur et session, morceau
+en cours, bascule clair/sombre (la nouvelle ambiance s'ouvre en cercle depuis le
+bouton) et menu d'alimentation. Couleurs du style actif ; même flux PAM que l'écran
+Mac. `[lock] linux_style = auto | on | off`.
+
+**Terminal** : `liquid-glass-tty [eye|heart|donut|rain|clock|cava|cover]` — animations
+ASCII qui suivent la musique (œil qui regarde et dont la pupille bat, cœur en relief,
+tore, pluie, horloge pixel, visualiseur, pochette en demi-blocs couleur). Espace pour
+la scène suivante. **⌃⌘ M** : menu des rices. Une page = un bureau de 1 à 13 terminaux (grille avec grande
+case centrale à 13), une scène par terminal parmi 33 (trou noir, aquarium, lampe à lave,
+feuilles, sakura, serpent, jeu de la vie, tuyaux, radar, minuteur…), temps entre deux
+scènes, durée du minuteur, police et opacité. Chaque style a ses scènes et sa police ;
+**⌃⌘⇧ M** lance la page suivante. Réglages : `~/.config/liquid-glass/rice.json`.
+
+**Son des touches** : `liquid-glass keys on` — clavier mécanique « creamy » sur tout le
+système (sons synthétisés : creamy, thocky, clicky ; ou un pack Mechvibes avec
+`liquid-glass keys import <dossier>`). Une seule fois : `sudo usermod -aG input $USER`.
+
+**⌃⌘ Espace** : carrousel de fonds en cartes inclinées (←/→, molette, Tab pour les
+catégories, Entrée pour appliquer).
+
+Polices (téléchargées par `install.sh` dans `~/.local/share/fonts`) : Material
+Symbols Rounded, Google Sans Flex, Rubik, Silkscreen, Pixelify Sans, Syncopate, Unbounded.
+
 ## Raccourcis
 
 ⌘ = touche Super. Liste complète à l'écran : **⌘K**. Liste Omarchy : **⌘⇧K**.

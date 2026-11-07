@@ -1,0 +1,37 @@
+# Liquid Glass — sombre — noir profond, blanc cassé (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#f2f2f2"
+selection = "#2a2a2a"
+muted = "#5a5a5a"
+
+background = "#070707"
+dark_background = "#050505"
+darker_background = "#000000"
+lighter_background = "#141414"
+
+foreground = "#ededed"
+dark_foreground = "#8c8c8c"
+light_foreground = "#d0d0d0"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(f2f2f2cc) rgba(8c8c8ccc) 45deg"
+
+hyprland_inactive_border = "rgba(2a2a2aff)"
+
+red = "#d0716f"
+green = "#8fb08a"
+yellow = "#d6c07a"
+blue = "#8aa4c8"
+magenta = "#b294bb"
+cyan = "#8abeb7"
+orange = "#d39874"
+brown = "#796e4b"
+
+bright_red = "#e08a88"
+bright_green = "#a7c9a1"
+bright_yellow = "#e6d393"
+bright_blue = "#a3bde0"
+bright_magenta = "#c9addb"
+bright_cyan = "#a3d6cf"

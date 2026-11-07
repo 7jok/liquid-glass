@@ -1,0 +1,37 @@
+# Liquid Glass — blanc — tout en blanc, encre noire, police mono (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#141414"
+selection = "#dcdcdc"
+muted = "#9a9a9a"
+
+background = "#f7f7f7"
+dark_background = "#efefef"
+darker_background = "#e6e6e6"
+lighter_background = "#ffffff"
+
+foreground = "#141414"
+dark_foreground = "#6e6e6e"
+light_foreground = "#2a2a2a"
+bright_foreground = "#000000"
+
+hyprland_active_border = "rgba(141414ee) rgba(141414ee) 45deg"
+
+hyprland_inactive_border = "rgba(d6d6d6ff)"
+
+red = "#b3261e"
+green = "#2e7d32"
+yellow = "#8d6e00"
+blue = "#1f4fbf"
+magenta = "#7b3fa0"
+cyan = "#00796b"
+orange = "#a04a0f"
+brown = "#50410a"
+
+bright_red = "#d32f2f"
+bright_green = "#43a047"
+bright_yellow = "#b08900"
+bright_blue = "#3b6fe0"
+bright_magenta = "#9c4dcc"
+bright_cyan = "#00897b"

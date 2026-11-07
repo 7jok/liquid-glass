@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.standby",
+  "name": "Liquid Glass — En veille (StandBy)",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Mode En veille façon StandBy : grande horloge à gauche, widget à droite (calendrier, musique, météo), rouge la nuit",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "StandBy.qml" }
+}

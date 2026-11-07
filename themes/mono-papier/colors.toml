@@ -1,0 +1,37 @@
+# Liquid Glass — mono papier — blanc pur, encre noire (caelestia blanc) (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#1a1a1a"
+selection = "#e2e2e2"
+muted = "#9a9a9a"
+
+background = "#ffffff"
+dark_background = "#f4f4f4"
+darker_background = "#e8e8e8"
+lighter_background = "#ffffff"
+
+foreground = "#161616"
+dark_foreground = "#6a6a6a"
+light_foreground = "#2a2a2a"
+bright_foreground = "#000000"
+
+hyprland_active_border = "rgba(1a1a1aaa) rgba(9a9a9aaa) 45deg"
+
+hyprland_inactive_border = "rgba(dcdcdcff)"
+
+red = "#c2464f"
+green = "#4f8a4a"
+yellow = "#a07c1c"
+blue = "#3e66b3"
+magenta = "#8a4fa8"
+cyan = "#2f8a86"
+orange = "#b16135"
+brown = "#5b4919"
+
+bright_red = "#d45a6a"
+bright_green = "#5fa05a"
+bright_yellow = "#b8902a"
+bright_blue = "#5580cc"
+bright_magenta = "#a066c0"
+bright_cyan = "#3fa39e"

@@ -32,6 +32,9 @@ Item {
     ["Fenêtres & bureaux", [
       ["⌘ ↑", "Mission Control"],
       ["4 doigts ↑", "Mission Control (pavé)"],
+      ["⌘ ↓", "App Exposé (fenêtres de l'app)"],
+      ["4 doigts ↓", "App Exposé (pavé)"],
+      ["⌘ ⇧ Espace", "Bureau Linux ⇄ Mac (profil)"],
       ["⌘ F3", "Afficher le bureau"],
       ["⌘ ← · →", "Bureau précédent · suivant"],
       ["⌘ 1…0", "Aller au bureau"],
@@ -85,7 +88,7 @@ Item {
       focus: true
       Keys.onPressed: function(ev) { root.dismiss(); ev.accepted = true }
     }
-    Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.18) }
+    // Pas de voile plein écran (macOS n'en met pas ; il ferait flouter tout le bureau).
     MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
 
     BorderSurface {

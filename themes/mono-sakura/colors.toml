@@ -1,0 +1,37 @@
+# Liquid Glass — mono sakura — prune profond, rose cerisier (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#f7a8c4"
+selection = "#5c2a40"
+muted = "#8e6a7a"
+
+background = "#1d1218"
+dark_background = "#160d12"
+darker_background = "#0f080c"
+lighter_background = "#2a1b23"
+
+foreground = "#fbe6ee"
+dark_foreground = "#c9a3b3"
+light_foreground = "#ecd2dc"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(f7a8c4cc) rgba(ffc9a8cc) 45deg"
+
+hyprland_inactive_border = "rgba(4a3240ff)"
+
+red = "#ff8a9a"
+green = "#b8d8a8"
+yellow = "#ffd9a8"
+blue = "#a8c0f0"
+magenta = "#f7a8c4"
+cyan = "#a8e0d8"
+orange = "#ffb1a1"
+brown = "#947a65"
+
+bright_red = "#ffa3b1"
+bright_green = "#cce8bc"
+bright_yellow = "#ffe6c2"
+bright_blue = "#c0d2f7"
+bright_magenta = "#ffc2d8"
+bright_cyan = "#c2ece6"

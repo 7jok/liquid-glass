@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.shortcuts",
+  "name": "Liquid Glass — Raccourcis d'apps",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Icônes d'apps dans la barre des menus (Claude Code, ou n'importe quelle app), choisies dans Réglages → Raccourcis",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Shortcuts.qml" },
+  "barWidget": { "displayName": "Raccourcis d'apps", "description": "Lanceurs d'apps", "category": "System", "allowMultiple": false, "defaultSection": "right" }
+}

@@ -1,2 +1,31 @@
 __pycache__/
 *.pyc
+
+# Fonds animés générés en local (liquid-glass animated-wallpapers)
+themes/*/backgrounds/*.mp4
+
+# Fonds du profil Linux (dotfiles Teiguuu), récupérés par `liquid-glass profile linux`
+themes/lain/backgrounds/
+
+# Fonds générés des styles Linux (scripts/gen-linux-wallpapers.py)
+themes/blanc/backgrounds/
+themes/sombre/backgrounds/
+themes/jouet/backgrounds/
+themes/violet/backgrounds/
+themes/violet-aube/backgrounds/
+themes/rose/backgrounds/
+themes/windows/backgrounds/wh-*
+themes/windows-sombre/backgrounds/wh-*
+themes/mono/backgrounds/wh-*
+themes/foret/backgrounds/wh-*
+themes/*/backgrounds/01-papier.jpg
+themes/*/backgrounds/01-sakura.jpg
+themes/debian/backgrounds/
+themes/fedora/backgrounds/
+themes/mint/backgrounds/
+themes/kali/backgrounds/
+themes/arch/backgrounds/
+themes/ruban/backgrounds/
+themes/espace/backgrounds/
+themes/mono-papier/backgrounds/
+themes/mono-sakura/backgrounds/

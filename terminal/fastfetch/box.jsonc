@@ -1,0 +1,26 @@
+// Liquid Glass — fiche encadrée (terminaux de Mono : `liquid-glass rice`).
+// Couleurs ANSI du thème : elle suit donc le terminal, clair ou sombre.
+{
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  "logo": { "type": "small", "padding": { "top": 2, "left": 2, "right": 3 } },
+  "display": {
+    "separator": " ",
+    "color": { "keys": "default" },
+    "key": { "width": 11 }
+  },
+  "modules": [
+    { "type": "custom", "format": "┌─ {#1}système{#} ──────────────────────────────" },
+    { "type": "os", "key": "│ os", "format": "{pretty-name}" },
+    { "type": "kernel", "key": "│ noyau" },
+    { "type": "wm", "key": "│ bureau", "format": "{pretty-name}" },
+    { "type": "packages", "key": "│ paquets" },
+    { "type": "uptime", "key": "│ allumé" },
+    { "type": "custom", "format": "├─ {#1}machine{#} ──────────────────────────────" },
+    { "type": "cpu", "key": "│ cpu", "format": "{name}" },
+    { "type": "memory", "key": "│ mémoire" },
+    { "type": "disk", "key": "│ disque", "folders": "/" },
+    { "type": "battery", "key": "│ batterie" },
+    { "type": "custom", "format": "└──────────────────────────────────────────" },
+    { "type": "colors", "paddingLeft": 2, "symbol": "circle" }
+  ]
+}

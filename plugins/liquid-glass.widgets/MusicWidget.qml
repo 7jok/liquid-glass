@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Services.Mpris
+import Quickshell.Widgets
 import qs.Commons
 
 // Lecture en cours façon macOS, teintée par la couleur de la pochette.
@@ -16,6 +17,11 @@ Tile {
   property string size: "medium"
   property bool lyricsMode: false
   signal lyricsToggled()
+  // Pochette « sortie » au-dessus du widget (MusicWindow) : elle quitte la carte
+  // et le titre glisse à sa place. Clic sur la pochette = artToggled().
+  property bool artOut: false
+  signal artToggled()
+  property alias artItem: art
   readonly property bool small: size === "small"
   readonly property bool large: size === "large"
   function g(cp) { return String.fromCodePoint(cp) }
@@ -68,11 +74,13 @@ Tile {
   tint: "transparent"
 
   // ---------------------------------------------------------------- fond
-  Item {
+  // Coins arrondis par découpe directe (pas de calque masqué : net à 1,5× et sans
+  // texture à recréer quand la taille change).
+  ClippingRectangle {
     id: backdrop
     anchors.fill: parent
-    layer.enabled: true
-    layer.effect: MultiEffect { maskEnabled: true; maskSource: roundMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0 }
+    radius: w.radius
+    color: "transparent"
     Image {
       id: blurSrc
       anchors.fill: parent
@@ -99,13 +107,6 @@ Tile {
       }
     }
   }
-  Item {
-    id: roundMask
-    anchors.fill: parent
-    layer.enabled: true
-    visible: false
-    Rectangle { anchors.fill: parent; radius: w.radius; color: "black" }
-  }
   Rectangle {
     anchors.fill: parent; radius: w.radius; color: "transparent"
     border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.22)
@@ -131,22 +132,41 @@ Tile {
                                    : (w.large ? Math.min(header.height, Math.round(header.width * 0.55)) : header.height)
       width: side; height: side
       y: w.large ? Math.round((header.height - side) / 2) : 0
-      Image {
-        id: artImg
+      opacity: w.artOut ? 0 : 1
+      Behavior on opacity { NumberAnimation { duration: 160 } }
+      // Un simple tap (le glisser-déposer de la carte reste possible depuis la pochette).
+      TapHandler { onTapped: w.artToggled() }
+      HoverHandler { cursorShape: Qt.PointingHandCursor }
+      readonly property real r: w.large ? 14 : 10
+      RectangularShadow {
         anchors.fill: parent
-        source: svc ? svc.coverSource : ""
-        fillMode: Image.PreserveAspectCrop
-        sourceSize: Qt.size(420, 420)
-        asynchronous: true
-        visible: false
+        offset.y: 4
+        radius: art.r
+        blur: 16
+        spread: 0
+        color: Qt.rgba(0, 0, 0, 0.38)
       }
-      Item { id: artMask; anchors.fill: parent; layer.enabled: true; visible: false
-        Rectangle { anchors.fill: parent; radius: w.large ? 16 : 10; color: "black" } }
-      MultiEffect {
+      ClippingRectangle {
         anchors.fill: parent
-        source: artImg
-        maskEnabled: true; maskSource: artMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0
-        shadowEnabled: true; shadowOpacity: 0.4; shadowBlur: 0.7; shadowVerticalOffset: 4
+        radius: art.r
+        color: Qt.rgba(1, 1, 1, 0.08)
+        Image {
+          id: artImg
+          anchors.fill: parent
+          source: svc ? svc.coverSource : ""
+          fillMode: Image.PreserveAspectCrop
+          sourceSize: Qt.size(420, 420)
+          asynchronous: true
+          smooth: true; mipmap: true
+        }
+      }
+      // Nouveau morceau : la pochette rebondit.
+      property string key: w.p ? (w.p.trackTitle || "") : ""
+      onKeyChanged: artPop.restart()
+      SequentialAnimation {
+        id: artPop
+        NumberAnimation { target: art; property: "scale"; to: 0.82; duration: 110; easing.type: Easing.OutQuad }
+        NumberAnimation { target: art; property: "scale"; to: 1; duration: 640; easing.type: Easing.OutBack; easing.overshoot: 2.6 }
       }
     }
 
@@ -168,7 +188,8 @@ Tile {
     // Moyen / grand : titre à droite de la pochette.
     Column {
       visible: !w.small
-      anchors.left: art.right; anchors.leftMargin: 16
+      anchors.left: parent.left; anchors.leftMargin: w.artOut ? 0 : art.side + 16
+      Behavior on anchors.leftMargin { NumberAnimation { duration: 520; easing.type: Easing.OutBack; easing.overshoot: 1.4 } }
       anchors.right: parent.right; anchors.rightMargin: 34
       anchors.verticalCenter: w.large ? undefined : art.verticalCenter
       anchors.top: w.large ? art.top : undefined
@@ -254,13 +275,44 @@ Tile {
     anchors.right: parent.right; anchors.top: parent.top
     anchors.rightMargin: 12; anchors.topMargin: 12
     width: 28; height: 28; radius: 14
-    color: Qt.rgba(1, 1, 1, w.lyricsMode ? 0.32 : (bubbleMouse.containsMouse ? 0.2 : 0.12))
-    opacity: w.hasLyrics ? 1 : 0.4
+    // Pochette en fond d'écran : la bulle met les paroles sur le fond (comme la vidéo) ;
+    // sinon elle retourne la carte. Clic droit : toujours retourner la carte.
+    readonly property bool onWall: !!svc && svc.coverWallpaper
+    readonly property bool lit: onWall ? (!!svc && svc.lyricsDesktop) : w.lyricsMode
+    color: lit ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(1, 1, 1, bubbleMouse.containsMouse ? 0.2 : 0.12)
+    opacity: w.hasLyrics ? 1 : 0.55
     scale: bubbleMouse.pressed ? 0.82 : 1
     Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 3 } }
     Behavior on color { ColorAnimation { duration: 150 } }
-    Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: w.g(0xF0369); font.family: Style.font.family; font.pixelSize: 15; color: w.ink }
-    MouseArea { id: bubbleMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: w.lyricsToggled() }
+    Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: w.g(0xF0369); font.family: Style.font.family; font.pixelSize: 15; color: parent.lit ? "#1d1d1f" : w.ink }
+    MouseArea {
+      id: bubbleMouse
+      anchors.fill: parent; anchors.margins: -4
+      hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+      acceptedButtons: Qt.LeftButton | Qt.RightButton
+      onClicked: function(m) {
+        if (!w.hasLyrics && !(m.button === Qt.LeftButton && parent.onWall && svc && svc.lyricsDesktop)) { noLyrics.restart(); return }
+        if (m.button === Qt.RightButton || !parent.onWall) w.lyricsToggled()
+        else Quickshell.execDetached(["omarchy-shell", "liquid-glass.spotify", "desktop"])
+      }
+    }
+  }
+  // « Pas de paroles » : petite bulle qui apparaît puis s'efface.
+  Rectangle {
+    id: noLyricsTip
+    anchors.right: parent.right; anchors.rightMargin: 46
+    anchors.top: parent.top; anchors.topMargin: 14
+    width: nlText.implicitWidth + 16; height: 24; radius: 12
+    color: Qt.rgba(0, 0, 0, 0.55)
+    opacity: 0
+    visible: opacity > 0.01
+    Text { id: nlText; anchors.centerIn: parent; textFormat: Text.PlainText; text: "Pas de paroles pour ce titre"; font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: "white" }
+    SequentialAnimation {
+      id: noLyrics
+      NumberAnimation { target: noLyricsTip; property: "opacity"; to: 1; duration: 160 }
+      PauseAnimation { duration: 1600 }
+      NumberAnimation { target: noLyricsTip; property: "opacity"; to: 0; duration: 400 }
+    }
   }
 
   // -------------------------------------------------- progression + commandes

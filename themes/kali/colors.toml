@@ -1,0 +1,37 @@
+# Liquid Glass — kali — Xfce, bleu nuit (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#367bf0"
+selection = "#1f3f7a"
+muted = "#7c7c7c"
+
+background = "#1b1d26"
+dark_background = "#15161e"
+darker_background = "#0f1016"
+lighter_background = "#262936"
+
+foreground = "#f2f2f2"
+dark_foreground = "#b8b8b8"
+light_foreground = "#dcdcdc"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(367bf0ee) rgba(367bf0aa) 45deg"
+
+hyprland_inactive_border = "rgba(3a3a3aff)"
+
+red = "#e05561"
+green = "#4fb06a"
+yellow = "#d6a23d"
+blue = "#4c8dd6"
+magenta = "#b06bd6"
+cyan = "#3fb4b4"
+orange = "#db7b4f"
+brown = "#826835"
+
+bright_red = "#ff7b86"
+bright_green = "#6fd18b"
+bright_yellow = "#f0c060"
+bright_blue = "#72acf0"
+bright_magenta = "#cc8ff0"
+bright_cyan = "#60d0d0"

@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Widgets
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Wayland
@@ -7,6 +8,7 @@ import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
 import "DockModel.js" as DockModel
+import "Mac.js" as Mac
 
 // One screen's dock. It stays mapped and only hides its contents, so switching
 // to a floating workspace does not wait on a fresh layer surface. While hidden the
@@ -44,8 +46,8 @@ PanelWindow {
   // maximized window hides the dock the same way, so it can still be called up.
   readonly property bool autohide: !!dock && (dock.autohide || fullscreenMode === 1)
   property bool revealed: false
-  readonly property bool menuOpen: menuItem !== null || settingsMenu
-  readonly property bool tucked: autohide && !(revealed || menuOpen || dragging || insertIndex >= 0)
+  readonly property bool menuOpen: menuItem !== null || settingsMenu || stackOpen
+  readonly property bool tucked: autohide && !(revealed || menuOpen || previewOpen || dragging || insertIndex >= 0)
   readonly property bool contentShown: shown && !tucked
 
   readonly property int gap: Style.spacing.xs
@@ -80,7 +82,7 @@ PanelWindow {
   // de la croissance des autres, du côté opposé.
   function waveShift(index) {
     if (window.waveStrength <= 0) return 0
-    var count = (window.dock ? window.dock.itemModel.count : 0) + 2   // + bouton Apps + Corbeille
+    var count = (window.dock ? window.dock.itemModel.count : 0) + 3   // + bouton Apps + Téléchargements + Corbeille
     var before = 0, after = 0
     for (var i = 0; i < count; i++) {
       if (i < index) before += waveExtra(i)
@@ -90,20 +92,24 @@ PanelWindow {
   }
   readonly property real waveTotal: {
     if (window.waveStrength <= 0) return 0
-    var count = (window.dock ? window.dock.itemModel.count : 0) + 2
+    var count = (window.dock ? window.dock.itemModel.count : 0) + 3
     var total = 0
     for (var i = 0; i < count; i++) total += waveExtra(i)
     return total
   }
   // Each app has a square slot with its icon in the middle, and the slots run
   // straight to the edge of the dock.
-  readonly property int iconInset: Style.spacing.md
+  // Tahoe : icônes serrées (≈ 4 pt de marge), le verre colle aux icônes.
+  readonly property int iconInset: 4
   readonly property int slotSize: iconSize + iconInset * 2
   // A pinned app that is not running is drawn faded.
   readonly property real idleOpacity: 0.7
   // Room inward of the dock for its menus: the tallest, the apps button's,
   // has five rows.
-  readonly property int popupRoom: Style.spacing.popupRowHeight * 5 + Style.spacing.sm * 2 + Style.normalBorderWidth * 2 + gap * 2
+  // La pile Téléchargements (éventail) demande plus de place que les menus.
+  readonly property int popupRoom: Math.max(Style.spacing.popupRowHeight * 5 + Style.spacing.sm * 2 + Style.normalBorderWidth * 2 + gap * 2, stackRoom)
+  readonly property int stackRoom: window.vertical ? 0 : 10 * 46 + 70
+  property bool stackOpen: false
   // Icons pop away from the screen edge.
   readonly property int popOrigin: position === "top" ? Item.Top
     : position === "left" ? Item.Left
@@ -175,6 +181,92 @@ PanelWindow {
   }
   property var menuItem: null
   property Item menuSlot: null
+  // Comme macOS : apps du Dock | apps ouvertes non gardées | dossiers + Corbeille,
+  // chaque groupe séparé par un trait.
+  readonly property int firstRecent: {
+    var items = dock ? dock.items : []
+    for (var i = 1; i < items.length; i++) if (!items[i].pinned && items[i - 1].pinned) return i
+    return -1
+  }
+
+  // Aperçus des fenêtres au survol d'une icône (façon DockDoor) : après un court
+  // arrêt sur une app ouverte, ses fenêtres apparaissent en direct au-dessus.
+  property string previewKey: ""
+  property Item previewSlot: null
+  property Item previewCandidate: null
+  property bool previewHovered: false
+  readonly property bool previewOpen: previewKey !== ""
+  readonly property var previewItem: previewKey !== "" && dock ? dock.itemFor(previewKey) : null
+  function hoverApp(slot, on) {
+    if (on) {
+      window.previewCandidate = slot
+      previewCloseTimer.stop()
+      // Déjà un aperçu ouvert : passer d'une icône à l'autre le suit sans délai.
+      if (window.previewOpen) previewOpenTimer.interval = 90
+      else previewOpenTimer.interval = 650
+      previewOpenTimer.restart()
+    } else {
+      if (window.previewCandidate === slot) window.previewCandidate = null
+      previewOpenTimer.stop()
+      previewCloseTimer.restart()
+    }
+  }
+  function openAt(kind, index) {
+    var slot = appRepeater.itemAt(index)
+    if (!slot) return
+    window.revealed = true
+    if (kind === "menu") window.openMenu(slot.modelData, slot)
+    else if (slot.windowCount > 0) { window.previewSlot = slot; window.previewKey = slot.key }
+  }
+  function closePreview() {
+    previewOpenTimer.stop()
+    window.previewKey = ""
+    window.previewSlot = null
+  }
+  Timer {
+    id: previewOpenTimer
+    onTriggered: {
+      var slot = window.previewCandidate
+      if (!slot || !slot.hovered || window.menuOpen || window.dragging || slot.windowCount === 0) {
+        if (slot && slot.windowCount === 0 && !window.previewHovered) window.closePreview()
+        return
+      }
+      window.previewSlot = slot
+      window.previewKey = slot.key
+    }
+  }
+  Timer {
+    id: previewCloseTimer
+    interval: 280
+    onTriggered: if (!window.previewHovered && !window.previewCandidate) window.closePreview()
+  }
+  onMenuOpenChanged: if (menuOpen) closePreview()
+  onDraggingChanged: if (dragging) closePreview()
+  // ⌥ maintenue (écrite par Hyprland, voir liquid-glass-bindings.lua) :
+  // « Quitter » devient « Forcer à quitter », comme sur macOS.
+  property bool altHeld: false
+  FileView {
+    path: Quickshell.env("XDG_RUNTIME_DIR") + "/liquid-glass-alt"
+    watchChanges: true
+    onFileChanged: reload()
+    onLoaded: window.altHeld = text().trim() === "1"
+    onLoadFailed: window.altHeld = false
+  }
+  // Options → Ouvrir à la connexion : état lu à l'ouverture du menu.
+  property bool loginItem: false
+  property bool optionsOpen: false
+  Process {
+    id: loginQuery
+    stdout: StdioCollector { onStreamFinished: window.loginItem = text.trim() === "on" }
+  }
+  onMenuItemChanged: {
+    window.optionsOpen = false
+    window.loginItem = false
+    if (menuItem) {
+      loginQuery.command = ["liquid-glass", "login-item", String(menuItem.key), "status"]
+      loginQuery.running = true
+    }
+  }
   // The apps button's menu: where the dock sits and whether it hides.
   property bool settingsMenu: false
 
@@ -212,6 +304,7 @@ PanelWindow {
   }
 
   function closeMenu() {
+    window.stackOpen = false
     window.menuItem = null
     window.settingsMenu = false
     window.menuSlot = null
@@ -261,6 +354,8 @@ PanelWindow {
 
     Region { item: window.shown && window.autohide ? edgeTrigger : null }
     Region { item: menu.visible ? menu : null }
+    Region { item: stackFan.visible ? stackFan : null }
+    Region { item: preview.visible ? preview : null }
   }
 
   onAutohideChanged: window.revealed = false
@@ -270,7 +365,7 @@ PanelWindow {
     // Long enough to cross a gap between the edge and the icons, no longer.
     interval: 150
     onTriggered: {
-      if (!bodyHover.hovered && !edgeHover.hovered && !window.menuOpen && !window.dragging) window.revealed = false
+      if (!bodyHover.hovered && !edgeHover.hovered && !window.menuOpen && !window.previewOpen && !window.dragging) window.revealed = false
     }
   }
 
@@ -300,7 +395,7 @@ PanelWindow {
   }
 
   HyprlandFocusGrab {
-    active: window.menuOpen
+    active: window.menuOpen || window.stackOpen
     windows: [window]
     onCleared: window.closeMenu()
   }
@@ -354,23 +449,35 @@ PanelWindow {
       }
     }
 
-    // Capsule de verre : fond translucide (flouté par Hyprland), liseré clair.
-    // Elle s'élargit avec la magnification pour envelopper les icônes.
-    BorderSurface {
+    // Dock de macOS Tahoe : une fine plaque de verre très claire (presque
+    // transparente, juste floutée par Hyprland), un liseré lumineux d'1 px et des
+    // coins très arrondis ; plus de gros verre teinté derrière les icônes.
+    Rectangle {
       id: glass
       readonly property real grow: window.waveTotal
+      readonly property bool darkTheme: Commons.Color.popups.background.hslLightness < 0.5
       anchors.centerIn: parent
       width: window.vertical ? parent.width : parent.width + grow
       height: window.vertical ? parent.height + grow : parent.height
-      radius: Math.round(Math.min(window.slotSize * 0.42, Style.cornerRadius + 6))
-      color: Commons.Color.popups.background
-      borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
+      radius: Math.round(window.slotSize * 0.36)
+      color: darkTheme ? Qt.rgba(1, 1, 1, 0.10) : Qt.rgba(1, 1, 1, 0.26)
+      border.width: 1
+      border.color: Qt.rgba(1, 1, 1, darkTheme ? 0.22 : 0.5)
+      // Reflet en haut, comme le verre Liquid Glass.
+      Rectangle {
+        anchors.fill: parent; anchors.margins: 1
+        radius: parent.radius - 1
+        gradient: Gradient {
+          GradientStop { position: 0.0; color: Qt.rgba(1, 1, 1, glass.darkTheme ? 0.08 : 0.18) }
+          GradientStop { position: 0.5; color: Qt.rgba(1, 1, 1, 0) }
+        }
+      }
     }
 
     Grid {
       id: slots
       anchors.centerIn: parent
-      columns: window.vertical ? 1 : appRepeater.count + 2
+      columns: window.vertical ? 1 : appRepeater.count + 3
 
       AppsSlot {}
 
@@ -381,6 +488,7 @@ PanelWindow {
         delegate: AppSlot {}
       }
 
+      StackSlot { id: stackSlot }
       TrashSlot {}
     }
   }
@@ -468,7 +576,7 @@ PanelWindow {
   // (gio trash, réversible). Clic droit = vider, après confirmation (2ᵉ clic droit).
   component TrashSlot: Slot {
     id: trashSlot
-    readonly property int slotIndex: appRepeater.count + 1
+    readonly property int slotIndex: appRepeater.count + 2
     property bool full: false
     property bool armed: false        // premier clic droit : « encore une fois pour vider »
     property bool dropHover: false
@@ -513,9 +621,9 @@ PanelWindow {
       }
     }
 
-    // Séparateur vertical entre les apps et la corbeille.
+    // Le séparateur est porté par la pile Téléchargements (un seul, comme macOS).
     Rectangle {
-      visible: !window.vertical
+      visible: window.vertical
       width: 1
       height: window.iconSize * 0.72
       anchors.verticalCenter: parent.verticalCenter
@@ -564,6 +672,205 @@ PanelWindow {
     }
   }
 
+  // ------------------------------------------------------- Téléchargements
+  // Pile façon macOS à gauche de la corbeille : l'icône montre le dossier, un
+  // clic déploie les fichiers les plus récents en éventail au-dessus du dock.
+  component StackSlot: Slot {
+    id: stack
+    readonly property int slotIndex: appRepeater.count + 1
+    visible: !window.vertical
+
+    mouse.onClicked: function(event) {
+      if (event.button === Qt.RightButton) {
+        window.closeMenu()
+        Quickshell.execDetached(["xdg-open", window.downloadsDir])
+        return
+      }
+      var wasOpen = window.stackOpen
+      window.closeMenu()
+      if (!wasOpen) { window.menuSlot = stack; window.refreshDownloads(); window.stackOpen = true }
+    }
+
+    // Séparateur entre les apps et les piles, comme sur macOS.
+    Rectangle {
+      width: 1
+      height: window.iconSize * 0.72
+      anchors.verticalCenter: parent.verticalCenter
+      x: window.waveShift(stack.slotIndex) - window.waveExtra(stack.slotIndex) / 2
+      color: Commons.Color.bar.text
+      opacity: 0.22
+    }
+
+    Item {
+      x: window.iconInset
+      y: window.iconInset
+      width: window.iconSize
+      height: window.iconSize
+      transform: Translate { x: window.waveShift(stack.slotIndex) }
+      scale: (window.stackOpen ? 0.92 : 1) * window.waveScale(window.slotCenter(stack.slotIndex))
+      transformOrigin: window.popOrigin
+      Behavior on scale { enabled: window.waveStrength <= 0; NumberAnimation { duration: 180; easing.type: Easing.OutBack } }
+      // Deux fichiers récents empilés derrière le dossier quand il y en a.
+      Repeater {
+        model: window.downloads.slice(0, 2).reverse()
+        Image {
+          required property var modelData
+          required property int index
+          width: parent.width * 0.62; height: width
+          x: parent.width * 0.19 + (index === 0 ? -3 : 3); y: -2 - index * 3
+          rotation: index === 0 ? -8 : 6
+          sourceSize: Qt.size(64, 64)
+          source: window.fileIcon(modelData)
+          fillMode: Image.PreserveAspectFit
+          asynchronous: true; smooth: true; mipmap: true
+        }
+      }
+      Image {
+        anchors.fill: parent
+        sourceSize: Qt.size(window.iconSize * 2, window.iconSize * 2)
+        source: Quickshell.iconPath("folder-download", "folder")
+        fillMode: Image.PreserveAspectFit
+        asynchronous: true; smooth: true; mipmap: true
+      }
+    }
+  }
+
+  readonly property string downloadsDir: (Quickshell.env("XDG_DOWNLOAD_DIR") || (Quickshell.env("HOME") + "/Downloads"))
+  // [{ path, name, mime }] du plus récent au plus ancien (10 au plus).
+  property var downloads: []
+  Process {
+    id: downloadsProc
+    command: ["sh", "-c", "d=$(xdg-user-dir DOWNLOAD 2>/dev/null); [ -d \"$d\" ] || d=\"$HOME/Downloads\"; ls -1At \"$d\" 2>/dev/null | grep -v '^\\.' | head -10 | while IFS= read -r f; do printf '%s\\t%s\\n' \"$d/$f\" \"$(file --mime-type -b \"$d/$f\" 2>/dev/null)\"; done"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var rows = text.split("\n").filter(function(l) { return l.length > 0 })
+        window.downloads = rows.map(function(l) {
+          var parts = l.split("\t")
+          var path = parts[0]
+          return { path: path, name: path.slice(path.lastIndexOf("/") + 1), mime: parts[1] || "" }
+        })
+      }
+    }
+  }
+  function refreshDownloads() { if (!downloadsProc.running) downloadsProc.running = true }
+  Timer { interval: 30000; repeat: true; running: window.shown; triggeredOnStart: true; onTriggered: window.refreshDownloads() }
+  function fileIcon(f) {
+    if (!f) return ""
+    if (/^image\/(png|jpe?g|gif|webp|bmp|svg)/.test(f.mime)) return "file://" + encodeURI(f.path)
+    if (f.mime === "inode/directory") return Quickshell.iconPath("folder", "folder")
+    var name = String(f.mime).replace("/", "-")
+    var generic = String(f.mime).split("/")[0] + "-x-generic"
+    return Quickshell.iconPath(name, true) || Quickshell.iconPath(generic, true) || Quickshell.iconPath("text-x-generic", "text-x-generic")
+  }
+
+  // Éventail : les fichiers montent en arc au-dessus de la pile, le plus
+  // récent en bas, le nom dans une pastille à gauche de l'icône.
+  Item {
+    id: stackFan
+    readonly property int rowH: 46
+    readonly property int count: window.downloads.length
+    visible: window.contentShown && (window.stackOpen || fanOut.running || fanProgress > 0.01)
+    property real fanProgress: window.stackOpen ? 1 : 0
+    Behavior on fanProgress { NumberAnimation { id: fanOut; duration: window.stackOpen ? 420 : 200; easing.type: window.stackOpen ? Easing.OutBack : Easing.InCubic; easing.overshoot: 1.3 } }
+    width: 300
+    height: Math.max(1, count) * rowH + 48
+    x: {
+      var c = stackSlot.mapToItem(window.contentItem, stackSlot.width / 2, 0).x + body.x * 0
+      return Math.min(window.width - width - window.gap, c - width + window.iconSize / 2 + 30)
+    }
+    y: body.y - height - window.gap
+
+    Repeater {
+      model: window.downloads
+      Item {
+        id: fanRow
+        required property var modelData
+        required property int index
+        // Courbe de l'éventail : chaque rang s'écarte un peu plus vers la droite.
+        readonly property real bend: index * index * 1.6
+        readonly property real p: Math.max(0, Math.min(1, stackFan.fanProgress * (1 + stackFan.count * 0.08) - index * 0.08))
+        width: stackFan.width
+        height: stackFan.rowH
+        y: stackFan.height - (index + 1) * stackFan.rowH * p - 6
+        opacity: p
+        rotation: -index * 1.2 * p
+        transformOrigin: Item.BottomRight
+        transform: Translate { x: fanRow.bend * fanRow.p }
+
+        Rectangle {
+          id: pill
+          anchors.right: fileImg.left; anchors.rightMargin: 8
+          anchors.verticalCenter: fileImg.verticalCenter
+          width: Math.min(200, nameText.implicitWidth + 18)
+          height: nameText.implicitHeight + 8
+          radius: height / 2
+          color: rowMouse.containsMouse ? Commons.Color.accent : Qt.rgba(0.12, 0.12, 0.14, 0.78)
+          Text {
+            id: nameText
+            anchors.centerIn: parent
+            width: Math.min(implicitWidth, 182)
+            elide: Text.ElideMiddle
+            textFormat: Text.PlainText
+            text: fanRow.modelData.name
+            color: "white"
+            font.family: "Inter"
+            font.pixelSize: 12
+            font.weight: Font.Medium
+          }
+        }
+        Image {
+          id: fileImg
+          anchors.right: parent.right; anchors.rightMargin: 30
+          anchors.verticalCenter: parent.verticalCenter
+          width: 40; height: 40
+          sourceSize: Qt.size(96, 96)
+          source: window.fileIcon(fanRow.modelData)
+          fillMode: Image.PreserveAspectFit
+          asynchronous: true; smooth: true; mipmap: true
+          scale: rowMouse.containsMouse ? 1.12 : 1
+          Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutBack } }
+        }
+        MouseArea {
+          id: rowMouse
+          anchors.fill: parent
+          anchors.leftMargin: parent.width - pill.width - 86
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: { window.closeMenu(); Quickshell.execDetached(["xdg-open", fanRow.modelData.path]) }
+        }
+      }
+    }
+
+    // En haut : « Ouvrir dans Fichiers » (ou « Aucun élément » si vide).
+    Rectangle {
+      anchors.right: parent.right; anchors.rightMargin: 14
+      y: stackFan.height - (stackFan.count + 1) * stackFan.rowH * stackFan.fanProgress + 4
+      opacity: stackFan.fanProgress
+      width: openText.implicitWidth + 22
+      height: openText.implicitHeight + 10
+      radius: height / 2
+      color: openMouse.containsMouse ? Commons.Color.accent : Qt.rgba(0.12, 0.12, 0.14, 0.78)
+      border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.14)
+      Text {
+        id: openText
+        anchors.centerIn: parent
+        textFormat: Text.PlainText
+        text: stackFan.count > 0 ? "Ouvrir dans Fichiers  ›" : "Aucun élément · Ouvrir  ›"
+        color: "white"
+        font.family: "Inter"
+        font.pixelSize: 12
+        font.weight: Font.Medium
+      }
+      MouseArea {
+        id: openMouse
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: { window.closeMenu(); Quickshell.execDetached(["xdg-open", window.downloadsDir]) }
+      }
+    }
+  }
+
   component AppSlot: Slot {
     id: appSlot
 
@@ -576,6 +883,7 @@ PanelWindow {
     property bool dragged: false
     readonly property int windowCount: modelData ? modelData.windows.length : 0
     property real pulse: 1
+    onHoveredChanged: window.hoverApp(appSlot, hovered)
 
     // Slots between where the dragged app was and where it would land step
     // aside to make room; the dragged one follows the pointer.
@@ -651,6 +959,7 @@ PanelWindow {
         return
       }
       window.closeMenu()
+      window.closePreview()
       if (event.button === Qt.MiddleButton) window.dock.launch(appSlot.modelData)
       else window.dock.activate(appSlot.modelData)
     }
@@ -677,6 +986,17 @@ PanelWindow {
       transformOrigin: window.popOrigin
     }
 
+    // Séparateur avant les apps ouvertes qui ne sont pas gardées dans le Dock.
+    Rectangle {
+      visible: appSlot.index === window.firstRecent && !window.vertical
+      width: 1
+      height: window.iconSize * 0.72
+      anchors.verticalCenter: parent.verticalCenter
+      x: window.waveShift(appSlot.index + 1) - window.waveExtra(appSlot.index + 1) / 2 + appSlot.displayedShift
+      color: Commons.Color.bar.text
+      opacity: 0.22
+    }
+
     // Point sous une app ouverte (comme sur macOS).
     Rectangle {
       readonly property real along: window.waveShift(appSlot.index + 1) + appSlot.displayedShift
@@ -694,6 +1014,37 @@ PanelWindow {
         : (window.position === "top" ? 1 : parent.height - height - 1)
     }
 
+    // Pastille rouge façon macOS (notifications non lues), qui suit la vague.
+    Rectangle {
+      id: badge
+      readonly property int count: window.dock ? window.dock.badgeFor(appSlot.key) : 0
+      readonly property real s: window.waveScale(window.slotCenter(appSlot.index + 1))
+      visible: count > 0 && !appSlot.lifted
+      height: Math.round(window.iconSize * 0.4)
+      width: Math.max(height, badgeText.implicitWidth + height * 0.5)
+      radius: height / 2
+      color: "#ff3b30"
+      border.width: 1
+      border.color: Qt.rgba(0, 0, 0, 0.12)
+      // Coin haut-droit de l'icône, après grossissement (origine en bas).
+      x: window.iconInset + window.iconSize / 2 + (window.iconSize / 2) * s - width * 0.62
+         + appSlot.displayedShift + window.waveShift(appSlot.index + 1)
+      y: window.iconInset + window.iconSize - window.iconSize * s - height * 0.3
+      z: 2
+      scale: visible ? 1 : 0.2
+      Behavior on scale { NumberAnimation { duration: 260; easing.type: Easing.OutBack; easing.overshoot: 2.2 } }
+      Text {
+        id: badgeText
+        anchors.centerIn: parent
+        textFormat: Text.PlainText
+        text: badge.count > 99 ? "99+" : String(badge.count)
+        color: "white"
+        font.family: "Inter"
+        font.pixelSize: Math.round(badge.height * 0.62)
+        font.weight: Font.DemiBold
+      }
+    }
+
     // With animations off it holds still rather than spinning through
     // zero-length steps.
     SequentialAnimation {
@@ -706,22 +1057,232 @@ PanelWindow {
     }
   }
 
+  // ---- Aperçus en direct des fenêtres d'une app (survol du Dock)
+  Rectangle {
+    id: preview
+    readonly property var wins: window.previewItem ? window.previewItem.windows.slice(0, 5) : []
+    readonly property real cardH: 104
+    visible: window.contentShown && window.previewOpen && wins.length > 0 && !window.menuOpen
+    width: previewRow.implicitWidth + 20
+    height: previewRow.implicitHeight + 20
+    x: window.popupX(window.previewSlot, preview)
+    y: window.popupY(window.previewSlot, preview)
+    radius: 18
+    color: Commons.Color.popups.background
+    border.width: 1
+    border.color: Commons.Color.popups.border
+    // Arrivée en ressort exagéré depuis l'icône.
+    scale: visible ? 1 : 0.6
+    opacity: visible ? 1 : 0
+    transformOrigin: window.popOrigin
+    Behavior on scale { enabled: !Style.reduceMotion; SpringAnimation { spring: 4.2; damping: 0.42; epsilon: 0.004 } }
+    Behavior on opacity { NumberAnimation { duration: 120 } }
+    Behavior on x { enabled: preview.visible && !Style.reduceMotion; SpringAnimation { spring: 4; damping: 0.55 } }
+
+    HoverHandler {
+      onHoveredChanged: {
+        window.previewHovered = hovered
+        if (!hovered) previewCloseTimer.restart()
+        else previewCloseTimer.stop()
+      }
+    }
+
+    Row {
+      id: previewRow
+      x: 10; y: 10
+      spacing: 10
+      Repeater {
+        model: preview.wins
+        delegate: Item {
+          id: card
+          required property var modelData
+          readonly property var tl: modelData.toplevel
+          readonly property real aspect: shot.hasContent && shot.sourceSize.height > 0 ? shot.sourceSize.width / shot.sourceSize.height : 1.6
+          width: Math.max(96, Math.min(220, preview.cardH * aspect))
+          height: preview.cardH + 22
+          scale: cardMouse.pressed ? 0.95 : (cardMouse.containsMouse ? 1.03 : 1)
+          Behavior on scale { SpringAnimation { spring: 5; damping: 0.45 } }
+
+          ClippingRectangle {
+            id: clip
+            width: parent.width
+            height: preview.cardH
+            radius: 10
+            color: Qt.rgba(1, 1, 1, 0.08)
+            border.width: cardMouse.containsMouse ? 2 : 1
+            border.color: cardMouse.containsMouse ? Commons.Color.accent : Qt.rgba(1, 1, 1, 0.14)
+            ScreencopyView {
+              id: shot
+              anchors.fill: parent
+              captureSource: preview.visible ? card.tl : null
+              live: true
+              constraintSize: Qt.size(440, 220)
+            }
+            Image {
+              anchors.centerIn: parent
+              visible: !shot.hasContent
+              width: 40; height: 40
+              sourceSize: Qt.size(80, 80)
+              source: window.dock && window.previewItem ? window.dock.iconFor(window.previewItem) : ""
+            }
+          }
+          Text {
+            anchors.bottom: parent.bottom
+            width: parent.width
+            horizontalAlignment: Text.AlignHCenter
+            elide: Text.ElideRight
+            textFormat: Text.PlainText
+            text: (card.modelData.minimized ? "◆ " : "") + (card.tl && card.tl.title ? card.tl.title : "")
+            font.family: "Inter"; font.pixelSize: Mac.font.subheadline
+            color: Commons.Color.popups.text
+            opacity: card.tl && card.tl.activated ? 1 : 0.75
+          }
+          MouseArea {
+            id: cardMouse
+            anchors.fill: clip
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            acceptedButtons: Qt.LeftButton | Qt.MiddleButton
+            onClicked: function(ev) {
+              if (ev.button === Qt.MiddleButton) { if (card.tl) card.tl.close(); return }
+              window.closePreview()
+              window.dock.bringForward(card.modelData)
+            }
+          }
+          // × rouge au survol pour fermer la fenêtre, comme DockDoor.
+          Rectangle {
+            x: -5; y: -5
+            width: 18; height: 18; radius: 9
+            color: closeMouse.containsMouse ? Mac.window.red : Qt.rgba(0.12, 0.12, 0.14, 0.9)
+            border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.3)
+            opacity: cardMouse.containsMouse || closeMouse.containsMouse ? 1 : 0
+            scale: opacity > 0 ? 1 : 0.4
+            Behavior on opacity { NumberAnimation { duration: 100 } }
+            Behavior on scale { SpringAnimation { spring: 6; damping: 0.4 } }
+            Text { anchors.centerIn: parent; text: "✕"; font.pixelSize: 9; font.weight: Font.Bold; color: "white" }
+            MouseArea { id: closeMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: if (card.tl) card.tl.close() }
+          }
+        }
+      }
+    }
+  }
+
+  // Menu contextuel façon macOS (lignes de 22 pt, texte 13 pt, coches à gauche) :
+  // fenêtres ouvertes, Options ▸, Afficher toutes les fenêtres, Masquer, Quitter
+  // (⌥ → Forcer à quitter). L'élément choisi clignote avant la fermeture.
+  readonly property var menuRows: {
+    var rows = []
+    if (window.settingsMenu) {
+      var pos = [["top", "En haut"], ["bottom", "En bas"], ["left", "À gauche"], ["right", "À droite"]]
+      rows.push({ kind: "header", text: "Position à l'écran" })
+      for (var p = 0; p < pos.length; p++)
+        rows.push({ text: pos[p][1], checked: window.position === pos[p][0], indent: true, act: "pos:" + pos[p][0] })
+      rows.push({ kind: "sep" })
+      rows.push({ text: "Masquer automatiquement le Dock", checked: window.autohide, act: "autohide", shortcut: "⌥⌘D" })
+      rows.push({ text: "Réglages du Dock…", act: "dock-settings" })
+      return rows
+    }
+    var item = window.menuItem
+    if (!item || !window.dock) return rows
+    var hasEntry = !!window.dock.entryFor(item)
+    var wins = item.windows || []
+    for (var i = 0; i < wins.length; i++) {
+      var t = wins[i].toplevel
+      rows.push({ text: (t && t.title) ? t.title : String(item.key), checked: !!(t && t.activated),
+                  diamond: wins[i].minimized, act: "win:" + i })
+    }
+    if (wins.length > 0) rows.push({ kind: "sep" })
+    if (hasEntry && wins.length > 0) rows.push({ text: "Nouvelle fenêtre", act: "new" })
+    if (hasEntry) {
+      rows.push({ text: "Options", chevron: true, open: window.optionsOpen, act: "options", keep: true })
+      if (window.optionsOpen) {
+        rows.push({ text: "Garder dans le Dock", checked: !!item.pinned, indent: true, act: "pin" })
+        rows.push({ text: "Ouvrir à la connexion", checked: window.loginItem, indent: true, act: "login" })
+        rows.push({ text: "Afficher dans le Finder", indent: true, act: "finder" })
+      }
+      rows.push({ kind: "sep" })
+    }
+    if (wins.length > 0) {
+      rows.push({ text: "Afficher toutes les fenêtres", act: "expose" })
+      rows.push({ text: "Masquer", act: "hide", shortcut: "⌘H" })
+      rows.push(window.altHeld ? { text: "Forcer à quitter", act: "force", danger: true, shortcut: "⌥⌘⎋" }
+                               : { text: "Quitter", act: "quit", shortcut: "⌘Q" })
+    } else if (hasEntry) {
+      rows.push({ text: "Ouvrir", act: "open" })
+    }
+    if (rows.length > 0 && rows[rows.length - 1].kind === "sep") rows.pop()
+    return rows
+  }
+
+  function runMenuAction(act) {
+    var item = window.menuItem
+    var wins = item ? item.windows : []
+    var addr = wins.length > 0 ? String(wins[0].address || "") : ""
+    if (addr && addr.indexOf("0x") !== 0) addr = "0x" + addr
+    if (act.indexOf("pos:") === 0) Util.execDetached("omarchy-dock position " + act.slice(4))
+    else if (act === "autohide") Util.execDetached("omarchy-dock autohide " + (window.autohide ? "off" : "on"))
+    else if (act === "dock-settings") Quickshell.execDetached(["omarchy-shell", "shell", "summon", "liquid-glass.settings", JSON.stringify({ page: "desktop" })])
+    else if (act.indexOf("win:") === 0) { var w = wins[parseInt(act.slice(4))]; if (w) window.dock.bringForward(w) }
+    else if (act === "new" || act === "open") window.dock.launch(item)
+    else if (act === "pin") window.dock.setPinned(item.key, !item.pinned)
+    else if (act === "login") Quickshell.execDetached(["liquid-glass", "login-item", String(item.key), window.loginItem ? "off" : "on"])
+    else if (act === "finder") {
+      Quickshell.execDetached(["sh", "-c", "for d in \"$HOME/.local/share/applications\" /usr/local/share/applications /usr/share/applications; do f=\"$d/$1.desktop\"; [ -f \"$f\" ] && exec nautilus --select \"$f\"; done; exec nautilus /usr/share/applications", "sh", String(item.key)])
+    }
+    else if (act === "expose" && wins.length > 0 && wins[0].toplevel) Quickshell.execDetached(["omarchy-shell", "shell", "summon", "liquid-glass.mission", JSON.stringify({ app: String(wins[0].toplevel.appId) })])
+    else if (act === "hide" && addr) Quickshell.execDetached(["liquid-glass", "window", "hide", addr])
+    else if (act === "quit") window.dock.quit(item)
+    else if (act === "force" && addr) Quickshell.execDetached(["liquid-glass", "window", "force-quit", addr])
+  }
+
   BorderSurface {
     id: menu
 
     readonly property var item: window.menuItem
-    readonly property bool hasEntry: !!item && !!window.dock && !!window.dock.entryFor(item)
-    readonly property bool running: !!item && item.windows.length > 0
+    property int blinkIndex: -1
+    property bool blinkOn: false
+    property string pendingAct: ""
 
     visible: window.contentShown && (!!item || window.settingsMenu)
-    width: Math.max(Style.space(140), menuColumn.implicitWidth) + padding * 2
+    width: Math.max(Mac.menu.minWidth + 20, Math.min(320, menuColumn.implicitWidth)) + padding * 2
     height: menuColumn.implicitHeight + padding * 2
     x: window.popupX(window.menuSlot, menu)
     y: window.popupY(window.menuSlot, menu)
-    radius: Style.cornerRadius
+    radius: Mac.menu.radius
     color: Commons.Color.popups.background
     borderSpec: Border.surfaceSpec("popups", "border", Commons.Color.popups.border, Style.normalBorderWidth)
-    padding: Style.spacing.sm
+    padding: Mac.menu.padV
+
+    // Ouverture : petit ressort depuis l'icône, comme les menus de Tahoe.
+    scale: visible ? 1 : 0.9
+    opacity: visible ? 1 : 0
+    transformOrigin: window.position === "top" ? Item.Top : window.position === "left" ? Item.Left : window.position === "right" ? Item.Right : Item.Bottom
+    Behavior on scale { enabled: !Style.reduceMotion; SpringAnimation { spring: 5; damping: 0.5; epsilon: 0.005 } }
+
+    function choose(index, row) {
+      if (row.keep) { window.runMenuAction(row.act); return }
+      menu.pendingAct = row.act
+      menu.blinkIndex = index
+      blink.restart()
+    }
+
+    // Clignotement de l'élément choisi (éteint, allumé) puis action et fermeture.
+    SequentialAnimation {
+      id: blink
+      PropertyAction { target: menu; property: "blinkOn"; value: false }
+      PauseAnimation { duration: 60 }
+      PropertyAction { target: menu; property: "blinkOn"; value: true }
+      PauseAnimation { duration: 70 }
+      ScriptAction {
+        script: {
+          var act = menu.pendingAct
+          menu.blinkIndex = -1
+          menu.pendingAct = ""
+          window.runMenuAction(act)
+          window.closeMenu()
+        }
+      }
+    }
 
     Column {
       id: menuColumn
@@ -730,88 +1291,79 @@ PanelWindow {
       width: menu.width - menu.contentLeftInset - menu.contentRightInset
 
       Repeater {
-        model: [["top", Commons.I18n.t("dock.positionTop")], ["bottom", Commons.I18n.t("dock.positionBottom")], ["left", Commons.I18n.t("dock.positionLeft")], ["right", Commons.I18n.t("dock.positionRight")]]
-
-        delegate: MenuRow {
+        model: window.menuRows
+        delegate: Item {
+          id: mrow
           required property var modelData
+          required property int index
+          readonly property string kind: modelData.kind || "item"
+          readonly property bool blinking: menu.blinkIndex === index
+          readonly property bool hot: kind === "item" && (blinking ? menu.blinkOn : (menu.blinkIndex < 0 && rowMouse.containsMouse))
+          width: menuColumn.width
+          implicitWidth: Mac.menu.checkColumn + (modelData.indent ? 14 : 0) + rowText.implicitWidth + (rowShortcut.visible ? rowShortcut.implicitWidth + 24 : 0) + 28
+          height: kind === "sep" ? Mac.menu.separatorMargin * 2 + 1 : Mac.menu.row
 
-          visible: window.settingsMenu
-          text: modelData[1]
-          checked: window.position === modelData[0]
-          onTriggered: Util.execDetached("omarchy-dock position " + modelData[0])
+          Rectangle {
+            visible: mrow.kind === "sep"
+            anchors.verticalCenter: parent.verticalCenter
+            x: Mac.menu.inset + 4; width: parent.width - x * 2; height: 1
+            color: Commons.Color.popups.text; opacity: 0.12
+          }
+          Rectangle {
+            visible: mrow.kind === "item"
+            anchors.fill: parent
+            anchors.leftMargin: Mac.menu.inset - Mac.menu.padV
+            anchors.rightMargin: Mac.menu.inset - Mac.menu.padV
+            radius: Mac.menu.selRadius
+            color: mrow.modelData.danger ? "#ff3b30" : Commons.Color.accent
+            opacity: mrow.hot ? 0.92 : 0
+          }
+          // Colonne de coche (✓ fenêtre active / option cochée, ◆ fenêtre réduite).
+          Text {
+            visible: mrow.kind === "item" && (!!mrow.modelData.checked || !!mrow.modelData.diamond)
+            x: Mac.menu.inset + 2 + (mrow.modelData.indent ? 14 : 0)
+            anchors.verticalCenter: parent.verticalCenter
+            textFormat: Text.PlainText
+            text: mrow.modelData.checked ? "✓" : "◆"
+            font.family: "Inter"; font.pixelSize: mrow.modelData.checked ? 12 : 8
+            color: mrow.hot ? "#ffffff" : Commons.Color.popups.text
+          }
+          Text {
+            id: rowText
+            x: mrow.kind === "header" ? Mac.menu.inset + 4 : Mac.menu.checkColumn + 2 + (mrow.modelData.indent ? 14 : 0)
+            anchors.verticalCenter: parent.verticalCenter
+            width: Math.min(implicitWidth, parent.width - x - (rowShortcut.visible ? rowShortcut.implicitWidth + 22 : 14))
+            elide: Text.ElideRight
+            textFormat: Text.PlainText
+            text: mrow.modelData.text || ""
+            font.family: "Inter"
+            font.pixelSize: mrow.kind === "header" ? Mac.font.subheadline : Mac.font.body
+            font.weight: mrow.kind === "header" ? Font.DemiBold : Font.Normal
+            font.letterSpacing: Mac.tracking(Mac.font.body)
+            color: mrow.hot ? "#ffffff" : (mrow.modelData.danger ? "#ff453a" : Commons.Color.popups.text)
+            opacity: mrow.kind === "header" ? Mac.label.secondary : 1
+          }
+          Text {
+            id: rowShortcut
+            visible: mrow.kind === "item" && (!!mrow.modelData.shortcut || !!mrow.modelData.chevron)
+            anchors.right: parent.right; anchors.rightMargin: Mac.menu.padRight - Mac.menu.padV + 4
+            anchors.verticalCenter: parent.verticalCenter
+            textFormat: Text.PlainText
+            text: mrow.modelData.chevron ? "›" : (mrow.modelData.shortcut || "")
+            font.family: "Inter"; font.pixelSize: mrow.modelData.chevron ? 15 : Mac.font.body
+            color: mrow.hot ? "#ffffff" : Commons.Color.popups.text
+            opacity: mrow.hot ? 0.9 : Mac.label.secondary
+            rotation: mrow.modelData.chevron && mrow.modelData.open ? 90 : 0
+            Behavior on rotation { NumberAnimation { duration: 160; easing.type: Easing.OutBack } }
+          }
+          MouseArea {
+            id: rowMouse
+            anchors.fill: parent
+            enabled: mrow.kind === "item"
+            hoverEnabled: true
+            onClicked: menu.choose(mrow.index, mrow.modelData)
+          }
         }
-      }
-
-      MenuRow {
-        visible: window.settingsMenu
-        text: Commons.I18n.t("dock.autoHide")
-        checked: window.autohide
-        onTriggered: Util.execDetached("omarchy-dock autohide " + (window.autohide ? "off" : "on"))
-      }
-
-      MenuRow {
-        visible: menu.hasEntry && menu.running
-        text: Commons.I18n.t("dock.newWindow")
-        onTriggered: window.dock.launch(menu.item)
-      }
-
-      MenuRow {
-        visible: menu.hasEntry
-        text: menu.item && menu.item.pinned ? Commons.I18n.t("dock.removeFromDock") : Commons.I18n.t("dock.keepInDock")
-        onTriggered: window.dock.setPinned(menu.item.key, !menu.item.pinned)
-      }
-
-      MenuRow {
-        visible: menu.running
-        text: Commons.I18n.t("dock.quit")
-        onTriggered: window.dock.quit(menu.item)
-      }
-    }
-  }
-
-  component MenuRow: Rectangle {
-    id: row
-
-    property string text: ""
-    property bool checked: false
-    signal triggered()
-
-    width: parent ? parent.width : 0
-    height: visible ? Style.spacing.popupRowHeight : 0
-    radius: Style.cornerRadius
-    color: rowMouse.containsMouse ? Style.hoverFill : "transparent"
-
-    Text {
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.left: parent.left
-      anchors.leftMargin: Style.spacing.controlPaddingX
-      textFormat: Text.PlainText
-      text: row.text
-      color: Commons.Color.popups.text
-      font.family: Style.font.family
-      font.pixelSize: Style.font.body
-    }
-
-    Text {
-      visible: row.checked
-      anchors.verticalCenter: parent.verticalCenter
-      anchors.right: parent.right
-      anchors.rightMargin: Style.spacing.controlPaddingX
-      textFormat: Text.PlainText
-      text: "✓"
-      color: Commons.Color.accent
-      font.family: Style.font.family
-      font.pixelSize: Style.font.body
-    }
-
-    MouseArea {
-      id: rowMouse
-      anchors.fill: parent
-      hoverEnabled: true
-      cursorShape: Qt.PointingHandCursor
-      onClicked: {
-        row.triggered()
-        window.closeMenu()
       }
     }
   }

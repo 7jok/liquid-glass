@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.about",
+  "name": "Liquid Glass — À propos de ce Mac",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Fenêtre « À propos de ce Mac » du menu Pomme",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "About.qml" }
+}

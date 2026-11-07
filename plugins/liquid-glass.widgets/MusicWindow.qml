@@ -1,4 +1,7 @@
 import QtQuick
+import QtQuick.Effects
+import Quickshell.Widgets
+import "Mac.js" as Mac
 import Quickshell
 import Quickshell.Wayland
 import qs.Commons
@@ -27,7 +30,9 @@ PanelWindow {
   readonly property real edgeY: Style.space(14)
   readonly property real step: unit + gap
 
-  readonly property string size: service ? service.musicSize : "medium"
+  // Toujours au format moyen (comme la vidéo) ; la pochette s'agrandit au clic.
+  readonly property string size: "medium"
+  property bool artOut: false
   readonly property real cardW: size === "small" ? unit : unit * 2 + gap
   readonly property real cardH: size === "large" ? unit * 2 + gap : unit
 
@@ -43,9 +48,11 @@ PanelWindow {
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   visible: holder.opacity > 0.01
   mask: Region {
-    item: holder
-    Region { item: sizePill }
+    item: holderHit
+    Region { item: bigArt.visible ? bigArtHit : null }
   }
+  // Un peu plus grand que la carte : le « − » du mode édition déborde du coin.
+  Item { id: holderHit; x: holder.x - Style.space(9); y: holder.y - Style.space(9); width: holder.width + Style.space(18); height: holder.height + Style.space(18) }
 
   // ------------------------------------------------------------ position
   readonly property real minX: edgeX
@@ -76,24 +83,55 @@ PanelWindow {
   }
   property real fx: service && service.musicX >= 0 ? service.musicX : anchorFrac(true)
   property real fy: service && service.musicY >= 0 ? service.musicY : anchorFrac(false)
+  // Avec la pochette en fond d'écran, la carte a sa propre place (music_cover_x/y) :
+  // par défaut sous la pochette, mais on peut la déplacer comme d'habitude.
+  property real cfx: service ? Number(service.opt("music_cover_x", -1)) : -1
+  property real cfy: service ? Number(service.opt("music_cover_y", -1)) : -1
   Connections {
     target: win.service
     function onMusicXChanged() { if (win.service.musicX >= 0 && !drag.active && !glide.running) win.fx = win.service.musicX }
     function onMusicYChanged() { if (win.service.musicY >= 0 && !drag.active && !glide.running) win.fy = win.service.musicY }
+    function onCfgChanged() {
+      if (drag.active || glide.running) return
+      win.cfx = Number(win.service.opt("music_cover_x", -1))
+      win.cfy = Number(win.service.opt("music_cover_y", -1))
+    }
   }
-  readonly property real restX: minX + Math.max(0, Math.min(1, fx)) * (maxX - minX)
-  readonly property real restY: minY + Math.max(0, Math.min(1, fy)) * (maxY - minY)
+  // Pochette en fond d'écran (mode « Pochette ») : la carte se range sous la grande
+  // pochette, comme les commandes sous la pochette agrandie de la vidéo. Le fond est
+  // dessiné à l'échelle de l'écran entier : pochette de 0,42 × hauteur centrée à 47 %.
+  readonly property bool underCover: !!service && service.coverWallpaper && String(service.np.wallLayout || "") === "cover"
+  readonly property real topOffset: Style.space(Mac.menuBar.height)
+  readonly property real coverX: (service && service.np.wallAlign === "left" ? 0.28 : 0.5) * (screen ? screen.width : width)
+  // Bas de la pochette dessinée par liquid-glass-spotify (0,47 H + 0,21 H) + son ombre.
+  readonly property real coverBottom: (screen ? screen.height : height) * 0.70 - topOffset
+  readonly property real coverSide: (screen ? screen.height : height) * 0.42
+  // Sous la pochette si la carte y tient, sinon à sa droite, alignée sur son bas.
+  readonly property bool fitsUnder: coverBottom + gap + cardH <= maxY
+  readonly property real coverRestX: fitsUnder ? clampX(Math.round(coverX - cardW / 2))
+                                               : clampX(Math.round(coverX + coverSide / 2 + gap * 2))
+  readonly property real coverRestY: fitsUnder ? clampY(Math.round(coverBottom + gap))
+                                               : clampY(Math.round(coverBottom - cardH - Style.space(6)))
+  readonly property real restX: underCover
+    ? (cfx >= 0 ? minX + Math.min(1, cfx) * (maxX - minX) : coverRestX)
+    : minX + Math.max(0, Math.min(1, fx)) * (maxX - minX)
+  readonly property real restY: underCover
+    ? (cfy >= 0 ? minY + Math.min(1, cfy) * (maxY - minY) : coverRestY)
+    : minY + Math.max(0, Math.min(1, fy)) * (maxY - minY)
 
   // Fin de geste : on retient l'endroit, on se raccroche à la liaison, on enregistre.
   function commit() {
     var sx = snapAxis(holder.x, minX, maxX), sy = snapAxis(holder.y, minY, maxY)
-    fx = maxX > minX ? (sx - minX) / (maxX - minX) : 0
-    fy = maxY > minY ? (sy - minY) / (maxY - minY) : 0
-    fx = Math.round(Math.max(0, Math.min(1, fx)) * 10000) / 10000
-    fy = Math.round(Math.max(0, Math.min(1, fy)) * 10000) / 10000
+    // En mode pochette, l'emplacement « sous la pochette » est un axe de plus.
+    if (underCover && Math.hypot(holder.x - coverRestX, holder.y - coverRestY) < step * 0.6) { sx = coverRestX; sy = coverRestY }
+    var nx = maxX > minX ? (sx - minX) / (maxX - minX) : 0
+    var ny = maxY > minY ? (sy - minY) / (maxY - minY) : 0
+    nx = Math.round(Math.max(0, Math.min(1, nx)) * 10000) / 10000
+    ny = Math.round(Math.max(0, Math.min(1, ny)) * 10000) / 10000
+    if (underCover) { cfx = nx; cfy = ny } else { fx = nx; fy = ny }
     holder.x = Qt.binding(function() { return win.restX })
     holder.y = Qt.binding(function() { return win.restY })
-    if (service) service.setOptions({ music_x: fx, music_y: fy })
+    if (service) service.setOptions(underCover ? { music_cover_x: nx, music_cover_y: ny } : { music_x: nx, music_y: ny })
   }
 
   // Changement de taille : rebond élastique (la taille change d'un coup, sans
@@ -204,12 +242,15 @@ PanelWindow {
     }
 
     MusicWidget {
+      removeKey: "music"
       id: card
       anchors.fill: parent
       svc: win.service
       size: win.size
       lyricsMode: win.lyricsMode
       onLyricsToggled: flipAnim.restart()
+      artOut: win.artOut
+      onArtToggled: win.toggleArt()
       transform: Rotation {
         id: flip
         origin.x: card.width / 2; origin.y: card.height / 2
@@ -280,46 +321,78 @@ PanelWindow {
     }
     HoverHandler { id: hover }
 
-    // Pastille de taille, au survol.
-    Rectangle {
-      id: sizePill
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.verticalCenter: parent.bottom
-      width: pillRow.implicitWidth + 8; height: Style.space(26); radius: height / 2
-      color: Qt.rgba(0, 0, 0, 0.5)
-      border.width: 1; border.color: Qt.rgba(1, 1, 1, 0.25)
-      readonly property bool on: (hover.hovered || pillHover.hovered) && !drag.active && !glide.running
-      opacity: on ? 1 : 0
-      scale: on ? 1 : 0.4
-      visible: opacity > 0.01
-      Behavior on opacity { NumberAnimation { duration: 180 } }
-      Behavior on scale { NumberAnimation { duration: 420; easing.type: Easing.OutBack; easing.overshoot: 3 } }
-      HoverHandler { id: pillHover }
-      Row {
-        id: pillRow
-        anchors.centerIn: parent
-        spacing: 2
-        Repeater {
-          model: [["small", "S"], ["medium", "M"], ["large", "L"]]
-          delegate: Rectangle {
-            required property var modelData
-            readonly property bool on: win.size === modelData[0]
-            width: Style.space(28); height: sizePill.height - 6; radius: height / 2
-            color: on ? Qt.rgba(1, 1, 1, 0.88) : (pm.containsMouse ? Qt.rgba(1, 1, 1, 0.15) : "transparent")
-            scale: pm.pressed ? 0.75 : 1
-            Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
-            Behavior on color { ColorAnimation { duration: 140 } }
-            Text {
-              anchors.centerIn: parent
-              textFormat: Text.PlainText
-              text: parent.modelData[1]
-              font.family: card.font; font.pixelSize: Style.space(11); font.weight: Font.DemiBold
-              color: parent.on ? "#1d1d1f" : "white"
-            }
-            MouseArea { id: pm; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: if (win.service) win.service.setOption("music_size", parent.modelData[0]) }
-          }
-        }
+  }
+
+  // ------------------------------------------------- pochette agrandie
+  // Clic sur la pochette : elle sort de la carte et grandit au-dessus (ou
+  // au-dessous s'il n'y a pas la place), avec un ressort ; second clic : elle
+  // revient se poser dans la carte. La carte peut toujours être déplacée : la
+  // pochette la suit.
+  readonly property real bigSide: cardW
+  readonly property real bigX: Math.max(minX, Math.min(width - bigSide - edgeX, holder.x + (cardW - bigSide) / 2))
+  // En haut par défaut ; si elle y serait cachée (haut de l'écran, colonne de
+  // widgets, grande pochette du fond d'écran), elle passe en dessous.
+  readonly property var obstacles: {
+    var out = []
+    var f = service ? service.flowRect : Qt.rect(0, 0, 0, 0)
+    if (f.width > 0 && f.height > 0) out.push(f)
+    if (underCover) out.push(Qt.rect(coverX - coverSide / 2, coverBottom - coverSide, coverSide, coverSide))
+    return out
+  }
+  function bigFree(y) {
+    if (y < minY || y + bigSide > height - edgeY) return false
+    for (var i = 0; i < obstacles.length; i++) {
+      var o = obstacles[i]
+      if (bigX < o.x + o.width && bigX + bigSide > o.x && y < o.y + o.height && y + bigSide > o.y) return false
+    }
+    return true
+  }
+  readonly property real aboveY: holder.y - gap - bigSide
+  readonly property real belowY: holder.y + cardH + gap
+  readonly property bool bigAbove: bigFree(aboveY) || (!bigFree(belowY) && aboveY >= minY)
+  readonly property real bigY: bigAbove ? Math.max(minY, aboveY) : Math.min(height - edgeY - bigSide, belowY)
+  property real artT: 0           // 0 = dans la carte, 1 = agrandie
+  property rect smallRect: Qt.rect(0, 0, 1, 1)
+  Connections { target: win.service; function onArtRequestChanged() { if (win.shown) win.toggleArt() } }
+  function toggleArt() {
+    var a = card.artItem
+    var p = a.mapToItem(win.contentItem, 0, 0)
+    smallRect = Qt.rect(p.x, p.y, a.width, a.height)
+    artOut = !artOut
+  }
+  onShownChanged: if (!shown) artOut = false
+  Behavior on artT { SpringAnimation { spring: 3.2; damping: 0.32; epsilon: 0.002 } }
+  onArtOutChanged: artT = artOut ? 1 : 0
+  Item { id: bigArtHit; x: bigArt.x; y: bigArt.y; width: bigArt.width; height: bigArt.height }
+  Item {
+    id: bigArt
+    z: 3
+    visible: win.artT > 0.01 || win.artOut
+    readonly property real t: win.artT
+    x: win.smallRect.x + (win.bigX - win.smallRect.x) * t
+    y: win.smallRect.y + (win.bigY - win.smallRect.y) * t
+    width: win.smallRect.width + (win.bigSide - win.smallRect.width) * t
+    height: width
+    RectangularShadow {
+      anchors.fill: parent
+      offset.y: 10 * bigArt.t
+      radius: 10 + 12 * bigArt.t
+      blur: 40 * Math.max(0, bigArt.t)
+      color: Qt.rgba(0, 0, 0, 0.45 * Math.min(1, Math.max(0, bigArt.t)))
+    }
+    ClippingRectangle {
+      anchors.fill: parent
+      radius: 10 + 12 * Math.max(0, bigArt.t)
+      color: Qt.rgba(0, 0, 0, 0.2)
+      Image {
+        anchors.fill: parent
+        source: win.service ? win.service.coverSource : ""
+        sourceSize: Qt.size(640, 640)
+        fillMode: Image.PreserveAspectCrop
+        asynchronous: true
+        smooth: true; mipmap: true
       }
     }
+    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: win.toggleArt() }
   }
 }

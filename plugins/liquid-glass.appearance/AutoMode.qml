@@ -49,5 +49,40 @@ Item {
 
   Process { id: tick; command: ["liquid-glass", "auto-tick"] }
 
+  // ---------------------------------------------------------------------------
+  // Barre des menus transparente (Tahoe) : la couleur du texte suit le fond
+  // affiché (fond du thème, ou pochette Spotify en fond d'écran) : sombre sur
+  // un fond clair, blanc sur un fond sombre. `liquid-glass bar-contrast` mesure
+  // la bande du haut de l'image et recharge le thème à chaud.
+  property string themeWall: ""
+  property var np: ({})
+  FileView {
+    path: root.home + "/.cache/liquid-glass/now-playing.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.np = JSON.parse(text()) } catch (e) {} }
+  }
+  readonly property string shownWall: np.coverWallpaper === true && String(np.wallpaper || "") !== "" ? String(np.wallpaper) : themeWall
+  property string measuredWall: ""
+  onShownWallChanged: contrastDebounce.restart()
+  Timer {
+    id: contrastDebounce
+    interval: 1200
+    onTriggered: {
+      if (root.shownWall === "" || root.shownWall === root.measuredWall || contrast.running) return
+      root.measuredWall = root.shownWall
+      contrast.command = ["liquid-glass", "bar-contrast", root.shownWall]
+      contrast.running = true
+    }
+  }
+  Process { id: contrast }
+  Process {
+    id: wallQuery
+    command: ["readlink", "-f", root.home + "/.local/state/omarchy/current/background"]
+    stdout: StdioCollector { onStreamFinished: { var t = text.trim(); if (t !== "") root.themeWall = t } }
+  }
+  Timer { interval: 4000; repeat: true; running: true; triggeredOnStart: true; onTriggered: wallQuery.running = true }
+
   Timer { interval: 60000; repeat: true; running: true; onTriggered: root.check() }
 }

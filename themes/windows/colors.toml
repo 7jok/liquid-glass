@@ -1,0 +1,37 @@
+# Liquid Glass — windows — clair, mica, accent bleu (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "light"
+
+accent = "#005fb8"
+selection = "#cce4f7"
+muted = "#8a8a8a"
+
+background = "#f3f3f3"
+dark_background = "#ebebeb"
+darker_background = "#e0e0e0"
+lighter_background = "#ffffff"
+
+foreground = "#1b1b1b"
+dark_foreground = "#5d5d5d"
+light_foreground = "#2b2b2b"
+bright_foreground = "#000000"
+
+hyprland_active_border = "rgba(005fb8cc) rgba(0078d4cc) 45deg"
+
+hyprland_inactive_border = "rgba(d0d0d0ff)"
+
+red = "#c50f1f"
+green = "#13a10e"
+yellow = "#c19c00"
+blue = "#0037da"
+magenta = "#881798"
+cyan = "#3a96dd"
+orange = "#c3550f"
+brown = "#665406"
+
+bright_red = "#e74856"
+bright_green = "#16c60c"
+bright_yellow = "#f9f1a5"
+bright_blue = "#3b78ff"
+bright_magenta = "#b4009e"
+bright_cyan = "#61d6d6"

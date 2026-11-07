@@ -1,4 +1,5 @@
 import QtQuick
+import "Mac.js" as Mac
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
@@ -98,7 +99,9 @@ Item {
     ["desktop", "Bureau et Dock", 0xF0379, "#1c1c1e", 1],
     ["displays", "Écrans", 0xF00DF, "#0a84ff", 1],
     ["menubar", "Barre des menus", 0xF035C, "#1c1c1e", 1],
+    ["shortcuts", "Raccourcis d'apps", 0xF003B, "#5e5ce6", 1],
     ["wallpaper", "Fond d'écran", 0xF02E9, "#32ade6", 1],
+    ["linux", "Bureau Linux", 0xF033D, "#2f9e9e", 1],
     ["notifications", "Notifications", 0xF009A, "#ff3b30", 2],
     ["sound", "Son", 0xF057E, "#ff2d55", 2],
     ["focus", "Concentration", 0xF0594, "#5e5ce6", 2],
@@ -106,6 +109,8 @@ Item {
     ["lock", "Écran verrouillé", 0xF033E, "#1c1c1e", 3],
     ["users", "Utilisateurs et groupes", 0xF0849, "#0a84ff", 3],
     ["keyboard", "Clavier", 0xF030C, "#8e8e93", 4],
+    ["mouse", "Souris", 0xF037D, "#8e8e93", 4],
+    ["trackpad", "Trackpad", 0xF0A2E, "#8e8e93", 4],
     ["corners", "Coins actifs", 0xF0294, "#8e8e93", 4],
     ["about", "À propos", 0xF02FD, "#8e8e93", 5]
   ]
@@ -151,6 +156,7 @@ Item {
 
   function refresh() {
     wifiProc.running = true
+    barProc.running = true
     devProc.running = true
     dndProc.running = true
     nightProc.running = true
@@ -202,9 +208,36 @@ Item {
     stdout: StdioCollector { onStreamFinished: { var p = parseFloat(text.trim().split(",")[3]); if (isFinite(p)) root.brightness = p / 100 } }
   }
   Process { id: focusProc; command: ["liquid-glass", "focus", "status"]; stdout: StdioCollector { onStreamFinished: { try { root.focusMode = JSON.parse(text).mode } catch (e) {} } } }
+  // Vidéos (fonds animés) : vignette = image extraite par « liquid-glass
+  // animated-wallpapers » dans ~/.cache/liquid-glass/posters/<nom>.jpg.
+  function isVideo(p) { return /\.(mp4|webm|mkv|mov)$/i.test(String(p || "")) }
+  // Catégorie d'un fond : préfixe du nom pour la collection (liquid-glass wallpapers),
+  // « dyn » pour les vidéos, « mac » pour le reste (fonds du thème, vos images).
+  readonly property var bgCats: [["all", "Tous"], ["mac", "Mac"], ["dyn", "Dynamiques"], ["anime", "Anime"], ["ascii", "ASCII"],
+                                 ["minimal", "Minimal"], ["abstract", "Abstrait"], ["fruit", "Fruits"], ["genere", "Générés"]]
+  property string bgFilter: "all"
+  function bgCat(p) {
+    if (root.isVideo(p)) return "dyn"
+    var pre = String(p).split("/").pop().split("-")[0]
+    return ["anime", "ascii", "minimal", "abstract", "fruit", "genere"].indexOf(pre) !== -1 ? pre : "mac"
+  }
+  function bgCount(c) { return c === "all" ? backgrounds.length : backgrounds.filter(function(p) { return root.bgCat(p) === c }).length }
+  readonly property var shownBackgrounds: {
+    if (bgFilter !== "all") return backgrounds.filter(function(p) { return root.bgCat(p) === root.bgFilter })
+    // Tous : Mac et Dynamiques d'abord, puis la collection par catégorie.
+    var order = bgCats.map(function(c) { return c[0] })
+    return backgrounds.slice().sort(function(a, b) { return order.indexOf(root.bgCat(a)) - order.indexOf(root.bgCat(b)) })
+  }
+  function bgThumb(p) {
+    if (!p) return ""
+    if (String(p).indexOf("/.local/share/liquid-glass/wallpapers/") !== -1)
+      return "file://" + root.home + "/.cache/liquid-glass/thumbs/" + String(p).split("/").pop()
+    if (!root.isVideo(p)) return "file://" + p
+    return "file://" + root.home + "/.cache/liquid-glass/posters/" + p.split("/").pop().replace(/\.[^.]+$/, "") + ".jpg"
+  }
   Process {
     id: bgProc
-    command: ["sh", "-c", "readlink -f \"$HOME/.local/state/omarchy/current/background\"; t=$(cat \"$HOME/.local/state/omarchy/current/theme.name\" 2>/dev/null); d=$(omarchy-theme-dir \"$t\" 2>/dev/null || omarchy theme dir \"$t\" 2>/dev/null); find -L \"$d/backgrounds\" \"$HOME/.config/omarchy/backgrounds/$t\" \"$HOME/Pictures/Wallpapers\" \"$HOME/Pictures\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' \\) 2>/dev/null | sort -u | head -90"]
+    command: ["sh", "-c", "readlink -f \"$HOME/.local/state/omarchy/current/background\"; t=$(cat \"$HOME/.local/state/omarchy/current/theme.name\" 2>/dev/null); d=$(omarchy-theme-dir \"$t\" 2>/dev/null || omarchy theme dir \"$t\" 2>/dev/null); find -L \"$d/backgrounds\" \"$HOME/.config/omarchy/backgrounds/$t\" \"$HOME/Pictures/Wallpapers\" \"$HOME/Pictures\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.mp4' -o -iname '*.webm' \\) 2>/dev/null | xargs -r -d '\\n' readlink -f | sort -u | head -600"]
     stdout: StdioCollector {
       onStreamFinished: {
         var l = text.trim().split("\n").filter(function(x) { return x !== "" })
@@ -281,13 +314,17 @@ Item {
         ev.accepted = true
       }
     }
-    Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.10) }
+    // Pas de voile sur l'écran (macOS n'en met pas) : un voile au-dessus du seuil
+    // ignore_alpha ferait flouter tout le bureau par Hyprland.
     MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
 
     Rectangle {
       id: card
-      anchors.centerIn: parent
-      width: Math.min(parent.width - 40, Style.space(800))
+      // Centrée à l'ouverture ; se déplace en tirant la bande du haut (comme la
+      // barre de titre d'une fenêtre Mac).
+      x: Math.round((parent.width - width) / 2)
+      y: Math.round((parent.height - height) / 2)
+      width: Math.min(parent.width - 40, Style.space(Mac.settings.width))
       height: Math.min(parent.height - 40, Style.space(560))
       radius: Style.space(24)
       // Verre : fond translucide (flouté par Hyprland), liseré clair.
@@ -300,11 +337,23 @@ Item {
       Behavior on opacity { NumberAnimation { duration: 180 } }
       MouseArea { anchors.fill: parent }
 
+      // Bande de titre : glisser pour déplacer la fenêtre (les clics passent aux boutons).
+      Item {
+        z: 50
+        width: parent.width; height: Style.space(36)
+        DragHandler {
+          target: card
+          cursorShape: Qt.ClosedHandCursor
+          xAxis.minimum: 0; xAxis.maximum: card.parent.width - card.width
+          yAxis.minimum: 0; yAxis.maximum: card.parent.height - Style.space(60)
+        }
+      }
+
       // ---- Barre latérale (panneau de verre inséré, comme Tahoe)
       Rectangle {
         id: sidebar
         x: Style.space(8); y: Style.space(8)
-        width: Style.space(228)
+        width: Style.space(Mac.sidebar.width - 15)
         height: parent.height - Style.space(16)
         radius: Style.space(18)
         color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, root.dark ? 0.06 : 0.05)
@@ -413,15 +462,15 @@ Item {
                   onCurrentChanged: if (current) { nav.activeItem = navItem; Qt.callLater(nav.reveal, navItem) }
                   Component.onCompleted: if (current) { nav.activeItem = navItem; Qt.callLater(nav.reveal, navItem) }
                   width: parent.width
-                  height: Style.space(30)
-                  radius: Style.space(9)
+                  height: Style.space(Mac.sidebar.row)
+                  radius: Style.space(Mac.sidebar.selRadius)
                   color: current ? root.accent : (navMouse.containsMouse ? Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.07) : "transparent")
                   Behavior on color { ColorAnimation { duration: 120 } }
                   Rectangle {
                     id: navIcon
                     x: Style.space(6)
                     anchors.verticalCenter: parent.verticalCenter
-                    width: Style.space(21); height: width; radius: Style.space(6)
+                    width: Style.space(Mac.sidebar.icon); height: width; radius: Style.space(Mac.sidebar.iconRadius)
                     color: navEntry.modelData[3]
                     gradient: Gradient {
                       GradientStop { position: 0; color: Qt.lighter(navEntry.modelData[3], 1.25) }
@@ -436,7 +485,7 @@ Item {
                     textFormat: Text.PlainText
                     elide: Text.ElideRight
                     text: navEntry.modelData[1]
-                    font.family: root.uiFont; font.pixelSize: Style.space(12.5)
+                    font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.body)
                     color: navItem.current ? "white" : root.fg
                   }
                   MouseArea { id: navMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.go(navEntry.modelData[0]) }
@@ -499,9 +548,9 @@ Item {
           sourceComponent: ({
             wifi: pWifi, bluetooth: pBluetooth, network: pNetwork, battery: pBattery,
             general: pGeneral, appearance: pAppearance, control: pControl, desktop: pDesktop,
-            displays: pDisplays, menubar: pMenubar, wallpaper: pWallpaper,
+            displays: pDisplays, menubar: pMenubar, shortcuts: pShortcuts, wallpaper: pWallpaper, linux: pLinux,
             notifications: pNotifications, sound: pSound, focus: pFocus, music: pMusic,
-            lock: pLock, users: pUsers, keyboard: pKeys, corners: pCorners, about: pAbout
+            lock: pLock, users: pUsers, keyboard: pKeys, mouse: pMouse, trackpad: pTrackpad, corners: pCorners, about: pAbout
           })[root.page] || pAppearance
           property real slide: 0
           x: slide
@@ -755,6 +804,32 @@ Item {
     id: pControl
     Column {
       spacing: Style.space(14)
+      SectionTitle { text: "Pastilles" }
+      Group {
+        Repeater {
+          model: ["Pastille 2 (sous Concentration)", "Pastille 3", "Sous « Lecture en cours »"]
+          delegate: Row_ {
+            id: tileRow
+            required property var modelData
+            required property int index
+            readonly property var cur: root.val("control.tiles", ["wifi", "record", "gamemode"])
+            label: modelData
+            Picker {
+              options: [["wifi", "Wi-Fi"], ["bluetooth", "Bluetooth"], ["airplane", "Mode avion"], ["record", "Enregistrement"],
+                        ["gamemode", "Mode Jeu"], ["nightshift", "Night Shift"], ["awake", "Rester éveillé"], ["dark", "Mode sombre"]]
+              value: tileRow.cur[tileRow.index] || ["wifi", "record", "gamemode"][tileRow.index]
+              onPicked: function(v) {
+                var t = tileRow.cur.slice(0, 3)
+                while (t.length < 3) t.push(["wifi", "record", "gamemode"][t.length])
+                t[tileRow.index] = v
+                root.set("control.tiles", t)
+              }
+            }
+          }
+        }
+      }
+      Hint { text: "Concentration et « Lecture en cours » sont toujours affichés. Mode Jeu : sans flou, ombres ni animations, profil d'énergie performance." }
+      SectionTitle { text: "Boutons ronds" }
       Hint { text: "Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste." }
       Group {
         Repeater {
@@ -818,6 +893,15 @@ Item {
         ToggleRow { label: "Toujours visible"; key: "dock.always_visible"; def: true }
         ToggleRow { label: "Masquer automatiquement"; key: "dock.autohide"; def: false }
       }
+      SectionTitle { text: "Fenêtres" }
+      Group {
+        ToggleRow { label: "Fenêtres flottantes comme sur Mac"; key: "windows.floating"; def: true; sub: "Ouvertes au centre ; ⌘T remet une fenêtre en mosaïque" }
+        ToggleRow { label: "Barre de titre avec feux tricolores"; key: "glass.titlebars"; def: true; sub: "Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir" }
+        Row_ {
+          label: "Bouton vert"
+          Seg { options: [["menu", "Menu Mosaïque"], ["zoom", "Agrandir"]]; value: root.val("windows.green_button", "menu"); onPicked: function(v) { root.set("windows.green_button", v) } }
+        }
+      }
       SectionTitle { text: "Widgets" }
       Group {
         ToggleRow { label: "Widgets sur le bureau"; key: "widgets.enabled"; def: true }
@@ -831,14 +915,29 @@ Item {
           visible: root.val("widgets.clock", true) === true
           Seg { options: [["digital", "Numérique"], ["analog", "Cadran"]]; value: String(root.val("widgets.clock_style", "digital")); onPicked: function(v) { root.set("widgets.clock_style", v) } }
         }
+        Row_ {
+          label: "Taille de l'horloge"
+          visible: root.val("widgets.clock", true) === true
+          Seg { options: root.widgetSizes; value: root.widgetSize("clock"); onPicked: function(v) { root.set("widgets.clock_size", v) } }
+        }
         ToggleRow { label: "Calendrier"; key: "widgets.calendar"; def: true }
+        Row_ {
+          label: "Taille du calendrier"
+          visible: root.val("widgets.calendar", true) === true
+          Seg { options: root.widgetSizes; value: root.widgetSize("calendar"); onPicked: function(v) { root.set("widgets.calendar_size", v) } }
+        }
         ToggleRow { label: "Météo"; key: "widgets.weather"; def: true }
         Row_ {
           label: "Taille de la météo"
           visible: root.val("widgets.weather", true) === true
-          Seg { options: [["wide", "Large (heures)"], ["small", "Petite"]]; value: String(root.val("widgets.weather_size", "wide")); onPicked: function(v) { root.set("widgets.weather_size", v) } }
+          Seg { options: root.widgetSizes; value: root.widgetSize("weather"); onPicked: function(v) { root.set("widgets.weather_size", v) } }
         }
         ToggleRow { label: "Batterie"; key: "widgets.battery"; def: true }
+        Row_ {
+          label: "Taille de la batterie"
+          visible: root.val("widgets.battery", true) === true
+          Seg { options: root.widgetSizes; value: root.widgetSize("battery"); onPicked: function(v) { root.set("widgets.battery_size", v) } }
+        }
         Row_ {
           label: "Ville de la météo"
           TextBox { value: String(root.val("widgets.weather_city", "")); placeholder: "Automatique"; onCommitted: function(t) { root.set("widgets.weather_city", t) } }
@@ -879,6 +978,37 @@ Item {
           Switch_ { checked: root.nightlight; onToggled: function(v) { root.nightlight = v; root.run(["omarchy-shell", "nightlight", "toggle"]) } }
         }
       }
+      // Moniteurs (comme la section « Écrans » de la vidéo) : nom, définition, fréquence, échelle.
+      SectionTitle { text: "Moniteurs" }
+      Group {
+        id: monGroup
+        property var mons: []
+        Process {
+          running: true
+          command: ["hyprctl", "monitors", "-j"]
+          stdout: StdioCollector { onStreamFinished: { try { monGroup.mons = JSON.parse(text) } catch (e) {} } }
+        }
+        Repeater {
+          model: monGroup.mons
+          delegate: Column {
+            id: mon
+            required property var modelData
+            width: parent.width
+            Row_ {
+              label: ((mon.modelData.make || "") + " " + (mon.modelData.model || "")).trim() || mon.modelData.name
+              sub: mon.modelData.name + (mon.modelData.focused ? " · écran principal" : "")
+              icon: 0xF0379; iconColor: "#0a84ff"
+            }
+            Row_ { label: "Définition"; Label_ { text: mon.modelData.width + " × " + mon.modelData.height + "  (comme " + Math.round(mon.modelData.width / mon.modelData.scale) + " × " + Math.round(mon.modelData.height / mon.modelData.scale) + ")" } }
+            Row_ { label: "Fréquence de rafraîchissement"; Label_ { text: Math.round(mon.modelData.refreshRate) + " Hz" } }
+            Row_ { label: "Échelle"; Label_ { text: Math.round(mon.modelData.scale * 100) + " %" } }
+          }
+        }
+      }
+      Group {
+        ToggleRow { label: "Coins d'écran arrondis"; key: "corners.enabled"; def: true; sub: "Comme la dalle d'un MacBook ; les clics passent au travers" }
+        SliderRow { visible: root.val("corners.enabled", true) === true; label: "Rayon"; key: "corners.radius"; from: 4; to: 24; step: 1; def: 10; fmt: function(v) { return v + " px" } }
+      }
       Btn { text: "Moniteurs…"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.monitor", "toggle"]) } }
     }
   }
@@ -897,9 +1027,220 @@ Item {
             onPicked: function(v) { root.set("appearance.logo", v) }
           }
         }
-        ToggleRow { label: "Paroles dans la barre"; key: "lyrics.bar"; def: true; sub: "La ligne chantée remplace le titre du morceau" }
       }
+      Group {
+        Row_ {
+          label: "Fond de la barre"
+          sub: "Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran"
+          Seg {
+            options: [["none", "Transparente"], ["glassy", "Verre"], ["opaque", "Opaque"]]
+            value: String(root.barItems.background || "opaque")
+            onPicked: function(v) {
+              var next = Object.assign({}, root.barItems); next.background = v; root.barItems = next
+              root.run(["liquid-glass", "bar", "background", v])
+            }
+          }
+        }
+      }
+      SectionTitle { text: "Éléments de la barre" }
+      Group {
+        BarRow { label: "Batterie"; item: "battery" }
+        Row_ {
+          label: "Pourcentage de la batterie"
+          sub: "À gauche de la pile (aussi : clic droit sur la batterie)"
+          visible: root.barItems.battery === true
+          Switch_ { checked: root.barItems.battery_percent === true; onToggled: function(v) { root.run(["omarchy-shell", "liquid-glass.power", "togglePercentage"]); barTimer.restart() } }
+        }
+        BarRow { label: "Wi-Fi"; item: "wifi" }
+        BarRow { label: "Spotlight (loupe)"; item: "spotlight" }
+        BarRow { label: "Bluetooth"; item: "bluetooth"; sub: "Aussi dans le Centre de contrôle" }
+        BarRow { label: "Son"; item: "sound"; sub: "Aussi dans le Centre de contrôle" }
+        BarRow { label: "Bureaux (1 2 3…)"; item: "workspaces"; sub: "Pas sur macOS : Mission Control (⌘↑) les remplace" }
+        BarRow { label: "Morceau en cours"; item: "nowplaying"; sub: "Pochette et titre à droite (déjà dans l'île)" }
+        BarRow { label: "Agents"; item: "agents"; sub: "Indicateur des agents Omarchy" }
+      }
+      SectionTitle { text: "Paroles" }
+      Group {
+        ToggleRow { label: "Dans l'île dynamique"; key: "island.lyrics"; def: true; sub: "L'île s'élargit et la ligne chantée défile dedans" }
+        ToggleRow { label: "Dans la barre"; key: "lyrics.bar"; def: false; sub: "Ancienne présentation : la ligne à côté du titre" }
+        ToggleRow { label: "Sur le fond d'écran"; key: "lyrics.desktop"; def: false; sub: "En grand à côté de la pochette (bulle du widget musique)" }
+      }
+      SectionTitle { text: "Horloge" }
+      Group {
+        ToggleRow { label: "Horloge 24 heures"; key: "menubar.clock_24h"; def: true }
+        ToggleRow { label: "Afficher la date"; key: "menubar.show_date"; def: true }
+        ToggleRow { label: "Afficher les secondes"; key: "menubar.show_seconds"; def: false }
+        ToggleRow { label: "La semaine commence le lundi"; key: "menubar.week_monday"; def: true; sub: "Widget Calendrier" }
+      }
+      SectionTitle { text: "Île dynamique" }
+      Group {
+        ToggleRow { label: "Île dynamique"; key: "island.enabled"; def: true; sub: "Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes" }
+        Row_ {
+          label: "Au repos"
+          visible: root.val("island.enabled", true) === true
+          Seg {
+            options: [["hidden", "Masquée"], ["notch", "Encoche"]]
+            value: root.val("island.idle", "hidden")
+            onPicked: function(v) { root.set("island.idle", v) }
+          }
+        }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Lecture en cours"; key: "island.music"; def: true; sub: "Pochette et égaliseur aux couleurs de la pochette" }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Secteur"; key: "island.battery"; def: true; sub: "Branchement et débranchement, avec le niveau" }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Appareils Bluetooth"; key: "island.bluetooth"; def: true; sub: "Casque connecté, avec sa batterie" }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Concentration"; key: "island.focus"; def: true }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Volume dans l'île"; key: "island.hud"; def: false; sub: "En plus de l'OSD au-dessus du Dock" }
+      }
+      Hint { text: "Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages." }
       Hint { text: "La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help." }
+    }
+  }
+
+  // ------------------------------------------------ raccourcis d'apps (barre)
+  // shortcuts.apps : « claude-code » (Claude Code via omarchy-agent) ou ids .desktop.
+  readonly property var shortcutIds: {
+    var a = root.val("shortcuts.apps", ["claude-code"])
+    return Array.isArray(a) ? a : ["claude-code"]
+  }
+  readonly property string claudeIcon: "file:///usr/share/omarchy/shell/plugins/agents/assets/claude.svg"
+  function normId(id) { return String(id).toLowerCase().replace(/\.desktop$/, "") }
+  function appEntry(id) {
+    var all = DesktopEntries.applications.values, want = normId(id)
+    for (var i = 0; i < all.length; i++) if (normId(all[i].id) === want) return all[i]
+    return null
+  }
+  function appIcon(icon) {
+    var lib = root.shell ? root.shell.appLibrary : null
+    return lib ? lib.iconSource(icon) : Quickshell.iconPath(icon, true)
+  }
+  function shortcutInfo(id) {
+    if (id === "claude-code") return { name: "Claude Code", sub: "Terminal avec Claude Code (omarchy-agent)", icon: root.claudeIcon }
+    var e = appEntry(id)
+    return e ? { name: e.name, sub: e.genericName || e.comment || "", icon: appIcon(e.icon) }
+             : { name: id, sub: "App introuvable", icon: "" }
+  }
+  function hasShortcut(id) { var n = normId(id); return shortcutIds.some(function(x) { return normId(x) === n }) }
+  function addShortcut(id) { if (!hasShortcut(id)) root.set("shortcuts.apps", shortcutIds.concat([id])) }
+  function removeShortcut(i) { var a = shortcutIds.slice(); a.splice(i, 1); root.set("shortcuts.apps", a) }
+  function moveShortcut(i, d) {
+    var a = shortcutIds.slice(), j = i + d
+    if (j < 0 || j >= a.length) return
+    var t = a[i]; a[i] = a[j]; a[j] = t
+    root.set("shortcuts.apps", a)
+  }
+  property string appQuery: ""
+  readonly property var installedApps: {
+    var q = appQuery.trim().toLowerCase(), out = []
+    if (!hasShortcut("claude-code") && (q === "" || "claude code".indexOf(q) !== -1))
+      out.push({ id: "claude-code", name: "Claude Code", sub: "Terminal avec Claude Code", icon: root.claudeIcon })
+    var all = DesktopEntries.applications.values.slice().sort(function(a, b) { return String(a.name).localeCompare(String(b.name)) })
+    for (var i = 0; i < all.length; i++) {
+      var e = all[i]
+      if (e.noDisplay || hasShortcut(e.id)) continue
+      var hay = (String(e.name) + " " + String(e.genericName || "") + " " + String(e.id)).toLowerCase()
+      if (q !== "" && hay.indexOf(q) === -1) continue
+      out.push({ id: e.id, name: e.name, sub: e.genericName || e.comment || "", icon: appIcon(e.icon) })
+    }
+    return out
+  }
+
+  // Ligne d'app : icône réelle de l'app, nom, sous-titre, contrôles à droite.
+  component AppRow: Item {
+    id: ar
+    property string name: ""
+    property string sub: ""
+    property string icon: ""
+    default property alias control: arSlot.data
+    width: parent ? parent.width : 0
+    height: Style.space(44)
+    Rectangle {
+      visible: ar.y > 0
+      x: arLabels.x; width: parent.width - x - Style.space(14); height: 1
+      color: root.fg; opacity: 0.07
+    }
+    Image {
+      id: arIcon
+      x: Style.space(12); anchors.verticalCenter: parent.verticalCenter
+      width: Style.space(26); height: width
+      sourceSize.width: width * 2; sourceSize.height: height * 2
+      source: ar.icon; fillMode: Image.PreserveAspectFit; smooth: true; mipmap: true
+    }
+    Column {
+      id: arLabels
+      x: arIcon.x + arIcon.width + Style.space(10)
+      anchors.verticalCenter: parent.verticalCenter
+      width: parent.width - x - arSlot.width - Style.space(28)
+      spacing: 1
+      Text { width: parent.width; textFormat: Text.PlainText; text: ar.name; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: Style.space(13); color: root.fg }
+      Text { width: parent.width; visible: ar.sub !== ""; textFormat: Text.PlainText; text: ar.sub; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.fg; opacity: 0.5 }
+    }
+    Row {
+      id: arSlot
+      anchors.right: parent.right; anchors.rightMargin: Style.space(14)
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: Style.space(6)
+    }
+  }
+
+  // Petit bouton rond à glyphe (monter, descendre, retirer, ajouter).
+  component RoundGlyph: Rectangle {
+    id: rg
+    property int glyph: 0
+    property color tint: root.fg
+    property bool filled: false
+    property bool enabled_: true
+    signal clicked()
+    width: Style.space(24); height: width; radius: width / 2
+    opacity: enabled_ ? 1 : 0.3
+    color: filled ? tint : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, rgMouse.containsMouse && enabled_ ? 0.16 : 0.08)
+    scale: rgMouse.pressed && enabled_ ? 0.85 : 1
+    Behavior on scale { NumberAnimation { duration: 280; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+    Text { anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(rg.glyph); font.family: root.iconFont; font.pixelSize: Style.space(14); color: rg.filled ? "white" : rg.tint }
+    MouseArea { id: rgMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: rg.enabled_ ? Qt.PointingHandCursor : Qt.ArrowCursor; onClicked: if (rg.enabled_) rg.clicked() }
+  }
+
+  Component {
+    id: pShortcuts
+    Column {
+      spacing: Style.space(14)
+      Group {
+        BarRow { label: "Raccourcis dans la barre des menus"; item: "shortcuts"; sub: "Icônes d'apps à gauche des indicateurs, comme le bouton Claude" }
+      }
+      SectionTitle { text: "Dans la barre (de gauche à droite)" }
+      Group {
+        Repeater {
+          model: root.shortcutIds
+          AppRow {
+            required property var modelData
+            required property int index
+            readonly property var info: root.shortcutInfo(modelData)
+            name: info.name; sub: info.sub; icon: info.icon
+            RoundGlyph { glyph: 0xF0143; enabled_: index > 0; onClicked: root.moveShortcut(index, -1) }
+            RoundGlyph { glyph: 0xF0140; enabled_: index < root.shortcutIds.length - 1; onClicked: root.moveShortcut(index, 1) }
+            RoundGlyph { glyph: 0xF0374; filled: true; tint: "#ff3b30"; onClicked: root.removeShortcut(index) }
+          }
+        }
+        Row_ { visible: root.shortcutIds.length === 0; label: "Aucun raccourci"; sub: "Ajoutez des apps ci-dessous" }
+      }
+      SectionTitle { text: "Ajouter une app" }
+      TextBox {
+        width: parent.width
+        placeholder: "Rechercher une app installée…"
+        value: root.appQuery
+        onEdited: function(t) { root.appQuery = t }
+      }
+      Group {
+        Repeater {
+          model: root.installedApps.slice(0, 60)
+          AppRow {
+            required property var modelData
+            name: modelData.name; sub: modelData.sub; icon: modelData.icon
+            RoundGlyph { glyph: 0xF0415; filled: true; tint: "#30d158"; onClicked: root.addShortcut(modelData.id) }
+          }
+        }
+        Row_ { visible: root.installedApps.length === 0; label: "Aucune app trouvée" }
+      }
+      Hint { visible: root.installedApps.length > 60; text: (root.installedApps.length - 60) + " autres apps : affinez la recherche." }
+      Hint { text: "Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page." }
     }
   }
 
@@ -913,7 +1254,7 @@ Item {
           width: Style.space(200); height: Style.space(118); radius: Style.space(12)
           clip: true
           color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.1)
-          Image { anchors.fill: parent; source: root.currentBg ? "file://" + root.currentBg : ""; fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(400, 240); asynchronous: true }
+          Image { anchors.fill: parent; source: root.bgThumb(root.currentBg); fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(400, 240); asynchronous: true }
         }
         Column {
           anchors.verticalCenter: parent.verticalCenter
@@ -939,6 +1280,31 @@ Item {
         }
       }
       SectionTitle { text: "Fonds d'écran" }
+      // Filtre par catégorie (pastilles, avec le nombre de fonds).
+      Flow {
+        width: parent.width
+        spacing: Style.space(6)
+        Repeater {
+          model: root.bgCats.filter(function(c) { return root.bgCount(c[0]) > 0 })
+          delegate: Rectangle {
+            id: chipC
+            required property var modelData
+            readonly property bool on: root.bgFilter === modelData[0]
+            width: chipT.implicitWidth + Style.space(20); height: Style.space(24); radius: height / 2
+            color: on ? root.accent : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, chipM.containsMouse ? 0.14 : 0.08)
+            Behavior on color { ColorAnimation { duration: 140 } }
+            scale: chipM.pressed ? 0.9 : 1
+            Behavior on scale { NumberAnimation { duration: 280; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+            Text {
+              id: chipT; anchors.centerIn: parent; textFormat: Text.PlainText
+              text: chipC.modelData[1] + "  " + root.bgCount(chipC.modelData[0])
+              font.family: root.uiFont; font.pixelSize: Style.space(11.5); font.weight: Font.Medium
+              color: chipC.on ? "white" : root.fg
+            }
+            MouseArea { id: chipM; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.bgFilter = chipC.modelData[0] }
+          }
+        }
+      }
       Grid {
         id: bgGrid
         width: parent.width
@@ -946,7 +1312,7 @@ Item {
         spacing: Style.space(10)
         readonly property real cw: (width - 2 * spacing) / 3
         Repeater {
-          model: root.backgrounds
+          model: root.shownBackgrounds
           delegate: Column {
             id: bgItem
             required property var modelData
@@ -958,7 +1324,16 @@ Item {
               border.width: bgItem.on ? 3 : 0
               border.color: root.accent
               clip: true
-              Image { anchors.fill: parent; anchors.margins: bgItem.on ? 3 : 0; source: "file://" + bgItem.modelData; fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(320, 200); asynchronous: true }
+              Image { anchors.fill: parent; anchors.margins: bgItem.on ? 3 : 0; source: root.bgThumb(bgItem.modelData); fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(320, 200); asynchronous: true
+                      onStatusChanged: if (status === Image.Error && !root.isVideo(bgItem.modelData)) source = "file://" + bgItem.modelData }
+              // Pastille « animé » sur les fonds vidéo.
+              Rectangle {
+                visible: root.isVideo(bgItem.modelData)
+                anchors.left: parent.left; anchors.bottom: parent.bottom; anchors.margins: Style.space(6)
+                width: animTxt.implicitWidth + Style.space(12); height: Style.space(16); radius: height / 2
+                color: Qt.rgba(0, 0, 0, 0.5)
+                Text { id: animTxt; anchors.centerIn: parent; textFormat: Text.PlainText; text: root.g(0xF040A) + " Animé"; font.family: root.iconFont; font.pixelSize: Style.space(9); color: "white" }
+              }
               scale: bgMouse.pressed ? 0.92 : (bgMouse.containsMouse ? 1.04 : 1)
               Behavior on scale { NumberAnimation { duration: 340; easing.type: Easing.OutBack; easing.overshoot: 2.6 } }
               MouseArea { id: bgMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { root.currentBg = bgItem.modelData; root.launch(["omarchy", "theme", "bg", "set", bgItem.modelData]) } }
@@ -1083,7 +1458,17 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        ToggleRow { label: "Widget musique"; key: "lock.music_card"; def: true; sub: "Au-dessus de l'avatar ; la bulle l'agrandit" }
+        Row_ {
+          label: "Lecture en cours"
+          sub: "Position ; se déplace aussi au doigt"
+          Seg {
+            options: [["clock", "Sous l'horloge"], ["password", "Au-dessus du mot de passe"]]
+            value: String(root.val("lock.music_position", "password"))
+            onPicked: function(v) { root.set("lock.music_position", v); root.set("lock.music_x", -1); root.set("lock.music_y", -1) }
+          }
+        }
+        ToggleRow { label: "Widget musique"; key: "lock.music_card"; def: true; sub: "La bulle l'agrandit" }
+        ToggleRow { label: "Garder le dernier morceau"; key: "lock.music_last"; def: true; sub: "Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)" }
         Row_ {
           label: "Fond quand la pochette est agrandie"
           Seg {
@@ -1101,14 +1486,14 @@ Item {
       Row {
         spacing: Style.space(10)
         Repeater {
-          model: [["glass", "Verre"], ["bold", "Classique"], ["light", "Fine"]]
+          model: [["glass", "Verre"], ["bold", "Classique"], ["serif", "Serif"], ["liquid", "Liquide"], ["light", "Fine"]]
           delegate: Column {
             id: cs
             required property var modelData
             readonly property bool on: String(root.val("lock.clock_style", "glass")) === modelData[0]
             spacing: Style.space(4)
             Rectangle {
-              width: Style.space(96); height: Style.space(62); radius: Style.space(12)
+              width: Style.space(84); height: Style.space(56); radius: Style.space(12)
               clip: true
               border.width: cs.on ? 3 : 0; border.color: root.accent
               Image { anchors.fill: parent; source: root.currentBg ? "file://" + root.currentBg : ""; fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(200, 130); asynchronous: true }
@@ -1116,12 +1501,13 @@ Item {
                 anchors.centerIn: parent
                 textFormat: Text.PlainText
                 text: "9:41"
-                font.family: String(root.val("lock.clock_font", "")) || root.uiFont
-                font.pixelSize: Style.space(26)
-                font.weight: cs.modelData[0] === "light" ? Font.Light : (cs.modelData[0] === "glass" ? Font.DemiBold : Font.Bold)
-                color: "white"
+                font.family: cs.modelData[0] === "serif" ? "Noto Serif" : (String(root.val("lock.clock_font", "")) || root.uiFont)
+                font.pixelSize: Style.space(23)
+                font.weight: cs.modelData[0] === "light" ? Font.Thin : (cs.modelData[0] === "serif" ? Font.Medium : (cs.modelData[0] === "bold" ? Font.Bold : Font.DemiBold))
+                color: cs.modelData[0] === "liquid" ? Qt.rgba(1, 1, 1, 0.22) : "white"
                 opacity: cs.modelData[0] === "glass" ? 0.85 : 1
-                style: Text.Raised; styleColor: Qt.rgba(0, 0, 0, 0.25)
+                style: cs.modelData[0] === "liquid" ? Text.Outline : Text.Raised
+                styleColor: cs.modelData[0] === "liquid" ? Qt.rgba(1, 1, 1, 0.9) : Qt.rgba(0, 0, 0, 0.25)
               }
               scale: csMouse.pressed ? 0.9 : 1
               Behavior on scale { NumberAnimation { duration: 320; easing.type: Easing.OutBack; easing.overshoot: 3 } }
@@ -1133,6 +1519,44 @@ Item {
       }
       Group {
         FontRow { label: "Police de l'horloge"; key: "lock.clock_font"; def: ""; allowDefault: true }
+        SliderRow {
+          label: "Graisse"; key: "lock.clock_weight"; from: 100; to: 900; step: 100
+          def: ({ light: 100, serif: 500, bold: 700 })[String(root.val("lock.clock_style", "glass"))] || 600
+          fmt: function(v) { return ({ 100: "Fine", 200: "Très légère", 300: "Légère", 400: "Normale", 500: "Moyenne", 600: "Demi-grasse", 700: "Grasse", 800: "Très grasse", 900: "Épaisse" })[v] || String(v) }
+        }
+        SliderRow { label: "Luminosité"; key: "lock.clock_brightness"; from: 0.4; to: 1; step: 0.05; def: 1; fmt: function(v) { return v <= 0.55 ? "Discrète" : (v >= 0.95 ? "Vive" : Math.round(v * 100) + " %") } }
+        Row_ {
+          label: "Couleur"
+          Row {
+            spacing: Style.space(7)
+            Repeater {
+              model: ["#ffffff", "#ffe3c2", "#ffc4cf", "#e3cbff", "#c4dcff", "#bff3ee", "#e8f7b8"]
+              delegate: Rectangle {
+                id: cdot
+                required property var modelData
+                readonly property bool on: String(root.val("lock.clock_color", "#ffffff")).toLowerCase() === modelData
+                width: Style.space(18); height: width; radius: width / 2
+                color: modelData
+                border.width: on ? 2 : 1
+                border.color: on ? root.accent : Qt.rgba(0, 0, 0, 0.15)
+                scale: cdMouse.pressed ? 0.8 : (on ? 1.15 : 1)
+                Behavior on scale { NumberAnimation { duration: 320; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+                MouseArea { id: cdMouse; anchors.fill: parent; anchors.margins: -3; cursorShape: Qt.PointingHandCursor; onClicked: root.set("lock.clock_color", cdot.modelData) }
+              }
+            }
+          }
+        }
+        ToggleRow { label: "Chiffres hauts"; key: "lock.clock_tall"; def: false; sub: "Étire les chiffres pour remplir l'espace, comme iOS 26" }
+        Row_ {
+          label: "Date"
+          Seg {
+            readonly property date now: new Date()
+            options: [["long", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale("fr_FR").toString(now, "dddd d MMMM"))],
+                      ["short", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale("fr_FR").toString(now, "ddd d MMM"))]]
+            value: String(root.val("lock.date_format", "long"))
+            onPicked: function(v) { root.set("lock.date_format", v) }
+          }
+        }
       }
       Row {
         spacing: Style.space(8)
@@ -1173,12 +1597,292 @@ Item {
   }
 
   Component {
+    id: pLinux
+    Column {
+      id: lp
+      spacing: Style.space(14)
+      readonly property bool active: root.val("profile.active", "mac") === "linux"
+      readonly property string st: root.val("linux.style", "blanc")
+      // Valeur par défaut d'un réglage musique selon le style (comme le service).
+      function sdef(m) { return m[lp.st] !== undefined ? m[lp.st] : m["*"] }
+      // Sur le bureau Linux, un style passe par la CLI (thème, fonds, bordures) ;
+      // sur le Mac, on le note seulement pour la prochaine bascule.
+      function pick(arg, key, v) { if (lp.active) root.launch(["liquid-glass", "profile", arg]); else root.set(key, v) }
+      Group {
+        Row_ {
+          label: lp.active ? "Bureau Linux actif" : "Bureau Mac actif"
+          sub: "⌘⇧Espace ouvre le sélecteur : Mac, Omarchy d'origine, Windows, Mono, Forêt, Blanc, Sombre, Jouet, Violet, Expressive. ⌃⌘T change la teinte."
+          Btn { text: "Choisir un bureau  ⌘⇧␣"; onClicked: { root.dismiss(); root.launch(["liquid-glass", "profile", "pick"]) } }
+        }
+      }
+      SectionTitle { text: "Style" }
+      Group {
+        Row_ {
+          label: "Allure"
+          sub: ({ blanc: "Tout en blanc, police mono, horloge pixel, lecteur vinyle",
+                  sombre: "Noir profond, blanc cassé, jour en kanji",
+                  jouet: "Bonbon : contours épais, ombres dures, arc-en-ciel",
+                  violet: "Montagnes dans la brume, grosse horloge « bonbon » empilée",
+                  expressive: "Material 3 façon end4-pC / Serpantinum : couleurs tirées du fond",
+                  windows: "Barre des tâches, menu Démarrer, Paramètres, comme Windows 11",
+                  mono: "Cadre noir façon caelestia, barre latérale, tableau de bord",
+                  foret: "Puces flottantes, météo en orbite, spectre musical (rice c01)" })[lp.st] || ""
+          Seg {
+            options: [["blanc", "Blanc"], ["sombre", "Sombre"], ["jouet", "Jouet"], ["violet", "Violet"], ["expressive", "Expr."]]
+            value: lp.st
+            onPicked: function(v) { lp.pick(v, "linux.style", v) }
+          }
+        }
+        Row_ {
+          label: "Bureaux complets"
+          sub: "Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)"
+          Seg {
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", "Forêt"], ["ruban", "Rubans"], ["espace", "Espace"], ["gouts", "Mes goûts"]]
+            value: lp.st
+            onPicked: function(v) { lp.pick(v, "linux.style", v) }
+          }
+        }
+        Row_ {
+          label: "Distributions"
+          sub: "Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma"
+          Seg {
+            options: [["debian", "Debian"], ["fedora", "Fedora"], ["mint", "Mint"], ["kali", "Kali"], ["arch", "Arch"]]
+            value: lp.st
+            onPicked: function(v) { lp.pick(v, "linux.style", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "violet"
+          sub: "Nuit (violet profond), aube (lilas clair) ou rose pastel"
+          Seg {
+            options: [["nuit", "Nuit"], ["aube", "Aube"], ["rose", "Rose"]]
+            value: root.val("linux.violet_tone", "nuit")
+            onPicked: function(v) { lp.pick("violet:" + v, "linux.violet_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Blanc"
+          visible: lp.st === "blanc"
+          sub: "Pur (gris neutres) ou crème (papier chaud)"
+          Seg {
+            options: [["pur", "Pur"], ["creme", "Crème"]]
+            value: root.val("linux.blanc_tone", "pur")
+            onPicked: function(v) { lp.pick("blanc:" + v, "linux.blanc_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "sombre"
+          sub: "Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)"
+          Seg {
+            options: [["encre", "Encre"], ["ambre", "Ambre"], ["glace", "Glace"], ["sang", "Sang"], ["indigo", "Indigo"]]
+            value: root.val("linux.sombre_tone", "encre")
+            onPicked: function(v) { lp.pick("sombre:" + v, "linux.sombre_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "jouet"
+          sub: "Bonbon (rose), menthe (vert d'eau) ou pêche (orange)"
+          Seg {
+            options: [["bonbon", "Bonbon"], ["menthe", "Menthe"], ["peche", "Pêche"]]
+            value: root.val("linux.jouet_tone", "bonbon")
+            onPicked: function(v) { lp.pick("jouet:" + v, "linux.jouet_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "mono"
+          sub: "Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)"
+          Seg {
+            options: [["noir", "Noir"], ["papier", "Papier"], ["sakura", "Sakura"]]
+            value: root.val("linux.mono_tone", "noir")
+            onPicked: function(v) { lp.pick("mono:" + v, "linux.mono_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "ruban"
+          sub: "Bleu, rouge ou or"
+          Seg {
+            options: [["bleu", "Bleu"], ["rouge", "Rouge"], ["or", "Or"]]
+            value: root.val("linux.ruban_tone", "bleu")
+            onPicked: function(v) { lp.pick("ruban:" + v, "linux.ruban_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "espace"
+          sub: "Bleu glacé, Mars ou nébuleuse"
+          Seg {
+            options: [["bleu", "Bleu"], ["mars", "Mars"], ["nebuleuse", "Nébuleuse"]]
+            value: root.val("linux.espace_tone", "bleu")
+            onPicked: function(v) { lp.pick("espace:" + v, "linux.espace_tone", v) }
+          }
+        }
+        ToggleRow { visible: lp.st === "sombre"; label: "Mur de tuiles"; key: "linux.sombre_wall"; def: true }
+        Row_ {
+          label: "Couleurs"
+          visible: true
+          sub: "Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)"
+          Seg {
+            options: [["theme", "Du style"], ["fond", "Du fond"], ["perso", "Perso"]]
+            value: root.val("linux." + lp.st + "_colors", lp.st === "expressive" ? "fond" : "theme")
+            onPicked: function(v) { root.set("linux." + lp.st + "_colors", v); if (v === "perso" && root.val("linux." + lp.st + "_accent", "") === "") root.set("linux." + lp.st + "_accent", "#4c9aff") }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "windows"
+          sub: "Clair ou sombre, comme dans Windows"
+          Seg {
+            options: [["clair", "Clair"], ["sombre", "Sombre"]]
+            value: root.val("linux.windows_tone", "clair")
+            onPicked: function(v) { lp.pick("windows:" + v, "linux.windows_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "foret"
+          sub: "Mousse (vert tilleul) ou cendre (rose poudré)"
+          Seg {
+            options: [["mousse", "Mousse"], ["cendre", "Cendre"]]
+            value: root.val("linux.foret_tone", "mousse")
+            onPicked: function(v) { lp.pick("foret:" + v, "linux.foret_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Palette Material You"
+          sub: "Variante matugen calculée depuis le fond d'écran (ou la pochette)"
+          visible: lp.st === "expressive"
+          Seg {
+            options: [["tonal-spot", "Douce"], ["expressive", "Expressive"], ["vibrant", "Vive"], ["fruit-salad", "Fruitée"], ["monochrome", "Mono"]]
+            value: root.val("linux.scheme", "tonal-spot")
+            onPicked: function(v) { root.set("linux.scheme", v) }
+          }
+        }
+        SliderRow { label: "Arrondi des cartes"; key: "linux.radius"; from: 0; to: 32; step: 1
+                    def: ({ blanc: 0, sombre: 8, jouet: 20, violet: 20, expressive: 24, windows: 8, mono: 18, foret: 16 })[lp.st] || 14
+                    fmt: function(v) { return Math.round(v) + " px" } }
+      }
+
+      SectionTitle { text: "Musique" }
+      Group {
+        Row_ {
+          label: "Visualiseur"
+          sub: "Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture"
+          Seg {
+            options: [["bars", "Barres"], ["wave", "Vague"], ["mirror", "Miroir"], ["blocks", "Blocs"], ["line", "Ligne"], ["radial", "Anneau"], ["off", "Aucun"]]
+            value: root.val("linux.viz", lp.sdef({ jouet: "blocks", violet: "wave", expressive: "wave", "*": "bars" }))
+            onPicked: function(v) { root.set("linux.viz", v) }
+          }
+        }
+        Row_ {
+          label: "Couleur"
+          Seg {
+            options: [["auto", "Thème"], ["cover", "Pochette"], ["rainbow", "Arc-en-ciel"], ["ink", "Encre"]]
+            value: root.val("linux.viz_color", lp.sdef({ jouet: "rainbow", "*": "auto" }))
+            onPicked: function(v) { root.set("linux.viz_color", v) }
+          }
+        }
+        SliderRow { label: "Hauteur"; key: "linux.viz_height"; from: 40; to: 400; step: 10; def: lp.sdef({ jouet: 130, sombre: 170, "*": 140 }); fmt: function(v) { return Math.round(v) + " px" } }
+        SliderRow { label: "Sensibilité"; key: "linux.viz_gain"; from: 0.3; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        SliderRow { label: "Opacité"; key: "linux.viz_opacity"; from: 0.1; to: 1; step: 0.05; def: lp.sdef({ blanc: 0.85, "*": 0.9 }); fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: "Nombre de barres"; key: "linux.cava_bars"; from: 24; to: 160; step: 4; def: 110; fmt: function(v) { return Math.round(v) } }
+        ToggleRow { label: "Halo sur les basses"; key: "linux.pulse"; def: true; sub: "Une lueur qui respire en bas de l'écran au rythme des basses" }
+        ToggleRow { label: "Rebond"; key: "linux.bump"; def: true; sub: "Horloges, lecteur et paroles sautent un peu sur chaque basse" }
+        ToggleRow { label: "Couleur de la pochette"; key: "linux.cover_tint"; def: false; sub: "Accents du visualiseur à la couleur de l'album en cours" }
+      }
+      Group {
+        ToggleRow { label: "Paroles"; key: "linux.lyrics"; def: true; sub: "Paroles synchronisées (LRCLIB)" }
+        Row_ {
+          label: "Affichage des paroles"
+          sub: "Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien"
+          Seg {
+            options: [["word", "Mot géant"], ["line", "Ligne"], ["card", "Carte"], ["off", "Aucune"]]
+            value: root.val("linux.lyrics_mode", lp.sdef({ expressive: "card", violet: "line", "*": "word" }))
+            onPicked: function(v) { root.set("linux.lyrics_mode", v) }
+          }
+        }
+        Row_ {
+          label: "Position"
+          Seg {
+            options: [["center", "Centre"], ["left", "Gauche"], ["top", "Haut"]]
+            value: root.val("linux.lyrics_pos", "center")
+            onPicked: function(v) { root.set("linux.lyrics_pos", v) }
+          }
+        }
+        SliderRow { label: "Taille des paroles"; key: "linux.lyrics_size"; from: 0.4; to: 2.5; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+      }
+
+      SectionTitle { text: "Bureau" }
+      Group {
+        ToggleRow { label: "Widgets"; key: "linux.widgets"; def: true; sub: "Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)" }
+        ToggleRow { visible: lp.st === "violet"; label: "Horloge bonbon"; key: "linux.w_stack"; def: true }
+        SliderRow { visible: lp.st === "violet"; label: "Taille de l'horloge"; key: "linux.stack_size"; from: 80; to: 220; step: 4; def: 132; fmt: function(v) { return Math.round(v) + " px" } }
+        ToggleRow { visible: lp.st === "violet"; label: "Anneau batterie"; key: "linux.w_ring"; def: true; sub: "Ou la charge du processeur sur un ordinateur fixe" }
+        ToggleRow { visible: ["blanc", "sombre", "jouet"].indexOf(lp.st) >= 0; label: "Horloge pixel"; key: "linux.w_pixclock"; def: true }
+        ToggleRow { visible: lp.st === "blanc" || lp.st === "sombre"; label: "Jour en grand"; key: "linux.w_day"; def: true }
+        ToggleRow { visible: lp.st === "sombre"; label: "Jour en kanji"; key: "linux.day_kanji"; def: true }
+        ToggleRow { visible: lp.st === "expressive"; label: "Horloge cookie"; key: "linux.w_clock"; def: true }
+        ToggleRow { visible: lp.st !== "lain"; label: "Lecteur"; key: "linux.w_music"; def: true }
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: "Météo"; key: "linux.w_weather"; def: true }
+        ToggleRow { visible: lp.st !== "lain"; label: "Système"; key: "linux.w_system"; def: true }
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: "À faire"; key: "linux.w_todo"; def: true }
+        ToggleRow { visible: lp.st === "lain"; label: "Horloge pixel"; key: "linux.clock"; def: true; sub: "Grands chiffres en blocs façon tty-clock, à droite" }
+        ToggleRow { label: "Visualiseur cava"; key: "linux.cava"; def: true; sub: "Arrête complètement le visualiseur (et cava) si désactivé" }
+        SliderRow { label: "Espaces de travail"; key: "linux.workspaces"; from: 4; to: 10; step: 1; def: 7; fmt: function(v) { return Math.round(v) } }
+        Row_ {
+          label: "Disposition des widgets"
+          sub: "Remet chaque widget à sa place d'origine"
+          Btn { text: "Réinitialiser"; onClicked: root.launch(["omarchy-shell", "liquid-glass.linux", "resetLayout"]) }
+        }
+      }
+      Hint { text: "Réglages appliqués à chaud. ⌘⇧Espace : bureaux. ⌃⌘Espace : carrousel de fonds. En ligne de commande : liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac." }
+    }
+  }
+
+  Component {
     id: pKeys
     Column {
       spacing: Style.space(14)
       Group {
         ToggleRow { label: "Raccourcis façon macOS"; key: "keys.macos_shortcuts"; def: true; sub: "⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5… Désactivé : raccourcis Omarchy d'origine" }
         Row_ { label: "Aide-mémoire des raccourcis"; Btn { text: "Afficher  ⌘K"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.cheatsheet", "toggle"]) } } }
+      }
+    }
+  }
+
+  Component {
+    id: pMouse
+    Column {
+      spacing: Style.space(14)
+      Group {
+        SliderRow { label: "Vitesse du pointeur"; key: "input.sensitivity"; from: -1; to: 1; step: 0.05; def: 0; fmt: function(v) { return v <= -0.6 ? "Lente" : (v >= 0.6 ? "Rapide" : (v > 0 ? "+" : "") + v.toFixed(2)) } }
+        SliderRow { label: "Vitesse de défilement"; key: "input.mouse_scroll"; from: 0.2; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        ToggleRow { label: "Défilement naturel"; key: "input.mouse_natural_scroll"; def: false; sub: "Le contenu suit le mouvement de la molette" }
+      }
+      Hint { text: "Appliqué tout de suite à Hyprland (souris et TrackPoint). Le trackpad a sa propre page." }
+    }
+  }
+
+  Component {
+    id: pTrackpad
+    Column {
+      spacing: Style.space(14)
+      Group {
+        ToggleRow { label: "Toucher pour cliquer"; key: "input.tap_to_click"; def: true; sub: "Touchez avec un doigt pour cliquer" }
+        ToggleRow { label: "Clic secondaire à deux doigts"; key: "input.clickfinger"; def: true; sub: "Cliquez avec deux doigts : clic droit ; trois : clic du milieu" }
+        ToggleRow { label: "Défilement naturel"; key: "input.natural_scroll"; def: true; sub: "Le contenu suit le mouvement des doigts" }
+        SliderRow { label: "Vitesse de défilement"; key: "input.trackpad_scroll"; from: 0.1; to: 2; step: 0.05; def: 0.4; fmt: function(v) { return "×" + v.toFixed(2) } }
+        ToggleRow { label: "Ignorer en tapant au clavier"; key: "input.disable_while_typing"; def: true }
+      }
+      SectionTitle { text: "Gestes" }
+      Group {
+        Row_ { label: "Mission Control"; sub: "Balayer vers le haut avec quatre doigts"; Label_ { text: "4 doigts ↑" } }
+        Row_ { label: "Fermer Mission Control"; sub: "Balayer vers le bas avec quatre doigts"; Label_ { text: "4 doigts ↓" } }
+        Row_ { label: "Changer de bureau"; sub: "Balayer à gauche ou à droite avec trois doigts"; Label_ { text: "3 doigts ← →" } }
       }
     }
   }
@@ -1265,7 +1969,7 @@ Item {
     default property alias rows: col.data
     width: parent ? parent.width : 0
     height: visible ? col.implicitHeight : 0
-    radius: Style.space(16)
+    radius: Style.space(12)
     color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, root.dark ? 0.07 : 0.05)
     border.width: 1
     border.color: Qt.rgba(1, 1, 1, root.dark ? 0.06 : 0.45)
@@ -1281,7 +1985,13 @@ Item {
     property color iconColor: "#8e8e93"
     default property alias control: slot.data
     width: parent ? parent.width : 0
-    height: visible ? Math.max(Style.space(46), labels.implicitHeight + Style.space(18)) : 0
+    // Hauteur macOS (≈ 40 pt) mais jamais plus petite que le contrôle de droite
+    // (sinon un grand contrôle, comme les vignettes d'apparence, déborde).
+    // Contrôle trop large pour tenir à côté du libellé : il passe dessous.
+    readonly property bool stacked: slot.width > r.width - Style.space(170)
+    height: !visible ? 0 : stacked
+      ? labels.implicitHeight + slot.height + Style.space(26)
+      : Math.max(Style.space(Mac.settings.row), labels.implicitHeight + Style.space(16), slot.height + Style.space(16))
     // Séparateur (pas sur la première ligne).
     Rectangle {
       visible: r.y > 0
@@ -1303,8 +2013,9 @@ Item {
     Column {
       id: labels
       x: r.icon !== 0 ? ico.x + ico.width + Style.space(10) : Style.space(14)
-      anchors.verticalCenter: parent.verticalCenter
-      width: parent.width - x - slot.width - Style.space(28)
+      anchors.verticalCenter: r.stacked ? undefined : parent.verticalCenter
+      y: Style.space(10)
+      width: r.stacked ? parent.width - x - Style.space(14) : parent.width - x - slot.width - Style.space(28)
       spacing: 1
       Text { width: parent.width; textFormat: Text.PlainText; text: r.label; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: Style.space(13); color: root.fg }
       Text { width: parent.width; visible: r.sub !== ""; textFormat: Text.PlainText; text: r.sub; wrapMode: Text.WordWrap; font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.fg; opacity: 0.5 }
@@ -1312,7 +2023,8 @@ Item {
     Item {
       id: slot
       anchors.right: parent.right; anchors.rightMargin: Style.space(14)
-      anchors.verticalCenter: parent.verticalCenter
+      anchors.verticalCenter: r.stacked ? undefined : parent.verticalCenter
+      y: labels.y + labels.implicitHeight + Style.space(6)
       width: childrenRect.width; height: childrenRect.height
     }
   }
@@ -1339,6 +2051,12 @@ Item {
   }
 
   // Contrôle segmenté : la pastille blanche glisse vers l'option choisie.
+  readonly property var widgetSizes: [["small", "Petit"], ["medium", "Moyen"], ["large", "Grand"], ["xl", "Très grand"]]
+  function widgetSize(key) {
+    var v = String(root.val("widgets." + key + "_size", key === "weather" ? "medium" : "small"))
+    return v === "wide" ? "medium" : v
+  }
+
   component Seg: Rectangle {
     id: seg
     property var options: []
@@ -1378,6 +2096,61 @@ Item {
     }
   }
 
+  // Menu déroulant façon macOS (« Arrondie ⌄ ») : la liste se déplie sous le bouton.
+  component Picker: Column {
+    id: pk
+    property var options: []     // [[valeur, libellé]]
+    property string value: ""
+    property bool open: false
+    signal picked(string v)
+    spacing: Style.space(4)
+    readonly property string current: { for (var i = 0; i < options.length; i++) if (options[i][0] === value) return options[i][1]; return value }
+    width: pk.open ? Math.max(pkBtn.width, pkList.width) : pkBtn.width
+    Rectangle {
+      id: pkBtn
+      anchors.right: parent.right
+      width: pkTxt.implicitWidth + Style.space(34); height: Style.space(26); radius: height / 2
+      color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, pkMouse.containsMouse || pk.open ? 0.16 : 0.1)
+      scale: pkMouse.pressed ? 0.92 : 1
+      Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+      Text { id: pkTxt; x: Style.space(12); anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: pk.current; font.family: root.uiFont; font.pixelSize: Style.space(12); font.weight: Font.Medium; color: root.fg }
+      Text {
+        anchors.right: parent.right; anchors.rightMargin: Style.space(10); anchors.verticalCenter: parent.verticalCenter
+        textFormat: Text.PlainText; text: root.g(0xF0140); font.family: root.iconFont; font.pixelSize: Style.space(12); color: root.fg; opacity: 0.6
+        rotation: pk.open ? 180 : 0
+        Behavior on rotation { NumberAnimation { duration: 380; easing.type: Easing.OutBack; easing.overshoot: 2.5 } }
+      }
+      MouseArea { id: pkMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: pk.open = !pk.open }
+    }
+    Rectangle {
+      id: pkList
+      visible: pk.open
+      anchors.right: parent.right
+      width: Math.max(Style.space(170), pkCol.implicitWidth + Style.space(10)); height: pkCol.implicitHeight + Style.space(10)
+      radius: Style.space(10)
+      color: root.dark ? Qt.rgba(0.2, 0.2, 0.22, 0.9) : Qt.rgba(1, 1, 1, 0.85)
+      border.width: 1; border.color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.1)
+      Column {
+        id: pkCol
+        x: Style.space(5); y: Style.space(5)
+        width: parent.width - Style.space(10)
+        Repeater {
+          model: pk.options
+          delegate: Rectangle {
+            id: po
+            required property var modelData
+            readonly property bool on: pk.value === modelData[0]
+            width: pkCol.width; height: Style.space(Mac.menu.row); radius: Style.space(Mac.menu.selRadius)
+            color: poMouse.containsMouse ? root.accent : "transparent"
+            Text { x: Style.space(6); anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: po.on ? "✓" : ""; font.family: root.uiFont; font.pixelSize: Style.space(12); color: poMouse.containsMouse ? "white" : root.fg }
+            Text { x: Style.space(22); anchors.verticalCenter: parent.verticalCenter; textFormat: Text.PlainText; text: po.modelData[1]; font.family: root.uiFont; font.pixelSize: Style.space(13); color: poMouse.containsMouse ? "white" : root.fg }
+            MouseArea { id: poMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: { pk.open = false; pk.picked(po.modelData[0]) } }
+          }
+        }
+      }
+    }
+  }
+
   // Interrupteur façon macOS : le bouton s'étire quand on appuie.
   component Switch_: Rectangle {
     id: sw
@@ -1397,6 +2170,28 @@ Item {
       Behavior on width { NumberAnimation { duration: 180; easing.type: Easing.OutBack } }
     }
     MouseArea { id: swMouse; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: sw.toggled(!sw.checked) }
+  }
+
+  // Éléments de la barre des menus (liquid-glass bar …, shell.json rechargé à chaud).
+  property var barItems: ({})
+  Process {
+    id: barProc
+    command: ["liquid-glass", "bar", "status"]
+    stdout: StdioCollector { onStreamFinished: { try { root.barItems = JSON.parse(text) } catch (e) {} } }
+  }
+  Timer { id: barTimer; interval: 500; onTriggered: barProc.running = true }
+  Component.onCompleted: barProc.running = true
+  component BarRow: Row_ {
+    id: br
+    property string item: ""
+    Switch_ {
+      checked: root.barItems[br.item] === true
+      onToggled: function(v) {
+        var next = Object.assign({}, root.barItems); next[br.item] = v; root.barItems = next
+        root.run(["liquid-glass", "bar", br.item, v ? "on" : "off"])
+        barTimer.restart()
+      }
+    }
   }
 
   component ToggleRow: Row_ {
@@ -1473,27 +2268,32 @@ Item {
     id: ls
     property real value: 0
     signal moved(real v)
+    // Curseur standard macOS : piste fine accentuée + bouton blanc (comme SliderRow).
     width: Style.space(200); height: Style.space(22)
     Rectangle {
-      id: lsTrack
-      anchors.fill: parent
-      radius: height / 2
-      color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.12)
-      clip: true
-      Rectangle {
-        width: Math.max(lsTrack.height, lsTrack.width * Math.max(0, Math.min(1, ls.value)))
-        height: parent.height; radius: height / 2
-        color: root.dark ? Qt.rgba(1, 1, 1, 0.9) : "white"
-        border.width: 1; border.color: Qt.rgba(0, 0, 0, 0.08)
-        Behavior on width { enabled: !lsArea.pressed; NumberAnimation { duration: 200; easing.type: Easing.OutBack } }
-      }
+      anchors.verticalCenter: parent.verticalCenter
+      width: parent.width; height: Style.space(4); radius: 2
+      color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.15)
+      Rectangle { width: lsKnob.x + lsKnob.width / 2; height: parent.height; radius: 2; color: root.accent }
+    }
+    Rectangle {
+      id: lsKnob
+      width: Style.space(20); height: Style.space(18); radius: height / 2
+      anchors.verticalCenter: parent.verticalCenter
+      x: Math.max(0, Math.min(1, ls.value)) * (ls.width - width)
+      color: "white"
+      border.width: 1; border.color: Qt.rgba(0, 0, 0, 0.12)
+      scale: lsArea.pressed ? 1.25 : 1
+      Behavior on scale { NumberAnimation { duration: 300; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+      Behavior on x { enabled: !lsArea.pressed; NumberAnimation { duration: 160; easing.type: Easing.OutCubic } }
     }
     MouseArea {
       id: lsArea
       anchors.fill: parent
+      anchors.margins: -6
       preventStealing: true
       cursorShape: Qt.PointingHandCursor
-      function apply(x) { ls.moved(Math.max(0, Math.min(1, x / width))) }
+      function apply(x) { ls.moved(Math.max(0, Math.min(1, (x - 6 - lsKnob.width / 2) / (ls.width - lsKnob.width)))) }
       onPressed: function(m) { apply(m.x) }
       onPositionChanged: function(m) { if (pressed) apply(m.x) }
     }
@@ -1538,6 +2338,7 @@ Item {
     property string value: ""
     property string placeholder: ""
     signal committed(string t)
+    signal edited(string t)
     width: Style.space(180); height: Style.space(28); radius: height / 2
     color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08)
     border.width: tbIn.activeFocus ? 2 : 0
@@ -1553,6 +2354,7 @@ Item {
       selectByMouse: true
       clip: true
       onEditingFinished: if (text.trim() !== tb.value) tb.committed(text.trim())
+      onTextChanged: tb.edited(text)
       Keys.onEscapePressed: { text = tb.value; keys.forceActiveFocus() }
       Text { visible: !tbIn.text && !tbIn.activeFocus; anchors.verticalCenter: parent.verticalCenter; text: tb.placeholder; font: tbIn.font; color: root.fg; opacity: 0.4 }
     }

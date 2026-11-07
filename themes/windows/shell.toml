@@ -1,0 +1,135 @@
+# Liquid Glass — thème « windows — clair, mica, accent bleu » (profil Linux). Généré par scripts/gen-linux-themes.py.
+
+[bar]
+background       = "#f3f3f3"
+background-alpha = 0.94
+text             = "#1b1b1b"
+active           = "#005fb8"
+scale-with-font  = true
+size-horizontal  = 24
+size-vertical    = 30
+
+[hyprland]
+active-border            = "rgba(005fb8cc)"
+active-border-foreground = "rgba(005fb8cc)"
+
+[controls]
+normal-color        = "#1b1b1b"
+normal-fill-alpha   = 0.05
+normal-border       = "#1b1b1b"
+normal-border-width = 1
+normal-border-alpha = 0.12
+
+hover-cursor-color        = "#1b1b1b"
+hover-cursor-fill-alpha   = 0.09
+hover-cursor-border       = "#1b1b1b"
+hover-cursor-border-width = 0
+hover-cursor-border-alpha = 0.0
+
+focus-color        = "#005fb8"
+focus-fill-alpha   = 0.12
+focus-border       = "#005fb8"
+focus-border-width = 1
+focus-border-alpha = 0.6
+
+selected-color        = "#005fb8"
+selected-fill-alpha   = 0.88
+selected-border       = "#005fb8"
+selected-border-width = 0
+selected-border-alpha = 1.0
+
+pressed-fill-alpha   = 0.18
+selection-fill-alpha = 0.35
+
+[spacing]
+scale = 1.0
+scale-with-font = true
+panel-padding = 16
+popup-padding = 14
+
+[font]
+base-size = 12
+
+[popups]
+background       = "#f3f3f3"
+background-alpha = 0.97
+text             = "#1b1b1b"
+border           = "hyprland.active-border"
+border-alpha     = 1.0
+border-width     = 1
+
+[tooltip]
+background       = "#f3f3f3"
+background-alpha = 0.97
+text             = "#1b1b1b"
+border           = "hyprland.active-border-foreground"
+border-alpha     = 1.0
+
+[notifications]
+background       = "#f3f3f3"
+background-alpha = 0.97
+text             = "#1b1b1b"
+border           = "hyprland.active-border"
+border-alpha     = 1.0
+border-width     = 1
+countdown        = "#005fb8"
+
+[launcher]
+background                = "#f3f3f3"
+background-alpha          = 0.97
+text                      = "#1b1b1b"
+border                    = "hyprland.active-border-foreground"
+border-alpha              = 1.0
+scrim                     = "#f3f3f3"
+scrim-alpha               = 0.12
+selected-background       = "#005fb8"
+selected-background-alpha = 0.88
+selected-text             = "#ffffff"
+selected-border           = "#005fb8"
+selected-border-alpha     = 0.0
+
+[menu]
+background                = "#f3f3f3"
+background-alpha          = 0.97
+text                      = "#1b1b1b"
+border                    = "hyprland.active-border-foreground"
+border-alpha              = 1.0
+scrim                     = "#f3f3f3"
+scrim-alpha               = 0.12
+selected-background       = "#005fb8"
+selected-background-alpha = 0.88
+selected-text             = "#ffffff"
+selected-border           = "#005fb8"
+selected-border-alpha     = 0.0
+
+[polkit]
+background       = "#f3f3f3"
+background-alpha = 0.94
+text             = "#1b1b1b"
+text-error       = "#e74856"
+border           = "hyprland.active-border"
+border-error     = "#e74856"
+border-alpha     = 1.0
+scrim            = "#f3f3f3"
+scrim-alpha      = 0.25
+accent           = "#005fb8"
+
+[lock]
+background       = "#f3f3f3"
+background-alpha = 0.80
+text             = "#1b1b1b"
+placeholder      = "#5d5d5d"
+text-error       = "#e74856"
+border           = "rgba(005fb8cc)"
+border-active    = "#005fb8"
+border-error     = "#e74856"
+border-alpha     = 1.0
+selection        = "#005fb8"
+selection-alpha  = 0.45
+
+[image-picker]
+text                    = "#1b1b1b"
+selected-border         = "#005fb8"
+selected-border-alpha   = 1.0
+unselected-border       = "#1b1b1b"
+unselected-border-alpha = 0.28

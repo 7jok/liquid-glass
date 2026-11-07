@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.forcequit",
+  "name": "Liquid Glass — Forcer à quitter",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Fenêtre « Forcer à quitter les applications » (⌥⌘Échap)",
+  "kinds": ["overlay"],
+  "keepLoaded": true,
+  "entryPoints": { "overlay": "ForceQuit.qml" }
+}

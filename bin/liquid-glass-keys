@@ -1,0 +1,542 @@
+#!/usr/bin/env python3
+"""liquid-glass-keys — son de clavier mécanique « creamy » sur tout le système.
+
+    liquid-glass-keys            démon : joue un son à chaque frappe (tous les claviers)
+    liquid-glass-keys test       fait entendre une petite phrase tapée (sans lire le clavier)
+    liquid-glass-keys gen        régénère les sons synthétisés
+    liquid-glass-keys import DIR importe un pack Mechvibes (dossier avec config.json)
+    liquid-glass-keys import     importe tous les packs de Mechvibes installé (eg-oreo, cherrymx-…)
+
+Réglages : [keys] de ~/.config/liquid-glass/config.toml
+    sound_pack   = "auto"        auto (celui de Mechvibes) | creamy | thocky | clicky | <pack importé, ex. eg-oreo>
+    sound_volume = 0.6           0 – 1
+    sound_release = true         petit son au relâchement
+
+Les sons « creamy » sont synthétisés (corps grave amorti, attaque feutrée, très
+peu de clic aigu : le « thock » crémeux des switches lubrifiés), avec plusieurs
+variantes tirées au hasard pour que deux frappes ne sonnent jamais pareil ;
+espace, entrée et retour arrière ont leur son plus grave.
+
+Aucun accès à /dev/input ni groupe « input » : c'est Hyprland, qui reçoit déjà
+les frappes, qui les signale (hypr/liquid-glass-keys.lua) par des jetons anonymes.
+sound_pack = "auto" suit le pack, le volume et l'interrupteur choisis dans Mechvibes.
+"""
+import array
+import json
+import math
+import os
+import random
+import select
+import shutil
+import struct
+import subprocess
+import sys
+import time
+import tomllib
+import wave
+from pathlib import Path
+
+HOME = Path.home()
+CACHE = HOME / ".cache/liquid-glass/keys"
+PACKS = HOME / ".local/share/liquid-glass/keysounds"
+CONF = HOME / ".config/liquid-glass/config.toml"
+RATE = 48000
+EVENT = struct.Struct("llHHi")
+EV_KEY = 1
+SPACE, ENTER, BACKSPACE, KPENTER, TAB = 57, 28, 14, 96, 15
+BIG = {SPACE, ENTER, BACKSPACE, KPENTER}
+
+
+# ------------------------------------------------------------------ synthèse
+def write_wav(path, samples):
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = array.array("h", (max(-32767, min(32767, int(s * 32767))) for s in samples))
+    with wave.open(str(path), "wb") as w:
+        w.setnchannels(1)
+        w.setsampwidth(2)
+        w.setframerate(RATE)
+        w.writeframes(data.tobytes())
+
+
+def thock(seed, body=230.0, body_decay=0.028, click=0.08, clack_f=2400.0, res=1100.0, dur=0.11, gain=0.9,
+          pitch_drop=0.18, softness=0.0018):
+    """Un « thock » : corps grave amorti + résonance plastique + attaque bruitée filtrée."""
+    rnd = random.Random(seed)
+    body *= rnd.uniform(0.94, 1.06)
+    res *= rnd.uniform(0.9, 1.1)
+    n = int(dur * RATE)
+    out = [0.0] * n
+    # bruit filtré passe-bande (biquad) pour l'attaque
+    w0 = 2 * math.pi * clack_f / RATE
+    q = 1.2
+    alpha = math.sin(w0) / (2 * q)
+    b0, b2 = alpha, -alpha
+    a0, a1, a2 = 1 + alpha, -2 * math.cos(w0), 1 - alpha
+    x1 = x2 = y1 = y2 = 0.0
+    ph_b = ph_r = 0.0
+    for i in range(n):
+        t = i / RATE
+        att = 1 - math.exp(-t / softness)  # attaque feutrée (pas de clic sec)
+        f = body * (1 + pitch_drop * math.exp(-t / 0.006))
+        ph_b += 2 * math.pi * f / RATE
+        ph_r += 2 * math.pi * res / RATE
+        s = math.sin(ph_b) * math.exp(-t / body_decay)
+        s += 0.22 * math.sin(ph_r) * math.exp(-t / 0.007)
+        x0 = rnd.uniform(-1, 1)
+        y0 = (b0 * x0 + b2 * x2 - a1 * y1 - a2 * y2) / a0
+        x2, x1, y2, y1 = x1, x0, y1, y0
+        s += click * y0 * 6 * math.exp(-t / 0.0025)
+        out[i] = s * att * gain
+    # petit second rebond (la touche touche le fond puis la plaque)
+    lag = int(rnd.uniform(0.006, 0.01) * RATE)
+    for i in range(n - lag):
+        out[i + lag] += out[i] * 0.18
+    peak = max(1e-6, max(abs(v) for v in out))
+    return [v / peak * gain for v in out]
+
+
+PRESETS = {
+    "creamy": dict(down=dict(body=225, body_decay=0.03, click=0.05, clack_f=1800, res=950, gain=0.85),
+                   up=dict(body=330, body_decay=0.012, click=0.03, clack_f=2600, res=1400, gain=0.32, dur=0.06),
+                   big=dict(body=150, body_decay=0.045, click=0.06, clack_f=1400, res=700, gain=0.95, dur=0.16)),
+    "thocky": dict(down=dict(body=170, body_decay=0.04, click=0.04, clack_f=1300, res=800, gain=0.9),
+                   up=dict(body=260, body_decay=0.015, click=0.02, clack_f=2000, res=1100, gain=0.3, dur=0.06),
+                   big=dict(body=120, body_decay=0.06, click=0.05, clack_f=1100, res=600, gain=1.0, dur=0.18)),
+    "clicky": dict(down=dict(body=420, body_decay=0.012, click=0.4, clack_f=4200, res=2600, gain=0.75, softness=0.0004),
+                   up=dict(body=520, body_decay=0.008, click=0.25, clack_f=4800, res=3000, gain=0.45, dur=0.05,
+                           softness=0.0004),
+                   big=dict(body=300, body_decay=0.02, click=0.35, clack_f=3600, res=2000, gain=0.85, dur=0.1)),
+}
+
+
+def generate(pack):
+    p = PRESETS[pack]
+    d = CACHE / pack
+    for k in range(6):
+        write_wav(d / f"down{k}.wav", thock(k * 17 + 1, **p["down"]))
+    for k in range(3):
+        write_wav(d / f"up{k}.wav", thock(k * 31 + 7, **p["up"]))
+    for k in range(2):
+        write_wav(d / f"big{k}.wav", thock(k * 13 + 3, **p["big"]))
+    (d / ".ok").write_text("1")
+    return d
+
+
+def mouse_sounds():
+    """Clic de souris : micro-interrupteur sec, plus aigu qu'une touche."""
+    d = CACHE / "mouse"
+    if not (d / ".ok").exists():
+        d.mkdir(parents=True, exist_ok=True)
+        write_wav(d / "down.wav", thock(11, body=1050, body_decay=0.004, click=0.5, clack_f=5200, res=3600, dur=0.04, gain=0.5))
+        write_wav(d / "up.wav", thock(29, body=1400, body_decay=0.003, click=0.35, clack_f=6000, res=4200, dur=0.03, gain=0.28))
+        (d / ".ok").write_text("1")
+    return d
+
+
+# ------------------------------------------------------------------ packs Mechvibes
+# codes evdev → noms KeyboardEvent.code (format v2 des packs Mechvibes 3.x)
+EVDEV_NAMES = {1: "Escape", 12: "Minus", 13: "Equal", 14: "Backspace", 15: "Tab", 26: "BracketLeft",
+               27: "BracketRight", 28: "Enter", 29: "ControlLeft", 39: "Semicolon", 40: "Quote", 41: "Backquote",
+               42: "ShiftLeft", 43: "Backslash", 51: "Comma", 52: "Period", 53: "Slash", 54: "ShiftRight",
+               55: "NumpadMultiply", 56: "AltLeft", 57: "Space", 58: "CapsLock", 69: "NumLock", 70: "ScrollLock",
+               74: "NumpadSubtract", 78: "NumpadAdd", 83: "NumpadDecimal", 86: "IntlBackslash", 87: "F11", 88: "F12",
+               96: "NumpadEnter", 97: "ControlRight", 98: "NumpadDivide", 99: "PrintScreen", 100: "AltRight",
+               102: "Home", 103: "ArrowUp", 104: "PageUp", 105: "ArrowLeft", 106: "ArrowRight", 107: "End",
+               108: "ArrowDown", 109: "PageDown", 110: "Insert", 111: "Delete", 119: "Pause", 125: "MetaLeft",
+               126: "MetaRight", 127: "ContextMenu"}
+EVDEV_NAMES.update({2 + i: f"Digit{(i + 1) % 10}" for i in range(10)})
+EVDEV_NAMES.update({c: "Key" + k for c, k in zip(range(16, 26), "QWERTYUIOP")})
+EVDEV_NAMES.update({c: "Key" + k for c, k in zip(range(30, 39), "ASDFGHJKL")})
+EVDEV_NAMES.update({c: "Key" + k for c, k in zip(range(44, 51), "ZXCVBNM")})
+EVDEV_NAMES.update({59 + i: f"F{i + 1}" for i in range(10)})
+EVDEV_NAMES.update(dict(zip((71, 72, 73, 75, 76, 77, 79, 80, 81, 82),
+                            ("Numpad7", "Numpad8", "Numpad9", "Numpad4", "Numpad5", "Numpad6", "Numpad1", "Numpad2",
+                             "Numpad3", "Numpad0"))))
+NAME_EVDEV = {v: k for k, v in EVDEV_NAMES.items()}
+
+
+def _slice(snd, start_ms, end_ms, out):
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{start_ms / 1000}", "-t", f"{max(1, end_ms - start_ms) / 1000}",
+                    "-i", str(snd), "-ac", "1", "-ar", str(RATE), str(out)], check=False)
+
+
+def import_mechvibes(src, name=None):
+    src = Path(src)
+    cfg = json.loads((src / "config.json").read_text())
+    name = name or "".join(c if c.isalnum() or c in "-_" else "-" for c in str(src.name)).strip("-").lower()
+    dest = PACKS / name
+    dest.mkdir(parents=True, exist_ok=True)
+    if "definitions" in cfg:  # format v2 : {"KeyA": {"timing": [[début, fin], [début, fin]]}} en ms
+        snd = src / cfg["audio_file"]
+        for kname, d in cfg["definitions"].items():
+            code = NAME_EVDEV.get(kname)
+            timing = (d or {}).get("timing") or []
+            if code is None or not timing:
+                continue
+            _slice(snd, timing[0][0], timing[0][1], dest / f"{code}.wav")
+            if len(timing) > 1:
+                _slice(snd, timing[1][0], timing[1][1], dest / f"{code}-up.wav")
+        print(f"pack « {name} » importé ({len(list(dest.glob('*.wav')))} sons) → sound_pack = \"{name}\"")
+        return
+    defines = cfg.get("defines", {})
+    if cfg.get("key_define_type", "single") == "single":
+        snd = src / cfg["sound"]
+        for code, span in defines.items():
+            if not span:
+                continue
+            start, length = span[0] / 1000, span[1] / 1000
+            subprocess.run(["ffmpeg", "-v", "error", "-y", "-ss", f"{start}", "-t", f"{length}", "-i", str(snd),
+                            "-ac", "1", "-ar", str(RATE), str(dest / f"{code}.wav")], check=False)
+    else:
+        for code, fname in defines.items():
+            if fname:
+                subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(src / fname), "-ac", "1", "-ar", str(RATE),
+                                str(dest / f"{code}.wav")], check=False)
+    print(f"pack « {name} » importé ({len(list(dest.glob('*.wav')))} sons) → sound_pack = \"{name}\"")
+
+
+# ------------------------------------------------------------------ lecture
+MECHVIBES_CONF = HOME / ".local/share/mechvibes/data/config.json"
+MECHVIBES_PACKS = [HOME / ".local/opt/mechvibes/usr/share/mechvibes/soundpacks/keyboard",
+                   HOME / ".local/share/mechvibes/soundpacks/keyboard"]
+# Touches « lettres » (le crochet Hyprland les envoie toutes en « k ») : on tire un
+# de leurs sons au hasard, comme le mode aléatoire de Mechvibes.
+ALPHA = list(range(2, 14)) + list(range(16, 28)) + list(range(30, 42)) + list(range(43, 54)) + [86]
+
+
+def _read_wav(path):
+    """Échantillons mono 16 bits à 48 kHz (les packs importés le sont déjà)."""
+    try:
+        with wave.open(str(path)) as w:
+            if w.getsampwidth() != 2:
+                return None
+            data = array.array("h", w.readframes(w.getnframes()))
+            if w.getnchannels() == 2:
+                data = data[::2]
+            return data
+    except (OSError, wave.Error, EOFError):
+        return None
+
+
+class Mixer:
+    """Un seul flux PipeWire (pw-cat) gardé ouvert ; les sons qui se chevauchent
+    sont mélangés par blocs de 5 ms, en avance de ~10 ms sur le temps réel : la
+    latence reste celle d'un bloc, sans relancer un processus à chaque frappe.
+    Le flux se ferme après 30 s sans frappe."""
+    BLOCK = 240
+
+    def __init__(self):
+        import threading
+        self.cv = threading.Condition()
+        self.voices = []          # [échantillons, position]
+        self.proc = None
+        threading.Thread(target=self._run, daemon=True).start()
+
+    def add(self, samples):
+        if samples:
+            with self.cv:
+                self.voices.append([samples, 0])
+                self.cv.notify()
+
+    def _open(self):
+        try:
+            self.proc = subprocess.Popen(
+                ["pw-cat", "--playback", "--raw", "--rate", str(RATE), "--channels", "1", "--format", "s16",
+                 "--latency", "256", "--media-role", "Game",
+                 "-P", '{ "node.name": "liquid-glass-keys", "media.name": "Son du clavier", "application.name": "Clavier mécanique" }',
+                 "-"], stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except OSError:
+            self.proc = None
+
+    def _close(self):
+        if self.proc:
+            try:
+                self.proc.stdin.close()
+            except OSError:
+                pass
+            self.proc.terminate()
+            self.proc = None
+
+    def _run(self):
+        B = self.BLOCK
+        while True:
+            with self.cv:
+                if not self.voices:
+                    self.cv.wait(timeout=30)
+                    if not self.voices:
+                        self._close()
+                        continue
+            if not self.proc or self.proc.poll() is not None:
+                self._open()
+                if not self.proc:
+                    time.sleep(1)
+                    with self.cv:
+                        self.voices.clear()
+                    continue
+            t0 = time.monotonic()
+            frames = 0
+            while True:
+                with self.cv:
+                    if not self.voices:
+                        break
+                    segs = []
+                    for v in self.voices:
+                        segs.append(v[0][v[1]:v[1] + B])
+                        v[1] += B
+                    self.voices = [v for v in self.voices if v[1] < len(v[0])]
+                if len(segs) == 1:
+                    out = segs[0]
+                else:
+                    import itertools
+                    out = array.array("h", (max(-32768, min(32767, x)) for x in
+                                            map(sum, itertools.zip_longest(*segs, fillvalue=0))))
+                if len(out) < B:
+                    out = out + array.array("h", bytes(2 * (B - len(out))))
+                try:
+                    self.proc.stdin.write(out.tobytes())
+                    self.proc.stdin.flush()
+                except (OSError, ValueError):
+                    self._close()
+                    break
+                frames += B
+                ahead = frames / RATE - (time.monotonic() - t0)
+                if ahead > 0.012:
+                    time.sleep(ahead - 0.012)
+
+
+class Player:
+    def __init__(self, mixer=None):
+        self.cfg = {}
+        self.mtime = (0, 0)
+        self.mixer = mixer
+        self.cache = {}
+        self.enabled = True
+        self.reload()
+
+    def _mechvibes(self):
+        try:
+            return json.loads(MECHVIBES_CONF.read_text())
+        except (OSError, json.JSONDecodeError):
+            return {}
+
+    def reload(self):
+        try:
+            m = (CONF.stat().st_mtime, MECHVIBES_CONF.stat().st_mtime if MECHVIBES_CONF.exists() else 0)
+        except OSError:
+            m = self.mtime
+        if m == self.mtime and self.cfg is not None and getattr(self, "dir", None):
+            return
+        self.mtime = m
+        try:
+            self.cfg = tomllib.loads(CONF.read_text()).get("keys", {})
+        except (OSError, tomllib.TOMLDecodeError):
+            self.cfg = {}
+        pack = str(self.cfg.get("sound_pack", "auto"))
+        vol = self.cfg.get("sound_volume")
+        self.enabled = True
+        if pack in ("auto", "mechvibes"):
+            # Même pack, même volume, même interrupteur que dans l'appli Mechvibes.
+            mv = self._mechvibes()
+            pack = str(mv.get("keyboard_soundpack", "keyboard/eg-oreo")).split("/")[-1]
+            if vol is None:
+                vol = float(mv.get("volume", 1.0)) * (1.0 if mv.get("enable_volume_boost") else 0.7)
+            self.enabled = mv.get("enable_sound", True) is not False and mv.get("enable_keyboard_sound", True) is not False
+            if not (PACKS / pack).is_dir():
+                src = next((r / pack for r in MECHVIBES_PACKS if (r / pack / "config.json").exists()), None)
+                if src and shutil.which("ffmpeg"):
+                    import_mechvibes(src)
+        self.volume = max(0.0, min(1.5, float(0.6 if vol is None else vol)))
+        self.release = self.cfg.get("sound_release", True) is not False
+        if pack in PRESETS:
+            d = CACHE / pack
+            if not (d / ".ok").exists():
+                generate(pack)
+            self.mech = None
+        else:
+            d = PACKS / pack
+            self.mech = d if d.is_dir() else None
+            if not self.mech:
+                d = CACHE / "creamy"
+                if not (d / ".ok").exists():
+                    generate("creamy")
+        self.dir = d
+        self.cache = {}
+        self.down = sorted(d.glob("down*.wav"))
+        self.up = sorted(d.glob("up*.wav"))
+        self.big = sorted(d.glob("big*.wav"))
+        self.any = sorted(p for p in d.glob("*.wav") if not p.stem.endswith("-up"))
+        self.alpha = [d / f"{c}.wav" for c in ALPHA if (d / f"{c}.wav").exists()] or self.any
+
+    def samples(self, path):
+        """Son déjà mis au volume (gardé en mémoire)."""
+        if path not in self.cache:
+            data = _read_wav(path)
+            if data is not None and abs(self.volume - 1.0) > 0.01:
+                g = self.volume
+                data = array.array("h", (max(-32768, min(32767, int(x * g))) for x in data))
+            self.cache[path] = data
+        return self.cache[path]
+
+    def play(self, path):
+        if not path or self.volume <= 0 or not self.enabled:
+            return
+        if self.mixer:
+            self.mixer.add(self.samples(path))
+        else:
+            subprocess.Popen(["pw-play", "--volume", f"{min(1.0, self.volume):.2f}", str(path)],
+                             stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+    def click(self, pressed):
+        if self.cfg.get("sound_mouse", True) is not False:
+            self.play(mouse_sounds() / ("down.wav" if pressed else "up.wav"))
+
+    def key(self, code, pressed):
+        """code : code evdev, ou None pour « une lettre » (son tiré au hasard)."""
+        if self.mech:
+            if code is None:
+                f = random.choice(self.alpha) if self.alpha else None
+                if f and not pressed:
+                    f = f.with_name(f.stem + "-up.wav")
+                    if not self.release or not f.exists():
+                        return
+                self.play(f)
+                return
+            if pressed:
+                f = self.mech / f"{code}.wav"
+                self.play(f if f.exists() else (random.choice(self.alpha) if self.alpha else None))
+            elif self.release:
+                f = self.mech / f"{code}-up.wav"
+                if f.exists():
+                    self.play(f)
+            return
+        if pressed:
+            self.play(random.choice(self.big if code in BIG and self.big else self.down))
+        elif self.release and self.up:
+            self.play(random.choice(self.up))
+
+
+EVENTS = Path(os.environ.get("XDG_RUNTIME_DIR", "/tmp")) / "liquid-glass-keys"
+
+
+def _inotify(path):
+    """Descripteur inotify sur le fichier d'événements (ctypes, pas de module externe)."""
+    import ctypes
+    libc = ctypes.CDLL(None, use_errno=True)
+    fd = libc.inotify_init1(os.O_NONBLOCK | os.O_CLOEXEC)
+    if fd < 0:
+        return None
+    if libc.inotify_add_watch(fd, str(path).encode(), 0x00000002) < 0:  # IN_MODIFY
+        os.close(fd)
+        return None
+    return fd
+
+
+def daemon():
+    """Lit les frappes que Hyprland écrit (hypr/liquid-glass-keys.lua) : aucun accès
+    à /dev/input, aucun groupe à ajouter, et le fichier ne contient que des jetons
+    anonymes (« k » pour toute lettre, le code des seules touches bruyantes)."""
+    import signal
+    EVENTS.touch(mode=0o600)
+    os.chmod(EVENTS, 0o600)
+    os.truncate(EVENTS, 0)
+
+    def bye(*_):
+        try:
+            EVENTS.unlink()
+        except OSError:
+            pass
+        sys.exit(0)
+    signal.signal(signal.SIGTERM, bye)
+    signal.signal(signal.SIGINT, bye)
+
+    player = Player(Mixer())
+    ino = _inotify(EVENTS)
+    f = open(EVENTS, "rb")
+    buf = b""
+    last_reload = 0
+    while True:
+        if ino is not None:
+            r, _, _ = select.select([ino], [], [], 2.0)
+            if r:
+                try:
+                    os.read(ino, 4096)
+                except OSError:
+                    pass
+        else:
+            time.sleep(0.008)
+        now = time.time()
+        if now - last_reload > 2:
+            last_reload = now
+            player.reload()
+            if not EVENTS.exists():          # supprimé par quelqu'un : on le recrée
+                EVENTS.touch(mode=0o600)
+                f.close()
+                f = open(EVENTS, "rb")
+                if ino is not None:
+                    os.close(ino)
+                ino = _inotify(EVENTS)
+        chunk = f.read()
+        if not chunk:
+            if f.tell() > EVENTS.stat().st_size:   # tronqué
+                f.seek(0)
+            continue
+        buf += chunk
+        *lines, buf = buf.split(b"\n")
+        for ln in lines:
+            if len(ln) < 2:
+                continue
+            tok, st = ln[:-1].decode(errors="ignore"), ln[-1:]
+            if tok == "m":
+                player.click(st == b"d")
+                continue
+            code = None if tok == "k" else (int(tok) if tok.isdigit() else None)
+            player.key(code, st == b"d")
+        if not buf:                          # tout est lu : on vide le fichier (aucune trace des frappes)
+            os.truncate(EVENTS, 0)
+            f.seek(0)
+
+
+def test():
+    p = Player(Mixer())
+    text = "hello liquid glass\n"
+    codes = {"h": 35, "e": 18, "l": 38, "o": 24, " ": SPACE, "i": 23, "q": 16, "u": 22, "d": 32, "g": 34, "a": 30,
+             "s": 31, "\n": ENTER}
+    for ch in text:
+        c = codes.get(ch, 30)
+        p.key(c, True)
+        time.sleep(random.uniform(0.045, 0.075))
+        p.key(c, False)
+        time.sleep(random.uniform(0.05, 0.14))
+    time.sleep(0.6)
+
+
+def main():
+    a = sys.argv[1:]
+    if not a:
+        daemon()
+    elif a[0] in ("-h", "--help"):
+        print(__doc__.strip())
+    elif a[0] == "test":
+        test()
+    elif a[0] == "gen":
+        for name in PRESETS:
+            print("sons générés :", generate(name))
+    elif a[0] == "import":
+        if not shutil.which("ffmpeg"):
+            sys.exit("ffmpeg est nécessaire pour importer un pack")
+        if len(a) > 1:
+            import_mechvibes(a[1])
+        else:  # tous les packs clavier de Mechvibes (AppImage extraite) et ceux ajoutés dans Mechvibes
+            roots = [HOME / ".local/opt/mechvibes/usr/share/mechvibes/soundpacks/keyboard",
+                     HOME / ".local/share/mechvibes/soundpacks/keyboard"]
+            found = [d for r in roots if r.is_dir() for d in sorted(r.iterdir()) if (d / "config.json").exists()]
+            if not found:
+                sys.exit("aucun pack Mechvibes trouvé (installer Mechvibes : liquid-glass mechvibes)")
+            for d in found:
+                import_mechvibes(d)
+    else:
+        sys.exit(__doc__.strip())
+
+
+if __name__ == "__main__":
+    main()

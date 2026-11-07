@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.corners",
+  "name": "Liquid Glass — Coins d'écran arrondis",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Coins d'écran arrondis façon MacBook (surcouche noire, transparente aux clics)",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Corners.qml" }
+}

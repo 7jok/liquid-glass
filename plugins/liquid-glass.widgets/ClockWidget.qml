@@ -1,5 +1,4 @@
 import QtQuick
-import QtQuick.Effects
 
 // Horloge façon macOS. Numérique (défaut) : grands chiffres en verre dégradé,
 // jour et date au-dessus. Analogique : cadran clair, trotteuse orange.
@@ -19,59 +18,45 @@ Tile {
     anchors.fill: parent
     visible: w.digital
     Text {
-      x: 14; y: 12
+      x: 14 * w.k; y: 12 * w.k
       textFormat: Text.PlainText
-      text: Qt.locale("fr_FR").toString(w.now, "ddd d").toUpperCase().replace(".", "")
-      font.family: w.font; font.pixelSize: 12; font.weight: Font.Bold; font.letterSpacing: 0.6
+      text: Qt.locale("fr_FR").toString(w.now, w.width > w.height * 1.4 ? "dddd d MMMM" : "ddd d").toUpperCase().replace(".", "")
+      font.family: w.font; font.pixelSize: Math.round(12 * w.k); font.weight: Font.Bold; font.letterSpacing: 0.6
       color: "#ff453a"
     }
+    // Chiffres en texte vectoriel (net à toutes les échelles, y compris 1,5×) :
+    // la taille s'ajuste toute seule à la tuile (Text.Fit), donc rien n'est rogné.
+    // Un second calque décalé fait l'ombre douce ; l'éclairage « verre » vient
+    // d'un léger dégradé d'opacité entre les deux.
     Item {
       id: digits
-      anchors.centerIn: parent
-      anchors.verticalCenterOffset: 8
-      width: dText.implicitWidth; height: dText.implicitHeight
-      readonly property real pad: 12
+      anchors.fill: parent
+      anchors.leftMargin: 12 * w.k; anchors.rightMargin: 12 * w.k
+      anchors.topMargin: 30 * w.k; anchors.bottomMargin: 8 * w.k
       Text {
-        id: dText
-        textFormat: Text.PlainText
-        text: Qt.formatTime(w.now, "H:mm")
-        font.family: w.font
-        // Taille qui tient dans la largeur de la tuile (mesurée à 100 px).
-        font.pixelSize: Math.max(10, Math.round(Math.min(w.height * 0.42, 100 * (w.width - 30) / Math.max(1, dMeasure.implicitWidth))))
-        font.weight: Font.DemiBold
-        font.letterSpacing: -2
-        font.features: { "tnum": 1 }
-        visible: false
-      }
-      Text {
-        id: dMeasure
-        visible: false
+        id: dShadow
+        anchors.fill: parent
+        anchors.topMargin: 2
         textFormat: Text.PlainText
         text: dText.text
-        font.family: w.font; font.pixelSize: 100; font.weight: Font.DemiBold
-        font.letterSpacing: -2; font.features: { "tnum": 1 }
+        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+        fontSizeMode: Text.Fit; minimumPixelSize: 10
+        font: dText.font
+        color: Qt.rgba(0, 0, 0, 0.16)
       }
-      Item {
-        id: dMask
-        x: -digits.pad; y: -digits.pad
-        width: digits.width + 2 * digits.pad; height: digits.height + 2 * digits.pad
-        visible: false; layer.enabled: true
-        Text { x: digits.pad; y: digits.pad; textFormat: Text.PlainText; text: dText.text; font: dText.font; color: "black" }
-      }
-      Rectangle {
-        id: dFill
-        anchors.fill: dMask
-        visible: false; layer.enabled: true
-        gradient: Gradient {
-          GradientStop { position: 0.15; color: w.fg }
-          GradientStop { position: 0.95; color: Qt.rgba(w.fg.r, w.fg.g, w.fg.b, 0.55) }
-        }
-      }
-      MultiEffect {
-        anchors.fill: dMask
-        source: dFill
-        maskEnabled: true; maskSource: dMask; maskThresholdMin: 0.5; maskSpreadAtMin: 1.0
-        shadowEnabled: true; shadowBlur: 0.6; shadowOpacity: 0.18; shadowVerticalOffset: 2
+      Text {
+        id: dText
+        anchors.fill: parent
+        textFormat: Text.PlainText
+        text: Qt.formatTime(w.now, "H:mm")
+        horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
+        fontSizeMode: Text.Fit; minimumPixelSize: 10
+        font.family: w.font
+        font.pixelSize: 220
+        font.weight: Font.DemiBold
+        font.features: { "tnum": 1 }
+        color: w.fg
+        opacity: 0.94
       }
     }
   }

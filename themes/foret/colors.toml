@@ -1,0 +1,37 @@
+# Liquid Glass — forêt — olive, tilleul et pêche (c01) (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#cfe89a"
+selection = "#3f5120"
+muted = "#868c72"
+
+background = "#1a1d14"
+dark_background = "#15180f"
+darker_background = "#0f110b"
+lighter_background = "#252a1d"
+
+foreground = "#e6e9d6"
+dark_foreground = "#b9bea4"
+light_foreground = "#d5dac2"
+bright_foreground = "#f7f9ee"
+
+hyprland_active_border = "rgba(cfe89aee) rgba(f4b6a6ee) 45deg"
+
+hyprland_inactive_border = "rgba(434a36aa)"
+
+red = "#f4a6a0"
+green = "#cfe89a"
+yellow = "#f2d38a"
+blue = "#9fc2d6"
+magenta = "#d9b2d0"
+cyan = "#a6d8c4"
+orange = "#f3bc95"
+brown = "#8b7e53"
+
+bright_red = "#ffbab4"
+bright_green = "#e0f5b4"
+bright_yellow = "#f7e1a6"
+bright_blue = "#b8d6e6"
+bright_magenta = "#e6c6de"
+bright_cyan = "#bde8d6"

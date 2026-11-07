@@ -1,0 +1,37 @@
+# Liquid Glass — violet nuit — montagnes violettes, horloge bonbon (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#cdb6ff"
+selection = "#3b2f5e"
+muted = "#7e6fa6"
+
+background = "#1a1230"
+dark_background = "#140e26"
+darker_background = "#0e091c"
+lighter_background = "#271d43"
+
+foreground = "#ece4ff"
+dark_foreground = "#b6a8d8"
+light_foreground = "#d9ccff"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(cdb6ffff) rgba(f0a6d8ff) 45deg"
+
+hyprland_inactive_border = "rgba(43376baa)"
+
+red = "#ff7a9a"
+green = "#9ee6b8"
+yellow = "#ffd99a"
+blue = "#9fb8ff"
+magenta = "#cdb6ff"
+cyan = "#9fe3f0"
+orange = "#ffa99a"
+brown = "#937b6e"
+
+bright_red = "#ff9bb3"
+bright_green = "#b8f0cc"
+bright_yellow = "#ffe6b8"
+bright_blue = "#bccdff"
+bright_magenta = "#e0d0ff"
+bright_cyan = "#bdf0f8"

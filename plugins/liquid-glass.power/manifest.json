@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.power",
+  "name": "Liquid Glass — Batterie",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Batterie façon macOS (pile horizontale dessinée, pourcentage en option) ; même panneau que omarchy.power",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Panel.qml" },
+  "barWidget": { "displayName": "Batterie (macOS)", "description": "Batterie façon macOS", "category": "System", "allowMultiple": false, "defaultSection": "right" }
+}

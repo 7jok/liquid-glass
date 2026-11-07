@@ -1,4 +1,5 @@
 import QtQuick
+import "Mac.js" as Mac
 import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
@@ -46,20 +47,22 @@ Panel {
   }
 
   // [libellé, commande, raccourci affiché] — "" = séparateur.
+  readonly property string userName: Quickshell.env("USER") || "moi"
+  // [libellé, commande, raccourci affiché] — "" = séparateur. Ordre du menu Pomme de macOS.
   readonly property var entries: [
-    ["À propos de cet ordinateur", "omarchy-launch-about", ""],
-    ["Réglages Liquid Glass…", "omarchy-shell liquid-glass.settings toggle", ""],
-    ["Basculer clair / sombre", "liquid-glass mode toggle", "⌘⇧L"],
+    ["À propos de ce Mac", "omarchy-shell shell toggle liquid-glass.about", ""],
     "",
-    ["Moniteur d'activité", "omarchy-launch-or-focus-tui btop", ""],
-    ["Raccourcis clavier", "omarchy-shell liquid-glass.cheatsheet toggle", "⌘K"],
+    ["Réglages Système…", "omarchy-shell liquid-glass.settings toggle", ""],
+    ["App Store…", "omarchy-launch-floating-terminal-with-presentation omarchy-pkg-install", ""],
+    "",
+    ["Forcer à quitter…", "omarchy-shell shell toggle liquid-glass.forcequit", "⌥⌘⎋"],
     "",
     ["Suspendre", "systemctl suspend", ""],
     ["Redémarrer…", "omarchy system reboot", ""],
     ["Éteindre…", "omarchy system shutdown", ""],
     "",
     ["Verrouiller l'écran", "omarchy-shell lock lock", "⌃⌘Q"],
-    ["Fermer la session…", "omarchy system logout", ""]
+    ["Fermer la session de « " + userName + " »…", "omarchy system logout", "⇧⌘Q"]
   ]
 
   function activate(index) {
@@ -149,7 +152,7 @@ Panel {
     open: root.opened
     padding: Style.spacing.sm
     focusTarget: panel.loadedContent
-    contentWidth: Style.space(250)
+    contentWidth: Style.space(Mac.menu.minWidth + 70)
     contentHeight: panel.fittedContentHeight(panel.loadedContentHeight)
 
     content: PanelKeyCatcher {
@@ -174,7 +177,7 @@ Panel {
             readonly property bool separator: modelData === ""
             readonly property bool hot: !separator && (mouse.containsMouse || root.cursor === index)
             width: list.width
-            height: separator ? Style.space(9) : Style.space(26)
+            height: separator ? Style.space(Mac.menu.separatorMargin * 2 + 1) : Style.space(Mac.menu.row)
 
             Rectangle {
               visible: row.separator
@@ -189,7 +192,7 @@ Panel {
             Rectangle {
               visible: !row.separator
               anchors.fill: parent
-              radius: Style.space(6)
+              radius: Style.space(Mac.menu.selRadius)
               color: Commons.Color.accent
               opacity: row.hot ? 0.9 : 0
               Behavior on opacity { NumberAnimation { duration: Style.duration(80) } }
@@ -199,7 +202,7 @@ Panel {
               visible: !row.separator
               textFormat: Text.PlainText
               anchors.verticalCenter: parent.verticalCenter
-              x: Style.space(10)
+              x: Style.space(Mac.menu.padRight - Mac.menu.inset + 6)
               text: row.separator ? "" : row.modelData[0]
               font.family: root.uiFont
               font.pixelSize: Style.font.subtitle
@@ -214,9 +217,9 @@ Panel {
               anchors.rightMargin: Style.space(10)
               text: row.separator ? "" : row.modelData[2]
               font.family: root.uiFont
-              font.pixelSize: Style.font.body
+              font.pixelSize: Style.space(Mac.font.body)
               color: row.hot ? "#ffffff" : Commons.Color.popups.text
-              opacity: 0.55
+              opacity: row.hot ? 0.9 : Mac.label.secondary
             }
 
             MouseArea {

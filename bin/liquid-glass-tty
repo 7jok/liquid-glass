@@ -1,0 +1,751 @@
+#!/usr/bin/env python3
+"""liquid-glass-tty — animations ASCII du bureau Linux, qui suivent la musique.
+
+Scènes (Espace / n : suivante, p : précédente, 1–9 : directe, q : quitter) :
+  eye     un œil qui regarde autour, cligne, et dont la pupille bat avec les basses
+  heart   un cœur en relief qui bat (au tempo de la musique, sinon 70 bpm)
+  donut   le tore qui tourne, plus vite sur les basses
+  rain    pluie de caractères
+  clock   grande horloge pixel + date
+  cava    visualiseur (barres, miroir) aux couleurs du thème
+  cover   la pochette du morceau en cours, en demi-blocs couleur, avec reflet
+  train   une locomotive à vapeur qui traverse l'écran, plus vite sur les basses
+
+  stars orbit hole fish lava leaves petals snow plasma snake life pipes tunnel waves
+  fire bounce radar hex cpu scope cal timer     (voir bin/lg_scenes.py)
+
+    liquid-glass-tty [scène] [--cycle SECONDES] [--fps N] [--list a,b,c] [--minutes N]
+                     [--label TEXTE] [--glyph X] [--audio chemin|off]
+
+--list : scènes parcourues par --cycle et Espace. --minutes : durée du minuteur.
+Dans un même rice, un seul terminal lance cava, les autres lisent --audio (chemin).
+
+Couleurs : thème Omarchy courant (~/.config/omarchy/current/theme/colors.toml).
+Musique : cava en sortie brute (si présent) ; sans musique, tout reste animé.
+Aucune dépendance hors bibliothèque standard ; la pochette passe par `magick`.
+"""
+import json
+import math
+import pathlib
+import os
+import random
+import select
+import shutil
+import signal
+import subprocess
+import sys
+import tempfile
+import termios
+import threading
+import time
+import tty
+from pathlib import Path
+
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent))
+import lg_scenes  # noqa: E402
+
+HOME = Path.home()
+SCENES = ["eye", "heart", "donut", "rain", "clock", "cava", "cover", "train"]   # + lg_scenes.py
+RAMP = " .,:;-=+*cxoO#%@"
+ESC = "\x1b["
+
+
+# ------------------------------------------------------------------ couleurs
+def hex_rgb(h, d=(200, 200, 200)):
+    h = str(h).strip().strip('"').lstrip("#")
+    if len(h) < 6:
+        return d
+    try:
+        return tuple(int(h[i:i + 2], 16) for i in (0, 2, 4))
+    except ValueError:
+        return d
+
+
+def theme_colors():
+    f = HOME / ".config/omarchy/current/theme/colors.toml"
+    c = {}
+    try:
+        for line in f.read_text().splitlines():
+            if "=" in line and not line.lstrip().startswith("#"):
+                k, v = line.split("=", 1)
+                v = v.strip()
+                c[k.strip()] = v.split('"')[1] if v.startswith('"') and v.count('"') >= 2 else v.split("#", 1)[0].strip()
+    except OSError:
+        pass
+    bg = hex_rgb(c.get("background", "#101014"), (16, 16, 20))
+    fg = hex_rgb(c.get("foreground", "#e6e6e6"))
+    acc = hex_rgb(c.get("accent", "#8ab4f8"))
+    alt = hex_rgb(c.get("magenta", c.get("blue", "#c58af9")))
+    light = c.get("mode", "dark").strip('"') == "light"
+    return bg, fg, acc, alt, light
+
+
+def mix(a, b, t):
+    t = 0 if t < 0 else 1 if t > 1 else t
+    return (int(a[0] + (b[0] - a[0]) * t), int(a[1] + (b[1] - a[1]) * t), int(a[2] + (b[2] - a[2]) * t))
+
+
+def fgc(c):
+    return f"{ESC}38;2;{c[0]};{c[1]};{c[2]}m"
+
+
+def bgc(c):
+    return f"{ESC}48;2;{c[0]};{c[1]};{c[2]}m"
+
+
+# ------------------------------------------------------------------ musique (cava)
+class Audio:
+    """Lit cava en sortie brute ASCII dans un fil ; `bars` (0..1), `bass` lissé."""
+
+    def __init__(self, bars=64, share=None):
+        self.n = bars
+        self.share = share          # chemin : lit ce que le terminal maître publie
+        self.bars = [0.0] * bars
+        self.bass = 0.0
+        self.level = 0.0
+        self.proc = None
+        self.cfg = None
+        if share == "off" or (share and not share.startswith("+")):
+            return
+        if share:
+            self.share = share[1:]
+        if shutil.which("cava"):
+            fd, self.cfg = tempfile.mkstemp(prefix="lg-tty-cava-", suffix=".conf")
+            with os.fdopen(fd, "w") as f:
+                f.write(f"[general]\nbars = {bars}\nframerate = 40\n[input]\nmethod = pipewire\n"
+                        "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\n"
+                        "ascii_max_range = 1000\nbar_delimiter = 59\nframe_delimiter = 10\n"
+                        "[smoothing]\nnoise_reduction = 60\n")
+            try:
+                self.proc = subprocess.Popen(["cava", "-p", self.cfg], stdout=subprocess.PIPE,
+                                             stderr=subprocess.DEVNULL, text=True, bufsize=1)
+                threading.Thread(target=self._read, daemon=True).start()
+            except OSError:
+                self.proc = None
+
+    def _read(self):
+        for line in self.proc.stdout:
+            try:
+                vals = [int(x) / 1000 for x in line.strip().rstrip(";").split(";") if x != ""]
+            except ValueError:
+                continue
+            if len(vals) == self.n:
+                self.bars = vals
+
+    def tick(self):
+        if self.share and self.share != "off":
+            try:
+                if self.proc:       # maître : publie, par remplacement atomique
+                    tmp = self.share + ".tmp"
+                    with open(tmp, "w") as f:
+                        f.write(" ".join(f"{v:.2f}" for v in self.bars))
+                    os.replace(tmp, self.share)
+                else:
+                    with open(self.share) as f:
+                        v = [float(x) for x in f.read().split()]
+                    if len(v) == self.n:
+                        self.bars = v
+            except (OSError, ValueError):
+                pass
+        k = max(2, self.n // 8)
+        b = sum(self.bars[:k]) / k
+        self.bass = max(b, self.bass * 0.85)
+        self.level = sum(self.bars) / self.n
+
+    def close(self):
+        if self.proc:
+            self.proc.terminate()
+        if self.cfg:
+            try:
+                os.unlink(self.cfg)
+            except OSError:
+                pass
+
+
+# ------------------------------------------------------------------ scènes
+class Scene:
+    def __init__(self, app):
+        self.app = app
+
+    def frame(self, t, w, h):  # -> liste de lignes (avec couleurs)
+        return []
+
+
+def shade_lines(w, h, fn, colfn):
+    """Rend fn(u, v) -> intensité 0..1 (None = vide) ; colfn(i, u, v) -> rgb."""
+    out = []
+    asp = 0.5  # une cellule est deux fois plus haute que large
+    sx = 2.0 / h
+    for y in range(h):
+        v = (y - h / 2 + 0.5) * sx
+        row = []
+        last = None
+        for x in range(w):
+            u = (x - w / 2 + 0.5) * sx * asp
+            i = fn(u, v)
+            if i is None or i <= 0.02:
+                row.append(" ")
+                continue
+            c = colfn(i, u, v)
+            q = (c[0] >> 3, c[1] >> 3, c[2] >> 3)
+            if q != last:
+                row.append(fgc(c))
+                last = q
+            row.append(RAMP[min(len(RAMP) - 1, int(i * (len(RAMP) - 1)))])
+        out.append("".join(row))
+    return out
+
+
+class Eye(Scene):
+    def __init__(self, app):
+        super().__init__(app)
+        self.gx = self.gy = 0.0
+        self.tx = self.ty = 0.0
+        self.next_sacc = 0
+        self.next_blink = time.time() + 3
+        self.blink_t = -1
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        if t > self.next_sacc:  # regard : petits sauts, puis repos
+            self.tx = random.uniform(-0.28, 0.28)
+            self.ty = random.uniform(-0.12, 0.12)
+            self.next_sacc = t + random.uniform(0.6, 2.4)
+        self.gx += (self.tx - self.gx) * 0.35
+        self.gy += (self.ty - self.gy) * 0.35
+        if t > self.next_blink:
+            self.blink_t = t
+            self.next_blink = t + random.uniform(2.5, 6)
+        bt = t - self.blink_t
+        open_ = 1.0 if bt > 0.28 or bt < 0 else abs(math.cos(bt / 0.28 * math.pi))
+        W, H0 = 1.35, 0.62 * open_
+        R = 0.44
+        P = 0.12 + 0.12 * a.bass
+        gx, gy = self.gx, self.gy
+        acc, alt, fg = self.app.acc, self.app.alt, self.app.fg
+
+        def fn(u, v):
+            if abs(u) >= W:
+                return None
+            hh = H0 * (1 - (u / W) ** 2)
+            av = abs(v)
+            if av > hh:
+                # Paupières et cils
+                if av < hh + 0.045 and H0 > 0.02:
+                    return 0.55
+                if v < 0 and av < hh + 0.16 and abs(math.sin(u * 22)) > 0.92 and H0 > 0.3:
+                    return 0.35
+                return None
+            dx, dy = u - gx, v - gy
+            r = math.hypot(dx, dy)
+            if r < P:
+                return 0.04
+            if r < R:
+                ang = math.atan2(dy, dx)
+                fib = 0.5 + 0.28 * math.sin(ang * 26 + r * 14 - t * 0.6) * min(1, r / R * 1.6)
+                rim = 1 - max(0, (r - R * 0.82) / (R * 0.18)) * 0.6
+                hl = 1.0 if math.hypot(dx + 0.13, dy + 0.14) < 0.055 else 0
+                return max(hl, (0.35 + fib * 0.6) * rim)
+            edge = 1 - (av / max(hh, 1e-3)) ** 4
+            return 0.12 + 0.28 * edge
+
+        def col(i, u, v):
+            r = math.hypot(u - gx, v - gy)
+            if r < R:
+                return mix(acc, alt, r / R) if i < 0.95 else fg
+            return mix(self.app.dim, fg, i)
+
+        return shade_lines(w, h, fn, col)
+
+
+class Heart(Scene):
+    def frame(self, t, w, h):
+        a = self.app.audio
+        beat_idle = math.exp(-((t * 70 / 60) % 1) * 6) + 0.5 * math.exp(-(((t * 70 / 60) + 0.7) % 1) * 7)
+        k = 1 + 0.16 * (a.bass if a.level > 0.02 else beat_idle * 0.6)
+        sc = 1.15 / k
+        acc, alt, fg = self.app.acc, self.app.alt, self.app.fg
+
+        def f(x, y):
+            return (x * x + y * y - 1) ** 3 - x * x * y ** 3
+
+        def fn(u, v):
+            x, y = u * sc * 1.25, -v * sc * 1.25 + 0.15
+            val = f(x, y)
+            if val > 0:
+                # Étincelles autour
+                if random.random() < 0.0025 + 0.01 * a.bass:
+                    return 0.5
+                return None
+            d = min(1, (-val) ** 0.25 * 1.3)
+            light = 0.25 + 0.75 * d * (0.75 - 0.25 * (x + y) / 1.5)
+            return max(0.08, min(1, light))
+
+        def col(i, u, v):
+            return mix(alt, acc, i) if i < 0.9 else mix(acc, fg, (i - 0.9) * 10)
+
+        return shade_lines(w, h, fn, col)
+
+
+class Donut(Scene):
+    def __init__(self, app):
+        super().__init__(app)
+        self.A = self.B = 0.0
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        self.A += 0.04 + 0.12 * a.bass
+        self.B += 0.02 + 0.06 * a.bass
+        A, B = self.A, self.B
+        z = [0.0] * (w * h)
+        b = [0.0] * (w * h)
+        cA, sA, cB, sB = math.cos(A), math.sin(A), math.cos(B), math.sin(B)
+        K1 = min(w, h * 2) * 0.38 * 5 / 3
+        j = 0.0
+        while j < 6.28:
+            ct, st = math.cos(j), math.sin(j)
+            i = 0.0
+            while i < 6.28:
+                sp, cp = math.sin(i), math.cos(i)
+                hx = ct + 2
+                D = 1 / (sp * hx * sA + st * cA + 5)
+                tt = sp * hx * cA - st * sA
+                x = int(w / 2 + K1 * D * (cp * hx * cB - tt * sB))
+                y = int(h / 2 + K1 * 0.5 * D * (cp * hx * sB + tt * cB))
+                o = x + w * y
+                N = ((st * sA - sp * ct * cA) * cB - sp * ct * sA - st * cA - cp * ct * sB)
+                if 0 <= y < h and 0 <= x < w and D > z[o]:
+                    z[o] = D
+                    b[o] = max(0.05, N / 1.5 + 0.1)
+                i += 0.035
+            j += 0.09
+        out = []
+        acc, alt = self.app.acc, self.app.alt
+        for y in range(h):
+            row, last = [], None
+            for x in range(w):
+                v = b[x + w * y]
+                if v <= 0:
+                    row.append(" ")
+                    continue
+                c = mix(alt, acc, v)
+                q = (c[0] >> 3, c[1] >> 3, c[2] >> 3)
+                if q != last:
+                    row.append(fgc(c))
+                    last = q
+                row.append(RAMP[min(len(RAMP) - 1, 1 + int(v * (len(RAMP) - 2)))])
+            out.append("".join(row))
+        return out
+
+
+class Rain(Scene):
+    CH = "ｱｲｳｴｵｶｷｸｹｺｻｼｽｾｿﾀﾁﾂﾃﾄ0123456789$+-*/=<>#&%@"
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.cols = {}
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        if set(self.cols) != set(range(w)):
+            self.cols = {x: [random.uniform(-h, 0), random.uniform(0.3, 1.0), random.randint(6, h)] for x in range(w)}
+        grid = [[None] * w for _ in range(h)]
+        for x, c in self.cols.items():
+            c[0] += c[1] * (0.6 + 1.6 * a.bass)
+            if c[0] - c[2] > h:
+                c[:] = [random.uniform(-h * 0.5, 0), random.uniform(0.3, 1.0), random.randint(6, h)]
+            head = int(c[0])
+            for k in range(c[2]):
+                y = head - k
+                if 0 <= y < h:
+                    grid[y][x] = 1.0 if k == 0 else max(0.05, 1 - k / c[2])
+        out = []
+        acc, fg = self.app.acc, self.app.fg
+        for y in range(h):
+            row, last = [], None
+            for x in range(w):
+                v = grid[y][x]
+                if v is None:
+                    row.append(" ")
+                    continue
+                c = fg if v >= 1 else mix(self.app.bg, acc, v)
+                q = (c[0] >> 3, c[1] >> 3, c[2] >> 3)
+                if q != last:
+                    row.append(fgc(c))
+                    last = q
+                ch = random.choice(self.CH)
+                row.append(ch if ord(ch) < 0xff00 else random.choice("01"))
+            out.append("".join(row))
+        return out
+
+
+FONT = {  # 5x7
+    "0": ["01110", "10001", "10011", "10101", "11001", "10001", "01110"],
+    "1": ["00100", "01100", "00100", "00100", "00100", "00100", "01110"],
+    "2": ["01110", "10001", "00001", "00010", "00100", "01000", "11111"],
+    "3": ["11110", "00001", "00001", "01110", "00001", "00001", "11110"],
+    "4": ["00010", "00110", "01010", "10010", "11111", "00010", "00010"],
+    "5": ["11111", "10000", "11110", "00001", "00001", "10001", "01110"],
+    "6": ["00110", "01000", "10000", "11110", "10001", "10001", "01110"],
+    "7": ["11111", "00001", "00010", "00100", "01000", "01000", "01000"],
+    "8": ["01110", "10001", "10001", "01110", "10001", "10001", "01110"],
+    "9": ["01110", "10001", "10001", "01111", "00001", "00010", "01100"],
+    ":": ["00000", "00100", "00100", "00000", "00100", "00100", "00000"],
+}
+JOURS = ["LUNDI", "MARDI", "MERCREDI", "JEUDI", "VENDREDI", "SAMEDI", "DIMANCHE"]
+MOIS = ["JANVIER", "FÉVRIER", "MARS", "AVRIL", "MAI", "JUIN", "JUILLET", "AOÛT", "SEPTEMBRE", "OCTOBRE", "NOVEMBRE",
+        "DÉCEMBRE"]
+
+
+class Clock(Scene):
+    def frame(self, t, w, h):
+        a = self.app.audio
+        now = time.localtime()
+        s = time.strftime("%H:%M", now)
+        if now.tm_sec % 2:
+            s = s.replace(":", " ")
+        sc = max(1, min((w - 4) // (len(s) * 6 * 2), (h - 6) // 8))
+        cw = 2 * sc if len(s) * 6 * 2 * sc <= w else 1      # terminal étroit : pixels d'une colonne
+        pw, ph = len(s) * 6 * cw, 7 * sc
+        x0, y0 = (w - pw) // 2, max(0, (h - ph) // 2 - 2)
+        lines = [[" "] * w for _ in range(h)]
+        cols = [[None] * w for _ in range(h)]
+        for ci, ch in enumerate(s):
+            g = FONT.get(ch, ["00000"] * 7)
+            for gy in range(7):
+                for gx in range(5):
+                    if g[gy][gx] == "1":
+                        for yy in range(sc):
+                            for xx in range(cw):
+                                X = x0 + (ci * 6 + gx) * cw + xx
+                                Y = y0 + gy * sc + yy
+                                if 0 <= X < w and 0 <= Y < h:
+                                    lines[Y][X] = "█"
+                                    cols[Y][X] = mix(self.app.acc, self.app.fg, gy / 7 + 0.2 * a.bass)
+        txt = f"{JOURS[now.tm_wday]} {now.tm_mday} {MOIS[now.tm_mon - 1]} {now.tm_year}"
+        if len(txt) * 3 <= w:
+            txt = "  ".join(txt)
+        elif len(txt) * 2 <= w:
+            txt = " ".join(txt)
+        yy = min(h - 2, y0 + ph + 2)
+        xs = max(0, (w - len(txt)) // 2)
+        for i, ch in enumerate(txt[:w]):
+            if xs + i < w:
+                lines[yy][xs + i] = ch
+                cols[yy][xs + i] = self.app.dim
+        # Secondes en barre fine
+        bar = int((w - 2 * xs) * now.tm_sec / 59) if w > 2 * xs else 0
+        if yy + 1 < h:
+            for i in range(bar):
+                lines[yy + 1][xs + i] = "━"
+                cols[yy + 1][xs + i] = self.app.acc
+        out = []
+        for y in range(h):
+            row, last = [], None
+            for x in range(w):
+                c = cols[y][x]
+                if c and c != last:
+                    row.append(fgc(c))
+                    last = c
+                row.append(lines[y][x])
+            out.append("".join(row))
+        return out
+
+
+class Cava(Scene):
+    BL = " ▁▂▃▄▅▆▇█"
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        n = len(a.bars)
+        vals = []
+        for x in range(w // 2):
+            f = x / max(1, w // 2 - 1) * (n - 1)
+            i0 = int(f)
+            i1 = min(n - 1, i0 + 1)
+            m = f - i0
+            v = a.bars[i0] * (1 - m) + a.bars[i1] * m
+            if a.level < 0.01:  # au repos : une houle douce
+                v = 0.08 + 0.06 * math.sin(x * 0.35 + t * 2)
+            vals.append(v)
+        half = h // 2
+        out = []
+        for y in range(h):
+            row, last = [], None
+            dy = abs(y - half + 0.5) / half  # miroir autour du centre
+            for x in range(w):
+                v = vals[min(len(vals) - 1, x // 2)]
+                top = v
+                lvl = (top - dy) * half
+                if lvl <= 0:
+                    row.append(" ")
+                    continue
+                c = mix(self.app.acc, self.app.alt, dy)
+                if y >= half:
+                    c = mix(c, self.app.bg, 0.45)
+                if c != last:
+                    row.append(fgc(c))
+                    last = c
+                row.append("█" if lvl >= 1 else self.BL[max(1, int(lvl * 8))] if y < half else "█")
+            out.append("".join(row))
+        return out
+
+
+class Cover(Scene):
+    def __init__(self, app):
+        super().__init__(app)
+        self.key = None
+        self.pix = None
+        self.size = (0, 0)
+        self.title = ""
+
+    def load(self, w, h):
+        np = HOME / ".cache/liquid-glass/now-playing.json"
+        try:
+            d = json.loads(np.read_text())
+        except (OSError, ValueError):
+            d = {}
+        cover = d.get("cover") or ""
+        key = (cover, w, h)
+        if key == self.key:
+            return
+        self.key = key
+        self.title = (d.get("title") or "") + ("  —  " + d["artist"] if d.get("artist") else "")
+        self.pix = None
+        if not cover or not os.path.exists(cover) or not shutil.which("magick"):
+            return
+        side = min(w, (h - 3) * 2)
+        try:
+            raw = subprocess.run(["magick", cover, "-resize", f"{side}x{side}!", "-depth", "8", "rgb:-"],
+                                 capture_output=True, timeout=8).stdout
+        except (OSError, subprocess.TimeoutExpired):
+            return
+        if len(raw) == side * side * 3:
+            self.pix = raw
+            self.size = (side, side)
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        if int(t * 2) % 4 == 0 or self.key is None:
+            self.load(w, h)
+        if not self.pix:
+            return Eye.frame(self.app.scenes["eye"], t, w, h) if "eye" in self.app.scenes else []
+        sw, sh = self.size
+        x0 = (w - sw) // 2
+        rows = sh // 2
+        y0 = max(0, (h - rows - 2) // 2)
+        out = [""] * y0
+        sweep = (t * 0.35) % 2.2 - 0.6  # reflet qui traverse en diagonale
+        boost = 1 + 0.25 * a.bass
+        for r in range(rows):
+            line = [" " * max(0, x0)]
+            for x in range(sw):
+                cols = []
+                for yy in (2 * r, 2 * r + 1):
+                    o = (yy * sw + x) * 3
+                    c = self.pix[o:o + 3]
+                    d = (x / sw + yy / sh) / 2
+                    gl = max(0, 1 - abs(d - sweep) * 9) * 0.55
+                    cols.append(tuple(min(255, int(ch * boost + (255 - ch) * gl)) for ch in c))
+                line.append(fgc(cols[0]) + bgc(cols[1]) + "▀")
+            line.append(f"{ESC}0m")
+            out.append("".join(line))
+        if self.title:
+            tt = self.title[: w - 2]
+            out.append("")
+            out.append(" " * max(0, (w - len(tt)) // 2) + fgc(self.app.fg) + tt)
+        return out
+
+
+# ------------------------------------------------------------------ boucle
+class Train(Scene):
+    """Locomotive à vapeur dessinée ici, deux wagons, fumée qui monte et s'efface."""
+    ENGINE = [
+        r"     ___                    ",
+        r"    |___|     ____________  ",
+        r"   __|_|_____|  [_]  [_]  | ",
+        r"  /  ____  ___|           | ",
+        r" | o|    |/   \__________|_ ",
+        r" |__|____|\___/___________| ",
+        r"/_________________________|",
+    ]
+    CAR = [
+        r"                          ",
+        r"  ______________________  ",
+        r" | [_]  [_]  [_]  [_]   | ",
+        r" |                      | ",
+        r" |______________________| ",
+        r"-|______________________|-",
+        r"                          ",
+    ]
+    WHEELS = ["(O)--(O)----(O)--(O)", "(0)--(0)----(0)--(0)", "(o)--(o)----(o)--(o)", "(0)--(0)----(0)--(0)"]
+
+    def __init__(self, app):
+        super().__init__(app)
+        self.x = None
+        self.last = None
+        self.puffs = []
+
+    def frame(self, t, w, h):
+        a = self.app.audio
+        dt = 0 if self.last is None else min(0.2, t - self.last)
+        self.last = t
+        ew, cw = len(self.ENGINE[0]), len(self.CAR[0])
+        total = ew + 2 * cw
+        if self.x is None or self.x < -total:
+            self.x = float(w)
+        self.x -= dt * (16 + 34 * a.bass)
+        grid = [[" "] * w for _ in range(h)]
+        cols = [[None] * w for _ in range(h)]
+
+        def put(x, y, txt, c):
+            for i, ch in enumerate(txt):
+                if 0 <= x + i < w and 0 <= y < h and ch != " ":
+                    grid[y][x + i] = ch
+                    cols[y][x + i] = c
+
+        rows = len(self.ENGINE) + 1
+        top = max(2, (h - rows) // 2 + 2)
+        x = int(self.x)
+        wheel = self.WHEELS[int(self.x) % len(self.WHEELS)]
+        for i, row in enumerate(self.ENGINE):
+            put(x, top + i, row, self.app.fg)
+        put(x + 3, top + len(self.ENGINE), wheel, self.app.acc)
+        for k in range(2):
+            cx = x + ew + k * cw
+            for i, row in enumerate(self.CAR):
+                put(cx, top + i, row, mix(self.app.fg, self.app.acc, 0.35))
+            put(cx + 4, top + len(self.CAR), wheel[:16], self.app.acc)
+        put(0, top + rows, "=" * w, self.app.dim)
+        put(0, top + rows + 1, ("  |  " * (w // 5 + 2))[(-x) % 5:][:w], self.app.dim)
+        # Fumée : naît à la cheminée, monte, dérive et s'efface.
+        if random.random() < 0.3 + 0.5 * a.bass:
+            self.puffs.append([self.x + 6, float(top - 1), 0.0])
+        keep = []
+        for p in self.puffs:
+            p[0] += dt * 5
+            p[1] -= dt * 3.2
+            p[2] += dt
+            if p[2] < 3.2 and p[1] >= 0:
+                keep.append(p)
+                put(int(p[0]), int(p[1]), "@Oo°·"[min(4, int(p[2] * 1.6))], mix(self.app.fg, self.app.bg, p[2] / 3.4))
+        self.puffs = keep
+        out = []
+        for y in range(h):
+            row, last = [], None
+            for xx in range(w):
+                c = cols[y][xx]
+                if c and c != last:
+                    row.append(fgc(c))
+                    last = c
+                row.append(grid[y][xx])
+            out.append("".join(row))
+        return out
+
+
+EXTRA = lg_scenes.build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS)
+SCENES = SCENES + list(EXTRA)
+
+
+class App:
+    def __init__(self, scene, cycle, fps, order=None, minutes=25, label="", glyph="", audio=None):
+        self.bg, self.fg, self.acc, self.alt, self.light = theme_colors()
+        self.dim = mix(self.bg, self.fg, 0.45)
+        self.minutes, self.label, self.glyph = minutes, label, glyph
+        self.audio = Audio(share=audio)
+        self.scenes = {}
+        self.order = [x for x in (order or []) if x in SCENES] or SCENES
+        if scene not in self.order:
+            self.order = [scene] + self.order
+        self.cur = self.order.index(scene) if scene in self.order else 0
+        self.cycle = cycle
+        self.fps = fps
+        self.started = time.time()
+        self.switched = self.started
+
+    def scene(self):
+        name = self.order[self.cur]
+        if name not in self.scenes:
+            self.scenes[name] = {"eye": Eye, "heart": Heart, "donut": Donut, "rain": Rain, "clock": Clock,
+                                 "cava": Cava, "cover": Cover, "train": Train, **EXTRA}[name](self)
+        return self.scenes[name]
+
+    def run(self):
+        fd = sys.stdin.fileno()
+        old = termios.tcgetattr(fd) if os.isatty(fd) else None
+        if old:
+            tty.setcbreak(fd)
+        sys.stdout.write(f"{ESC}?1049h{ESC}?25l")
+        signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+        try:
+            frame_t = 1 / self.fps
+            while True:
+                t0 = time.time()
+                if old and select.select([sys.stdin], [], [], 0)[0]:
+                    k = sys.stdin.read(1)
+                    if k in ("q", "\x1b"):
+                        break
+                    cur = self.scene()
+                    if hasattr(cur, "key") and cur.key("t" if k == " " else k):
+                        continue
+                    if k in (" ", "n", "l"):
+                        self.cur = (self.cur + 1) % len(self.order); self.switched = t0
+                    elif k in ("p", "h"):
+                        self.cur = (self.cur - 1) % len(self.order); self.switched = t0
+                    elif k.isdigit() and 1 <= int(k) <= len(self.order):
+                        self.cur = int(k) - 1; self.switched = t0
+                if self.cycle and t0 - self.switched > self.cycle:
+                    self.cur = (self.cur + 1) % len(self.order); self.switched = t0
+                self.audio.tick()
+                w, h = shutil.get_terminal_size((80, 24))
+                lines = self.scene().frame(t0 - self.started, w, h)
+                buf = [f"{ESC}H"]
+                for y in range(h):
+                    ln = lines[y] if y < len(lines) else ""
+                    buf.append(ln + f"{ESC}0m{ESC}K")
+                    if y < h - 1:
+                        buf.append("\r\n")
+                sys.stdout.write("".join(buf))
+                sys.stdout.flush()
+                time.sleep(max(0.0, frame_t - (time.time() - t0)))
+        except KeyboardInterrupt:
+            pass
+        finally:
+            sys.stdout.write(f"{ESC}0m{ESC}?25h{ESC}?1049l")
+            sys.stdout.flush()
+            if old:
+                termios.tcsetattr(fd, termios.TCSADRAIN, old)
+            self.audio.close()
+
+
+def main():
+    args = sys.argv[1:]
+    if "-h" in args or "--help" in args:
+        print(__doc__.strip())
+        return
+    scene, cycle, fps, order, minutes, label, glyph, audio = "eye", 0.0, 20, None, 25, "", "", None
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a == "--cycle" and i + 1 < len(args):
+            cycle = float(args[i + 1]); i += 1
+        elif a == "--fps" and i + 1 < len(args):
+            fps = max(5, min(60, int(args[i + 1]))); i += 1
+        elif a == "--list" and i + 1 < len(args):
+            order = args[i + 1].split(","); i += 1
+        elif a == "--minutes" and i + 1 < len(args):
+            minutes = int(float(args[i + 1])); i += 1
+        elif a == "--label" and i + 1 < len(args):
+            label = args[i + 1]; i += 1
+        elif a == "--glyph" and i + 1 < len(args):
+            glyph = args[i + 1]; i += 1
+        elif a == "--audio" and i + 1 < len(args):
+            audio = args[i + 1]; i += 1
+        elif a in SCENES:
+            scene = a
+        i += 1
+    App(scene, cycle, fps, order, minutes, label, glyph, audio).run()
+
+
+if __name__ == "__main__":
+    main()

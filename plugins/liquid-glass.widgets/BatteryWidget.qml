@@ -11,13 +11,13 @@ Tile {
   readonly property real frac: present ? Math.max(0, Math.min(1, dev.percentage)) : 0
   readonly property bool charging: present && !UPower.onBattery
   readonly property color ring: frac <= 0.2 && !charging ? "#ff3b30" : "#30d158"
+  readonly property bool wideBat: width > height * 1.4
 
   Item {
     id: gauge
-    width: w.width * 0.56; height: width
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.top: parent.top
-    anchors.topMargin: w.height * 0.12
+    width: Math.min(w.width, w.height) * (w.wideBat ? 0.62 : 0.56); height: width
+    x: w.wideBat ? w.height * 0.19 : (w.width - width) / 2
+    y: w.wideBat ? (w.height - height) / 2 : w.height * 0.12
 
     Shape {
       anchors.fill: parent
@@ -55,19 +55,18 @@ Tile {
   }
 
   Column {
-    anchors.horizontalCenter: parent.horizontalCenter
-    anchors.bottom: parent.bottom
-    anchors.bottomMargin: w.height * 0.1
+    x: w.wideBat ? gauge.x + gauge.width + w.height * 0.16 : (w.width - width) / 2
+    y: w.wideBat ? (w.height - height) / 2 : w.height - height - w.height * 0.1
     Text {
-      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.horizontalCenter: w.wideBat ? undefined : parent.horizontalCenter
       text: Math.round(w.frac * 100) + " %"
-      font.family: w.font; font.pixelSize: 18; font.weight: Font.DemiBold
+      font.family: w.font; font.pixelSize: Math.round((w.wideBat ? 30 : 18) * w.k); font.weight: Font.DemiBold
       color: w.fg
     }
     Text {
-      anchors.horizontalCenter: parent.horizontalCenter
+      anchors.horizontalCenter: w.wideBat ? undefined : parent.horizontalCenter
       text: w.charging ? (w.frac >= 0.99 ? "Chargé" : "En charge") : "Sur batterie"
-      font.family: w.font; font.pixelSize: 10; font.weight: Font.Medium
+      font.family: w.font; font.pixelSize: Math.round((w.wideBat ? 12 : 10) * w.k); font.weight: Font.Medium
       color: w.dim
     }
   }

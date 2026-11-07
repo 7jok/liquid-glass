@@ -78,6 +78,13 @@ bars = 64
 # Raccourcis façon macOS (⌘Espace Spotlight, ⌘Q quitter, ⌘Tab, ⌘⇧3/4/5…).
 # false = garder uniquement les raccourcis Omarchy. Voir README pour la liste.
 macos_shortcuts = true
+# Son de clavier mécanique sur tout le système (liquid-glass keys on|off|test).
+# Passe par Hyprland : aucun groupe « input », rien n'est donné aux applications.
+sound = false
+sound_pack = "auto"          # auto = le pack choisi dans Mechvibes
+sound_volume = 0.6
+sound_release = true
+sound_mouse = true           # clics de souris aussi
 
 [widgets]
 # Widgets du bureau façon macOS (sur le fond d'écran, sous les fenêtres).
@@ -113,6 +120,9 @@ music_size = "medium"
 
 [lock]
 # Écran de verrouillage façon macOS Tahoe (relu à chaud).
+# Sur le bureau Linux : écran « bonbon » (horloge empilée, bascule clair/sombre).
+# auto = selon le profil actif | on = toujours | off = jamais
+linux_style = "auto"
 # Horloge : glass (verre dégradé) | bold | light ; 24 h ou 12 h.
 clock_style = "glass"
 clock_24h = true
@@ -148,3 +158,88 @@ top_left = ""
 top_right = ""
 bottom_left = "mission"
 bottom_right = "desktop"
+
+[island]
+# Île dynamique façon Alcove : capsule noire en haut au centre (fausse encoche).
+enabled = true
+# Au repos : hidden (n'apparaît qu'avec une activité) | notch (petite encoche noire).
+idle = "hidden"
+music = true          # Lecture en cours : pochette + égaliseur, clic = commandes
+battery = true        # Branchement / débranchement du secteur
+bluetooth = true      # Casque ou appareil Bluetooth connecté (avec sa batterie)
+focus = true          # Changement de mode Concentration
+hud = false           # Volume dans l'île (l'OSD Liquid Glass le montre déjà)
+
+[corners]
+# Coins d'écran arrondis façon MacBook (surcouche noire, les clics passent au travers)
+enabled = true
+radius = 10
+
+[menubar]
+# Horloge de la barre et calendrier (Réglages → Barre des menus)
+clock_24h = true
+show_date = true
+show_seconds = false
+week_monday = true
+
+[shortcuts]
+# Raccourcis d'apps dans la barre des menus (Réglages → Raccourcis).
+# « claude-code » = Claude Code (omarchy-agent) ; sinon l'id .desktop d'une app.
+apps = ["claude-code"]
+
+[windows]
+# Fenêtres flottantes comme sur Mac (ouvertes au centre, barre de titre à feux tricolores)
+floating = true
+# Bouton vert : "menu" (Plein écran, moitiés, quarts… comme Tahoe) ou "zoom" (agrandir)
+green_button = "menu"
+
+[profile]
+# Bureau actif : "mac" (Liquid Glass) ou "linux" (rice lain, d'après les dotfiles
+# Teiguuu). ⌘⇧Espace ou `liquid-glass profile toggle` pour basculer.
+active = "mac"
+
+[linux]
+# Bureau Linux (⌘⇧Espace ouvre le sélecteur de styles). style :
+#   blanc      barre de texte en bas (dwm), bords durs, ombres décalées (défaut)
+#   sombre     mur de tuiles, mot chanté géant (sombre_tone ; sombre_wall = false rend l'ancien bureau)
+#   jouet      gros dock en bas, pas de barre en haut, autocollants
+#   violet     montagnes dans la brume, grosse horloge « bonbon » (violet_tone : nuit | aube | rose)
+#   expressive Material 3 façon end4-pC / Serpantinum (couleurs matugen du fond)
+#   windows    clone de Windows 11 : barre des tâches, Démarrer, Paramètres (windows_tone)
+#   mono       caelestia : cadre, barre latérale, tableau de bord (mono_tone : noir | papier | sakura)
+#   foret      rice c01 : puces flottantes, météo en orbite, spectre (foret_tone)
+#   ruban      bandes en biais, grande date, menu oblique (ruban_tone : bleu | rouge | or)
+#   espace     paroles au centre, horloge à planètes, tableau de bord (espace_tone : bleu | mars | nebuleuse)
+#   gouts      « Mes goûts » : horloge empilée, planètes, paroles, aux couleurs d'un thème Omarchy (gouts_theme)
+#   debian fedora mint kali arch   panneau et menu de GNOME, Cinnamon, Xfce ou Plasma
+# Une teinte = mêmes widgets, autres couleurs : ⌃⌘T ou touche T dans ⌘⇧Espace.
+# Profils : `liquid-glass profile mac | linux | omarchy` (Omarchy d'origine, sans retouche).
+style = "blanc"
+blanc_tone = "pur"        # pur | creme
+violet_tone = "nuit"      # nuit | aube | rose
+windows_tone = "clair"    # clair | sombre
+foret_tone = "mousse"     # mousse | cendre
+# Variante matugen : tonal-spot, expressive, vibrant, fruit-salad, rainbow, monochrome…
+scheme = "tonal-spot"
+# Widgets du bureau expressive (à glisser ; linux-layout.json garde leur place)
+widgets = true
+workspaces = 7
+# Style lain : horloge pixel. Les deux : bande cava, paroles
+clock = true
+cava = true
+cava_bars = 110
+lyrics = true
+# Musique (laisser commenté = valeur du style ; Réglages → Bureau Linux → Musique)
+# viz = "bars"            # bars | wave | mirror | blocks | line | radial | off
+# viz_height = 140        # hauteur du visualiseur (px)
+# viz_gain = 1.0          # sensibilité (0.3 – 3)
+# viz_opacity = 0.9
+# viz_color = "auto"      # auto | cover (couleur de la pochette) | rainbow | ink
+# lyrics_mode = "word"    # word (mot géant) | line | card (dans le lecteur) | off
+# lyrics_pos = "center"   # center | left | top
+# lyrics_size = 1.0
+# pulse = true            # halo qui respire avec les basses
+# bump = true             # horloges et lecteur qui sautent sur les basses
+# cover_tint = false      # accents à la couleur de la pochette
+# Widgets (true/false) : w_music, w_weather, w_system, w_todo, w_pixclock, w_day,
+# w_stack, w_ring, w_clock, w_user, w_week ; day_kanji (sombre) ; stack_size (violet)

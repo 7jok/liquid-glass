@@ -1,0 +1,11 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.search",
+  "name": "Liquid Glass — Loupe Spotlight",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Loupe Spotlight dans la barre des menus, comme sur macOS (clic = Spotlight)",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "Search.qml" },
+  "barWidget": { "displayName": "Spotlight", "description": "Loupe Spotlight", "category": "System", "allowMultiple": false, "defaultSection": "right" }
+}

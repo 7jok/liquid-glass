@@ -62,6 +62,22 @@ Item {
   property bool strandedLock: false
   property bool strandedLockResolved: false
 
+  // Réglages Liquid Glass : profil actif et choix de l'écran ([lock] linux_style).
+  property var lgCfg: ({})
+  FileView {
+    path: root.home + "/.config/liquid-glass/config.json"
+    watchChanges: true
+    printErrors: false
+    onFileChanged: reload()
+    onLoaded: { try { root.lgCfg = JSON.parse(text()) } catch (e) {} }
+  }
+  readonly property bool linuxLock: {
+    var mode = String((lgCfg.lock || {}).linux_style || "auto")
+    if (mode === "on") return true
+    if (mode === "off") return false
+    return !!lgCfg.profile && lgCfg.profile.active === "linux"
+  }
+
   readonly property bool locked: lockRequested || sessionLock.locked || sessionLock.secure
 
   // Decisions read the lock state afresh. A property binding that missed a change
@@ -184,6 +200,13 @@ Item {
     }
   }
 
+  FileView {
+    id: unlockStamp
+    path: Quickshell.env("HOME") + "/.cache/liquid-glass/unlocked"
+    atomicWrites: true
+    printErrors: false
+  }
+
   function logEvent(event) {
     lastEvent = event
     lastEventAt = new Date().toISOString()
@@ -245,6 +268,8 @@ Item {
     idleBlankTimer.stop()
     sessionLock.locked = false
     logEvent("unlocked")
+    // Liquid Glass : signale le déverrouillage (les widgets du bureau arrivent en glissant).
+    unlockStamp.setText(String(Date.now()) + "\n")
     runWake()
   }
 
@@ -505,24 +530,52 @@ Item {
 
       color: Commons.Color.background
 
-      LockView {
+      // Profil Linux : écran « bonbon » (LockLinux) ; sinon celui de macOS.
+      // Les deux ont la même interface, le flux PAM ne change pas.
+      Loader {
         id: lockView
         anchors.fill: parent
-        backgroundPath: root.backgroundPath
-        videoPosterPath: root.videoPosterPath
-        backgroundVersion: root.backgroundVersion
-        fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
-        fingerprintUnavailable: root.fingerprintUnavailable
-        authenticatingPassword: root.authenticatingPassword
-        failureMessage: root.failureMessage
-        failedAttempts: root.failedAttempts
-        inputEnabled: root.lockRequested
-        loadBackground: root.locked
-        passwordText: root.enteredPassword
-        onPasswordTextEdited: function(password) { root.enteredPassword = password }
-        onSubmitPassword: function(password) { root.submitPassword(password) }
-        onClearFailureRequested: root.failureMessage = ""
-        onWakeRequested: root.runWake()
+        sourceComponent: root.linuxLock ? linuxLockView : macLockView
+      }
+      Component {
+        id: macLockView
+        LockView {
+          backgroundPath: root.backgroundPath
+          videoPosterPath: root.videoPosterPath
+          backgroundVersion: root.backgroundVersion
+          fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
+          fingerprintUnavailable: root.fingerprintUnavailable
+          authenticatingPassword: root.authenticatingPassword
+          failureMessage: root.failureMessage
+          failedAttempts: root.failedAttempts
+          inputEnabled: root.lockRequested
+          loadBackground: root.locked
+          passwordText: root.enteredPassword
+          onPasswordTextEdited: function(password) { root.enteredPassword = password }
+          onSubmitPassword: function(password) { root.submitPassword(password) }
+          onClearFailureRequested: root.failureMessage = ""
+          onWakeRequested: root.runWake()
+        }
+      }
+      Component {
+        id: linuxLockView
+        LockLinux {
+          backgroundPath: root.backgroundPath
+          videoPosterPath: root.videoPosterPath
+          backgroundVersion: root.backgroundVersion
+          fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
+          fingerprintUnavailable: root.fingerprintUnavailable
+          authenticatingPassword: root.authenticatingPassword
+          failureMessage: root.failureMessage
+          failedAttempts: root.failedAttempts
+          inputEnabled: root.lockRequested
+          loadBackground: root.locked
+          passwordText: root.enteredPassword
+          onPasswordTextEdited: function(password) { root.enteredPassword = password }
+          onSubmitPassword: function(password) { root.submitPassword(password) }
+          onClearFailureRequested: root.failureMessage = ""
+          onWakeRequested: root.runWake()
+        }
       }
 
     }
@@ -542,19 +595,41 @@ Item {
     WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
     exclusionMode: ExclusionMode.Ignore
 
-    LockView {
+    Loader {
       anchors.fill: parent
-      backgroundPath: root.backgroundPath
-      videoPosterPath: root.videoPosterPath
-      backgroundVersion: root.backgroundVersion
-      fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
-      fingerprintUnavailable: root.fingerprintUnavailable
-      authenticatingPassword: false
-      failureMessage: ""
-      failedAttempts: 0
-      inputEnabled: false
-      loadBackground: root.previewVisible
-      passwordText: ""
+      sourceComponent: root.linuxLock ? linuxPreview : macPreview
+    }
+    Component {
+      id: macPreview
+      LockView {
+        backgroundPath: root.backgroundPath
+        videoPosterPath: root.videoPosterPath
+        backgroundVersion: root.backgroundVersion
+        fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
+        fingerprintUnavailable: root.fingerprintUnavailable
+        authenticatingPassword: false
+        failureMessage: ""
+        failedAttempts: 0
+        inputEnabled: false
+        loadBackground: root.previewVisible
+        passwordText: ""
+      }
+    }
+    Component {
+      id: linuxPreview
+      LockLinux {
+        backgroundPath: root.backgroundPath
+        videoPosterPath: root.videoPosterPath
+        backgroundVersion: root.backgroundVersion
+        fingerprintConfigured: root.fingerprintConfigured || root.fingerprintUnavailable
+        fingerprintUnavailable: root.fingerprintUnavailable
+        authenticatingPassword: false
+        failureMessage: ""
+        failedAttempts: 0
+        inputEnabled: false
+        loadBackground: root.previewVisible
+        passwordText: ""
+      }
     }
 
     MouseArea {

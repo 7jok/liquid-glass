@@ -1,0 +1,37 @@
+# Liquid Glass — windows sombre — mica foncé, accent bleu clair (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#4cc2ff"
+selection = "#0f3a54"
+muted = "#7a7a7a"
+
+background = "#1c1c1c"
+dark_background = "#161616"
+darker_background = "#0f0f0f"
+lighter_background = "#2b2b2b"
+
+foreground = "#ffffff"
+dark_foreground = "#c5c5c5"
+light_foreground = "#e6e6e6"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(4cc2ffcc) rgba(60cdffcc) 45deg"
+
+hyprland_inactive_border = "rgba(3d3d3dff)"
+
+red = "#c50f1f"
+green = "#13a10e"
+yellow = "#c19c00"
+blue = "#0037da"
+magenta = "#881798"
+cyan = "#3a96dd"
+orange = "#c3550f"
+brown = "#665406"
+
+bright_red = "#e74856"
+bright_green = "#16c60c"
+bright_yellow = "#f9f1a5"
+bright_blue = "#3b78ff"
+bright_magenta = "#b4009e"
+bright_cyan = "#61d6d6"

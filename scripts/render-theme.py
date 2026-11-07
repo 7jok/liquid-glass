@@ -76,7 +76,7 @@ background-alpha = {a(0.50, 0.40)}
 text             = "{fg}"
 active           = "{red}"
 scale-with-font  = true
-size-horizontal  = 28
+size-horizontal  = 24
 size-vertical    = 30
 
 [hyprland]

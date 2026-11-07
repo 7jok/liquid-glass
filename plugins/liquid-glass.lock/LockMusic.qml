@@ -24,24 +24,33 @@ Item {
   signal toggled()
 
   readonly property var p: view ? view.player : null
-  readonly property bool shown: !!view && view.musicActive && view.showMusicCard
+  readonly property bool shown: !!view && view.musicShown && view.showMusicCard
+  // Spotify fermé : dernier morceau écouté, ▶ le relance (pas de ⏮ ⏭ ni progression).
+  readonly property bool resume: !!view && view.resumeMode
   function g(cp) { return String.fromCodePoint(cp) }
   function refocus() { if (view) view.forcePasswordFocus() }
 
   // ------------------------------------------------------------- géométrie
+  // La carte garde toujours sa taille compacte et sa place ; agrandie, seule la
+  // pochette en sort et grandit AU-DESSUS de la carte, ou EN DESSOUS si elle y
+  // serait cachée (horloge, haut de l'écran), comme le widget du bureau.
   readonly property real artSide: 210
-  readonly property real panelH: 84
-  readonly property real cw: expanded ? artSide : 232
-  readonly property real ch: expanded ? artSide + 10 + panelH : 98
+  readonly property real artGap: 12
+  readonly property real cw: 232
+  readonly property real ch: 98
+  // Ce qui peut cacher la pochette : l'horloge en haut, l'avatar et le champ en bas.
+  readonly property bool fitsAbove: card.y - artGap - artSide >= Math.max(minY, topLimit + 6)
+  readonly property bool fitsBelow: card.y + ch + artGap + artSide <= Math.min(height - 14, bottomLimit - 6)
+  readonly property bool artAbove: fitsAbove || (!fitsBelow && card.y - topLimit >= bottomLimit - (card.y + ch))
+  // Décalage horizontal de la pochette dans le repère de la carte (reste à l'écran).
+  readonly property real artDX: Math.max(14 - card.x, Math.min(width - 14 - artSide - card.x, (cw - artSide) / 2))
   readonly property real minX: 14
   readonly property real minY: 14
   readonly property real maxX: Math.max(minX, width - cw - 14)
   readonly property real maxY: Math.max(minY, height - ch - 14)
 
   readonly property real defX: Math.round((width - cw) / 2)
-  readonly property real defY: expanded
-    ? Math.round(Math.max(topLimit + 8, (topLimit + bottomLimit) / 2 - ch / 2))
-    : Math.round(bottomLimit - ch - 18)
+  readonly property real defY: view && String(view.lopt("music_position", "password")) === "clock" ? Math.round(topLimit + 18) : Math.round(bottomLimit - ch - 18)
 
   function nearest(v, c) {
     var best = c[0]
@@ -112,7 +121,10 @@ Item {
     width: Math.max(0, w)
     height: Math.min(m.height * 0.5, 360)
     x: m.lyricsRight ? card.x + card.width + 44 : card.x - 44 - width
-    y: Math.round(card.y + card.height / 2 - height / 2)
+    // Centrées sur l'ensemble carte + pochette agrandie.
+    readonly property real spanTop: card.y + Math.min(0, art.y)
+    readonly property real spanBottom: card.y + Math.max(card.height, art.y + art.height)
+    y: Math.round((spanTop + spanBottom) / 2 - height / 2)
     opacity: m.lyricsOn && width > 160 ? 1 : 0
     visible: opacity > 0.01
     Behavior on opacity { NumberAnimation { duration: 500 } }
@@ -205,8 +217,8 @@ Item {
       id: panel
       x: 0
       width: parent.width
-      y: m.expanded ? m.artSide + 10 : 0
-      height: m.expanded ? m.panelH : parent.height
+      y: 0
+      height: parent.height
       Behavior on y { NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
       Behavior on height { NumberAnimation { duration: 650; easing.type: Easing.OutBack; easing.overshoot: 1.6 } }
       radius: 20
@@ -224,9 +236,13 @@ Item {
     // Pochette : vignette en compact, grand carré une fois agrandi.
     Item {
       id: art
-      x: m.expanded ? 0 : 12
-      y: m.expanded ? 0 : 11
+      x: m.expanded ? m.artDX : 12
+      y: m.expanded ? (m.artAbove ? -m.artGap - m.artSide : m.ch + m.artGap) : 11
       width: m.expanded ? m.artSide : 38
+      z: 2
+      // Clic sur la pochette : elle s'agrandit (ou revient dans la carte).
+      TapHandler { gesturePolicy: TapHandler.DragThreshold; onTapped: { m.toggled(); m.refocus() } }
+      HoverHandler { cursorShape: Qt.PointingHandCursor }
       height: width
       readonly property real r: m.expanded ? 18 : 8
       Behavior on x { NumberAnimation { duration: 700; easing.type: Easing.OutBack; easing.overshoot: 1.7 } }
@@ -256,14 +272,14 @@ Item {
       Text {
         width: parent.width; textFormat: Text.PlainText; elide: Text.ElideRight
         horizontalAlignment: m.expanded ? Text.AlignHCenter : Text.AlignLeft
-        text: m.p ? (m.p.trackTitle || "") : ""
+        text: m.view ? m.view.trackTitle : ""
         font.family: m.view ? m.view.uiFont : "Inter"; font.pixelSize: m.expanded ? 12 : 13; font.weight: Font.DemiBold
         color: "white"
       }
       Text {
         width: parent.width; textFormat: Text.PlainText; elide: Text.ElideRight
         horizontalAlignment: m.expanded ? Text.AlignHCenter : Text.AlignLeft
-        text: m.p ? (m.p.trackArtist || "") : ""
+        text: m.view ? m.view.trackArtist : ""
         font.family: m.view ? m.view.uiFont : "Inter"; font.pixelSize: 11
         color: "white"; opacity: 0.68
       }
@@ -272,6 +288,7 @@ Item {
     // Progression.
     Item {
       id: prog
+      visible: !m.resume
       x: 12; width: card.width - 24; height: 12
       y: panel.y + panel.height - (m.expanded ? 46 : 46)
       readonly property real pos: m.view ? m.view.position : 0
@@ -304,6 +321,19 @@ Item {
       }
     }
 
+    Text {
+      visible: m.resume
+      x: 12; width: card.width - 24
+      y: panel.y + panel.height - 46
+      height: 12
+      horizontalAlignment: Text.AlignHCenter
+      verticalAlignment: Text.AlignVCenter
+      textFormat: Text.PlainText
+      text: m.view && m.view.resuming ? "Ouverture de Spotify…" : "Dernière écoute · ▶ pour reprendre"
+      font.family: m.view ? m.view.uiFont : "Inter"; font.pixelSize: 10
+      color: "white"; opacity: 0.6
+    }
+
     // ⏮ ⏯ ⏭ au centre, bulle des paroles à droite.
     Item {
       x: 8; width: card.width - 16; height: 28
@@ -311,9 +341,16 @@ Item {
       Row {
         anchors.centerIn: parent
         spacing: 14
-        Btn { glyph: 0xF04AE; size: 16; act: function() { if (m.p && m.p.canGoPrevious) m.p.previous() } }
-        Btn { glyph: m.p && m.p.isPlaying ? 0xF03E4 : 0xF040A; size: 20; act: function() { if (m.p) m.p.togglePlaying() } }
-        Btn { glyph: 0xF04AD; size: 16; act: function() { if (m.p && m.p.canGoNext) m.p.next() } }
+        Btn { glyph: 0xF04AE; size: 16; opacity: m.resume ? 0.35 : 1; act: function() { if (!m.resume && m.p && m.p.canGoPrevious) m.p.previous() } }
+        Btn {
+          id: playBtn
+          glyph: m.view && m.view.resuming ? 0xF0453 : (!m.resume && m.p && m.p.isPlaying ? 0xF03E4 : 0xF040A)
+          size: 20
+          // Démarrage de Spotify : le glyphe tourne en attendant le lecteur.
+          RotationAnimation on rotation { running: !!m.view && m.view.resuming; from: 0; to: 360; duration: 900; loops: Animation.Infinite; onRunningChanged: if (!running) playBtn.rotation = 0 }
+          act: function() { if (m.resume) m.view.resumeMusic(); else if (m.p) m.p.togglePlaying() }
+        }
+        Btn { glyph: 0xF04AD; size: 16; opacity: m.resume ? 0.35 : 1; act: function() { if (!m.resume && m.p && m.p.canGoNext) m.p.next() } }
       }
       Rectangle {
         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter

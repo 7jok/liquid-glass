@@ -1,0 +1,15 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.profiles",
+  "name": "Liquid Glass — Styles",
+  "version": "2.0.0",
+  "author": "Liquid Glass",
+  "description": "Sélecteur de bureaux (⌘⇧Espace) : Mac, Omarchy d'origine, Windows, Mono, Forêt, Blanc, Sombre, Jouet, Violet, Expressive — teintes avec T",
+  "kinds": [
+    "overlay"
+  ],
+  "keepLoaded": true,
+  "entryPoints": {
+    "overlay": "Profiles.qml"
+  }
+}

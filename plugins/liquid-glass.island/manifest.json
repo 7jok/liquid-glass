@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.island",
+  "name": "Liquid Glass — Île dynamique",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Île dynamique dans une fausse encoche (musique, secteur, Bluetooth, Concentration), façon Alcove",
+  "kinds": ["service"],
+  "entryPoints": { "service": "Island.qml" }
+}

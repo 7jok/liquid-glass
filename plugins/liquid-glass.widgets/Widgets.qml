@@ -18,6 +18,8 @@ Item {
   property var manifest: null
 
   readonly property string home: Quickshell.env("HOME")
+  // Incrémenté par l IPC musicArt : MusicWindow bascule la pochette agrandie.
+  property int artRequest: 0
   property var cfg: ({})
   readonly property var wcfg: cfg.widgets || ({})
   function opt(k, d) { return wcfg.hasOwnProperty(k) ? wcfg[k] : d }
@@ -32,6 +34,16 @@ Item {
   // wide (avec prévisions heure par heure) | small
   readonly property string weatherSize: String(opt("weather_size", "wide"))
   readonly property bool showBattery: opt("battery", true) !== false
+  // Tailles façon macOS : small (1×1), medium (2×1), large (2×2), xl (4×2).
+  // Clé « <widget>_size » ; la météo garde son ancienne valeur « wide » = medium.
+  readonly property var sizeNames: ["small", "medium", "large", "xl"]
+  function sizeOf(key) {
+    var def = key === "weather" ? "medium" : "small"
+    var v = String(opt(key + "_size", def))
+    if (v === "wide") v = "medium"
+    return sizeNames.indexOf(v) >= 0 ? v : def
+  }
+  function setSize(key, size) { setOption(key + "_size", size); editTimer.restart() }
   readonly property bool showMusic: opt("music", true) !== false
   readonly property bool hideOnCover: opt("hide_on_cover", true) !== false
   // Widget musique libre : position en fractions de l'écran (-1 = pas encore
@@ -42,6 +54,17 @@ Item {
   readonly property string musicSize: String(opt("music_size", "medium"))
   // Bas de la colonne des widgets fixes (posé par DesktopWidgets), pour ne pas la chevaucher.
   property real flowBottom: 0
+  // Rectangle occupé par la colonne de widgets (repère sous la barre), pour que
+  // la pochette agrandie du widget musique ne se cache pas derrière.
+  property rect flowRect: Qt.rect(0, 0, 0, 0)
+
+  // Mode édition (appui long sur un widget) : tremblement + « − ». Se termine avec
+  // « Terminé » ou tout seul après 12 s sans rien toucher.
+  property bool editing: false
+  function startEditing() { editing = true; editTimer.restart() }
+  function stopEditing() { editing = false; editTimer.stop() }
+  function removeWidget(key) { if (key) setOption(key, false); editTimer.restart() }
+  Timer { id: editTimer; interval: 12000; onTriggered: svc.editing = false }
 
   // Écrit une option [widgets] (relue à chaud via config.json).
   function setOption(key, value) {
@@ -74,6 +97,8 @@ Item {
     onLoaded: { try { svc.np = JSON.parse(text()) } catch (e) {} }
   }
   readonly property bool coverWallpaper: np.coverWallpaper === true
+  // Paroles en grand sur le fond d'écran ([lyrics] desktop, liquid-glass.spotify).
+  readonly property bool lyricsDesktop: !!(cfg.lyrics && cfg.lyrics.desktop === true)
 
   function isSpotify(p) {
     var id = String((p.identity || "") + " " + (p.desktopEntry || "") + " " + (p.dbusName || "")).toLowerCase()
@@ -93,7 +118,9 @@ Item {
   readonly property string coverSource: {
     if (!hasTrack) return ""
     if (np.title === player.trackTitle && np.cover) return "file://" + np.cover
-    return player.trackArtUrl || ""
+    // Uniquement des fichiers locaux (voir ControlCenter : crash OpenSSL).
+    var a = String(player.trackArtUrl || "")
+    return a.indexOf("file://") === 0 ? a : ""
   }
   readonly property var palette: hasTrack && np.title === player.trackTitle ? (np.palette || null) : null
 
@@ -196,5 +223,9 @@ Item {
     target: "liquid-glass.widgets"
     function status(): string { return JSON.stringify({ enabled: svc.enabled, city: svc.city, weather: svc.weather, error: svc.weatherError, hasTrack: svc.hasTrack, coverWallpaper: svc.coverWallpaper }) }
     function refresh(): void { svc.coords = null; svc.refreshWeather() }
+    function edit(): void { svc.startEditing() }
+    function done(): void { svc.stopEditing() }
+    // Pochette du widget musique agrandie au-dessus de la carte (comme un clic dessus).
+    function musicArt(): void { svc.artRequest++ }
   }
 }

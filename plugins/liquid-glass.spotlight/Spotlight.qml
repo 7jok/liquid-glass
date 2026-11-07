@@ -7,6 +7,7 @@ import qs.Commons as Commons
 import qs.Ui
 import "Calc.js" as Calc
 import "Units.js" as Units
+import "Mac.js" as Mac
 
 // ============================================================================
 // Liquid Glass — Spotlight (SUPER+Espace).
@@ -44,7 +45,7 @@ Item {
     ["files", "Fichiers", 0xF024B, "Rechercher des fichiers"],
     ["actions", "Actions", 0xF140B, "Rechercher des actions"],
     ["clipboard", "Presse-papiers", 0xF014F, "Rechercher dans le presse-papiers"],
-    ["music", "Musique", 0xF0387, "Rechercher de la musique"]
+    ["emoji", "Émojis", 0xF0785, "Rechercher des émojis"]
   ]
   function modeInfo(id) { for (var i = 0; i < modes.length; i++) if (modes[i][0] === id) return modes[i]; return null }
   function setMode(id) {
@@ -65,6 +66,13 @@ Item {
     printErrors: false
     onLoaded: { try { root.clipHistory = JSON.parse(text()) || [] } catch (e) { root.clipHistory = [] } }
   }
+  // Émojis d'Omarchy (même liste que son sélecteur) ; insérés dans l'app active.
+  property var emojis: []
+  FileView {
+    path: (Quickshell.env("OMARCHY_PATH") || "/usr/share/omarchy") + "/shell/plugins/emojis/emojis.json"
+    printErrors: false
+    onLoaded: { try { root.emojis = JSON.parse(text()) || [] } catch (e) { root.emojis = [] } }
+  }
   property var results: []
   property int selected: 0
   property var fileHits: []
@@ -78,6 +86,8 @@ Item {
     ["Raccourcis clavier", "Aide", 0xF030C, ["omarchy-shell", "liquid-glass.cheatsheet", "toggle"], "keybindings shortcuts aide"],
     ["Centre de contrôle", "Système", 0xF0521, ["omarchy-shell", "liquid-glass.control", "toggle"], "wifi bluetooth volume luminosité"],
     ["Mission Control", "Fenêtres", 0xF0570, ["omarchy-shell", "shell", "toggle", "liquid-glass.mission"], "expose exposé fenêtres overview"],
+    ["En veille (StandBy)", "Système", 0xF0150, ["omarchy-shell", "liquid-glass.standby", "toggle"], "standby veille horloge nuit chevet"],
+    ["Modifier les widgets", "Bureau", 0xF0570, ["omarchy-shell", "liquid-glass.widgets", "edit"], "widgets éditer taille supprimer"],
     ["Capture d'écran (zone)", "Capture", 0xF0100, ["omarchy", "capture", "screenshot", "region"], "screenshot capture"],
     ["Capture d'écran (plein écran)", "Capture", 0xF0100, ["omarchy", "capture", "screenshot", "fullscreen"], "screenshot capture"],
     ["Enregistrer l'écran", "Capture", 0xF044A, ["omarchy", "capture", "screenrecording"], "record vidéo"],
@@ -258,23 +268,13 @@ Item {
           out.push({ section: "Presse-papiers", kind: "clip", title: one.slice(0, 120), sub: c.text.length + " caractères  ·  Entrée pour copier", glyph: 0xF0219, text: c.text })
         }
       }
-    } else if (mode === "music") {
-      var mcmds = [
-        ["Lecture / Pause", 0xF040A, ["omarchy-shell", "liquid-glass.spotify", "playPause"], "play pause"],
-        ["Morceau suivant", 0xF04AD, ["omarchy-shell", "liquid-glass.spotify", "next"], "next suivant"],
-        ["Morceau précédent", 0xF04AE, ["omarchy-shell", "liquid-glass.spotify", "previous"], "previous précédent"],
-        ["Paroles en karaoké", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "karaoke"], "lyrics paroles karaoke"],
-        ["Paroles sur le bureau", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "desktop"], "lyrics paroles bureau"],
-        ["Ouvrir Spotify", 0xF04C7, ["omarchy-launch-or-focus", "spotify", "spotify"], "spotify ouvrir"]
-      ]
-      if (q !== "") {
-        out.push({ section: "Rechercher", kind: "web", title: "« " + q + " » dans Spotify", sub: "Spotify", glyph: 0xF04C7, url: "spotify:search:" + encodeURIComponent(q) })
-        out.push({ section: "Rechercher", kind: "web", title: "« " + q + " » sur YouTube Music", sub: "music.youtube.com", glyph: 0xF05C3, url: "https://music.youtube.com/search?q=" + encodeURIComponent(q) })
-        out.push({ section: "Rechercher", kind: "web", title: "Paroles de « " + q + " »", sub: "LRCLIB", glyph: 0xF0387, url: "https://lrclib.net/search/" + encodeURIComponent(q) })
+    } else if (mode === "emoji") {
+      for (i = 0; i < emojis.length && out.length < 400; i++) {
+        var em = emojis[i]
+        if (!em || !em.e) continue
+        if (q !== "" && !matches(em.k || "", q)) continue
+        out.push({ section: "Émojis", kind: "emoji", title: String(em.k || ""), sub: "", emoji: em.e })
       }
-      for (i = 0; i < mcmds.length; i++)
-        if (q === "" || matches(mcmds[i][0] + " " + mcmds[i][3], q))
-          out.push({ section: "Lecteur", kind: "cmd", title: mcmds[i][0], sub: "Musique", glyph: mcmds[i][1], argv: mcmds[i][2] })
     }
     return out
   }
@@ -324,6 +324,10 @@ Item {
     if (r.kind === "app") appLib.launch(r.entry.id, r.title)
     else if (r.kind === "cmd") Util.execArgv(r.argv)
     else if (r.kind === "calc") Util.execArgv(["wl-copy", "--", r.value])
+    else if (r.kind === "emoji") {
+      if (alt) Util.execArgv(["wl-copy", "--", r.emoji])
+      else Util.execArgv([(Quickshell.env("OMARCHY_PATH") || "/usr/share/omarchy") + "/bin/omarchy-menu-emoji-insert", r.emoji])
+    }
     else if (r.kind === "file") {
       if (alt) Util.execArgv(["nautilus", "--select", r.path])
       else Util.execArgv(["xdg-open", r.path])
@@ -336,10 +340,14 @@ Item {
     else if (r.kind === "run") Util.execArgv(["xdg-terminal-exec", "bash", "-c", r.cmd + "; echo; read -n1 -rsp 'Appuie sur une touche pour fermer…'"])
   }
 
+  // Émojis : grille (comme le visualiseur de caractères de macOS) ; ↑/↓ changent de ligne.
+  readonly property bool emojiGrid: mode === "emoji"
+  property int gridCols: 10
   function move(d) {
     if (results.length === 0) return
     selected = (selected + d + results.length) % results.length
-    list.positionViewAtIndex(selected, ListView.Contain)
+    if (emojiGrid) emojiView.positionViewAtIndex(selected, GridView.Contain)
+    else list.positionViewAtIndex(selected, ListView.Contain)
   }
 
   // --------------------------------------------------------------- ouverture
@@ -379,12 +387,14 @@ Item {
     Rectangle { anchors.fill: parent; color: Qt.rgba(0, 0, 0, 0.03) }
     MouseArea { anchors.fill: parent; onClicked: root.dismiss() }
 
-    readonly property real barH: Style.space(56)
-    readonly property real btn: Style.space(46)
-    readonly property real gap: Style.space(10)
-    readonly property real groupW: root.modes.length * btn + (root.modes.length - 1) * Style.space(4) + Style.space(10)
-    readonly property real totalW: Math.min(Style.space(860), win.width - 48)
-    readonly property real pillW: totalW - groupW - gap
+    // Comme sur la vidéo de référence : champ ≈ 7,4 × sa hauteur, puis cinq
+    // boutons ronds séparés, chacun sa bulle de verre de la hauteur du champ.
+    readonly property real barH: Style.space(Mac.spotlight.field)
+    readonly property real btn: barH
+    readonly property real gap: Style.space(14)
+    readonly property real groupW: root.modes.length * btn + (root.modes.length - 1) * gap
+    readonly property real pillW: Math.round(barH * 7.4)
+    readonly property real totalW: Math.min(pillW + gap + groupW, win.width - 48)
 
     Item {
       id: stage
@@ -421,7 +431,7 @@ Item {
         // Pastille du mode actif (clic = retour à « tout »).
         Rectangle {
           id: chip
-          visible: root.mode !== ""
+          visible: false   // la vidéo n'a pas de pastille : le bouton allumé + le texte d'aide suffisent
           anchors.left: lens.right; anchors.leftMargin: Style.space(10)
           anchors.verticalCenter: parent.verticalCenter
           width: visible ? chipRow.implicitWidth + Style.space(18) : 0
@@ -463,8 +473,11 @@ Item {
               ev.accepted = true
             }
             else if (ev.key === Qt.Key_Backspace && root.query === "" && root.mode !== "") { root.setMode(root.mode); ev.accepted = true }
-            else if (ev.key === Qt.Key_Down || (ev.key === Qt.Key_Tab)) { root.move(1); ev.accepted = true }
-            else if (ev.key === Qt.Key_Up || ev.key === Qt.Key_Backtab) { root.move(-1); ev.accepted = true }
+            else if (ev.key === Qt.Key_Down) { root.move(root.emojiGrid ? root.gridCols : 1); ev.accepted = true }
+            else if (ev.key === Qt.Key_Up) { root.move(root.emojiGrid ? -root.gridCols : -1); ev.accepted = true }
+            else if (ev.key === Qt.Key_Tab) { root.move(1); ev.accepted = true }
+            else if (ev.key === Qt.Key_Backtab) { root.move(-1); ev.accepted = true }
+            else if (root.emojiGrid && root.query === "" && (ev.key === Qt.Key_Left || ev.key === Qt.Key_Right)) { root.move(ev.key === Qt.Key_Left ? -1 : 1); ev.accepted = true }
             else if (ev.key === Qt.Key_Return || ev.key === Qt.Key_Enter) {
               root.activate(root.selected, ctrl); ev.accepted = true
             }
@@ -473,7 +486,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: input.text === ""
             textFormat: Text.PlainText
-            text: root.mode !== "" ? root.modeInfo(root.mode)[3] : "Recherche Spotlight"
+            text: root.mode !== "" ? root.modeInfo(root.mode)[1] : "Recherche Spotlight"
             font: input.font
             color: root.fg
             opacity: 0.38
@@ -482,58 +495,58 @@ Item {
       }
 
       // ---------------------------------------------------- les cinq boutons
-      BorderSurface {
+      Row {
         id: group
         anchors.left: pill.right
         anchors.leftMargin: win.gap
-        width: win.groupW
-        height: win.barH
-        radius: height / 2
-        color: Commons.Color.menu.background
-        borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
-        MouseArea { anchors.fill: parent }
+        spacing: win.gap
+        Repeater {
+          model: root.modes
+          delegate: BorderSurface {
+            id: mb
+            required property var modelData
+            required property int index
+            readonly property bool on: root.mode === modelData[0]
+            width: win.btn; height: win.btn
+            radius: width / 2
+            color: mb.on ? root.accent : Commons.Color.menu.background
+            borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
+            Behavior on color { ColorAnimation { duration: Style.duration(140) } }
+            // Arrivée en cascade, avec rebond, quand Spotlight s'ouvre.
+            property real t: 0
+            opacity: t
+            transform: [
+              Scale { origin.x: mb.width / 2; origin.y: mb.height / 2; xScale: (0.4 + 0.6 * mb.t) * (mbMouse.pressed ? 0.88 : (mbMouse.containsMouse ? 1.08 : 1)); yScale: xScale },
+              Translate { x: (1 - mb.t) * -Style.space(30) }
+            ]
+            SequentialAnimation {
+              id: mbIn
+              PropertyAction { target: mb; property: "t"; value: 0 }
+              PauseAnimation { duration: 60 + mb.index * 45 }
+              NumberAnimation { target: mb; property: "t"; to: 1; duration: 520; easing.type: Easing.OutBack; easing.overshoot: 2.4 }
+            }
+            Connections { target: root; function onOpenedChanged() { if (root.opened) mbIn.restart() } }
+            Component.onCompleted: if (root.opened) mbIn.restart()
+            ModeIcon {
+              anchors.centerIn: parent
+              kind: mb.modelData[0]
+              width: Math.round(mb.width * 0.44); height: width
+              stroke: 1.6
+              color: mb.on ? "#ffffff" : root.fg
+              opacity: mb.on ? 1 : 0.78
+            }
+            MouseArea { id: mbMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.setMode(mb.modelData[0]) }
 
-        Row {
-          anchors.centerIn: parent
-          spacing: Style.space(4)
-          Repeater {
-            model: root.modes
-            delegate: Item {
-              id: mb
-              required property var modelData
-              required property int index
-              readonly property bool on: root.mode === modelData[0]
-              width: win.btn; height: win.btn
-              Rectangle {
-                anchors.centerIn: parent
-                width: win.btn - Style.space(6); height: width; radius: width / 2
-                color: mb.on ? root.accent : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, mbMouse.containsMouse ? 0.12 : 0.0)
-                Behavior on color { ColorAnimation { duration: Style.duration(120) } }
-                scale: mbMouse.pressed ? 0.9 : 1
-                Behavior on scale { NumberAnimation { duration: Style.duration(90) } }
-              }
-              Text {
-                anchors.centerIn: parent
-                textFormat: Text.PlainText
-                text: root.g(mb.modelData[2])
-                font.family: root.iconFont
-                font.pixelSize: Style.space(18)
-                color: mb.on ? "#ffffff" : root.fg
-                opacity: mb.on ? 1 : 0.8
-              }
-              MouseArea { id: mbMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.setMode(mb.modelData[0]) }
-
-              // Info-bulle : nom + raccourci.
-              Rectangle {
-                visible: mbMouse.containsMouse
-                anchors.horizontalCenter: parent.horizontalCenter
-                anchors.top: parent.bottom
-                anchors.topMargin: Style.space(10)
-                width: tipText.implicitWidth + Style.space(16); height: Style.space(24); radius: Style.space(7)
-                color: Commons.Color.tooltip.background
-                z: 10
-                Text { id: tipText; anchors.centerIn: parent; textFormat: Text.PlainText; text: mb.modelData[1] + "   Ctrl " + (mb.index + 1); font.family: root.uiFont; font.pixelSize: Style.space(11.5); color: Commons.Color.tooltip.text }
-              }
+            // Info-bulle : nom + raccourci.
+            Rectangle {
+              visible: mbMouse.containsMouse
+              anchors.horizontalCenter: parent.horizontalCenter
+              anchors.top: parent.bottom
+              anchors.topMargin: Style.space(10)
+              width: tipText.implicitWidth + Style.space(16); height: Style.space(24); radius: Style.space(7)
+              color: Commons.Color.tooltip.background
+              z: 10
+              Text { id: tipText; anchors.centerIn: parent; textFormat: Text.PlainText; text: mb.modelData[1] + "   Ctrl " + (mb.index + 1); font.family: root.uiFont; font.pixelSize: Style.space(11.5); color: Commons.Color.tooltip.text }
             }
           }
         }
@@ -544,8 +557,11 @@ Item {
         id: panel
         anchors.top: pill.bottom
         anchors.topMargin: win.gap
-        width: root.mode === "apps" && root.query.trim() === "" ? win.totalW : win.pillW
-        height: root.results.length > 0 ? Math.min(list.contentHeight, Style.space(430)) + Style.space(14) : 0
+        width: (root.mode === "apps" && root.query.trim() === "") || root.emojiGrid ? win.totalW : win.pillW
+        height: root.results.length > 0
+          ? (root.emojiGrid ? Math.min(emojiView.contentHeight, Style.space(372)) + Style.space(58)
+                            : Math.min(list.contentHeight, Style.space(430)) + Style.space(14))
+          : 0
         visible: height > 1
         radius: Style.space(22)
         color: Commons.Color.menu.background
@@ -555,8 +571,81 @@ Item {
         Behavior on width { NumberAnimation { duration: Style.duration(160); easing.type: Easing.OutCubic } }
         MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
 
+        // ---- grille d'émojis
+        GridView {
+          id: emojiView
+          visible: root.emojiGrid
+          anchors.top: parent.top; anchors.topMargin: Style.space(12)
+          anchors.horizontalCenter: parent.horizontalCenter
+          width: root.gridCols * cellWidth
+          height: Math.min(contentHeight, Style.space(372))
+          cellWidth: Math.floor((panel.width - Style.space(24)) / root.gridCols)
+          cellHeight: Style.space(46)
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+          model: root.emojiGrid ? root.results : []
+          delegate: Item {
+            id: cell
+            required property var modelData
+            required property int index
+            readonly property bool hot: index === root.selected
+            width: emojiView.cellWidth; height: emojiView.cellHeight
+            Rectangle {
+              anchors.centerIn: parent
+              width: Style.space(42); height: width; radius: Style.space(11)
+              color: root.accent
+              opacity: cell.hot ? 0.9 : (cellMouse.containsMouse ? 0.14 : 0)
+              Behavior on opacity { NumberAnimation { duration: Style.duration(70) } }
+            }
+            Text {
+              anchors.centerIn: parent
+              textFormat: Text.PlainText
+              text: cell.modelData.emoji
+              font.pixelSize: Style.space(26)
+              scale: cellMouse.pressed ? 0.8 : (cellMouse.containsMouse || cell.hot ? 1.15 : 1)
+              Behavior on scale { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 3 } }
+            }
+            MouseArea {
+              id: cellMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onEntered: root.selected = cell.index
+              onClicked: function(m) { root.activate(cell.index, (m.modifiers & Qt.ControlModifier) !== 0) }
+            }
+          }
+        }
+        // Nom de l'émoji sélectionné + aide.
+        Item {
+          visible: root.emojiGrid
+          anchors.left: parent.left; anchors.right: parent.right
+          anchors.bottom: parent.bottom
+          height: Style.space(40)
+          Rectangle { anchors.top: parent.top; x: Style.space(14); width: parent.width - 2 * x; height: 1; color: root.fg; opacity: 0.08 }
+          Text {
+            id: emojiName
+            x: Style.space(18); anchors.verticalCenter: parent.verticalCenter
+            width: parent.width - x - emojiHelp.implicitWidth - Style.space(30)
+            textFormat: Text.PlainText
+            readonly property var cur: root.results[root.selected]
+            text: cur && cur.kind === "emoji" ? cur.emoji + "  " + String(cur.title).split(" ").slice(0, 5).join(" ") : ""
+            elide: Text.ElideRight
+            font.family: root.uiFont; font.pixelSize: Style.space(12.5); font.weight: Font.Medium
+            color: root.fg; opacity: 0.8
+          }
+          Text {
+            id: emojiHelp
+            anchors.right: parent.right; anchors.rightMargin: Style.space(18); anchors.verticalCenter: parent.verticalCenter
+            textFormat: Text.PlainText
+            text: "Entrée : insérer  ·  Ctrl+Entrée : copier"
+            font.family: root.uiFont; font.pixelSize: Style.space(11.5)
+            color: root.fg; opacity: 0.45
+          }
+        }
+
         ListView {
           id: list
+          visible: !root.emojiGrid
           anchors.fill: parent
           anchors.topMargin: Style.space(7)
           anchors.bottomMargin: Style.space(7)
@@ -617,7 +706,14 @@ Item {
               }
               Text {
                 anchors.centerIn: parent
-                visible: row.modelData.kind !== "app" && !row.thumb
+                visible: row.modelData.kind === "emoji"
+                textFormat: Text.PlainText
+                text: row.modelData.emoji || ""
+                font.pixelSize: Style.space(22)
+              }
+              Text {
+                anchors.centerIn: parent
+                visible: row.modelData.kind !== "app" && row.modelData.kind !== "emoji" && !row.thumb
                 textFormat: Text.PlainText
                 text: row.modelData.glyph ? root.g(row.modelData.glyph) : ""
                 font.family: root.iconFont

@@ -1,0 +1,37 @@
+# Liquid Glass — espace — ciel noir, bleu glacé (ilyamiro) (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#8fc7ff"
+selection = "#1c3a5e"
+muted = "#5a6a80"
+
+background = "#070b14"
+dark_background = "#05080f"
+darker_background = "#02040a"
+lighter_background = "#111929"
+
+foreground = "#eef3fa"
+dark_foreground = "#9aa9bd"
+light_foreground = "#d6e3f2"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(8fc7ffaa) rgba(ffd27aaa) 45deg"
+
+hyprland_inactive_border = "rgba(25324aff)"
+
+red = "#ff7b86"
+green = "#7fdcae"
+yellow = "#ffd27a"
+blue = "#8fc7ff"
+magenta = "#c58bff"
+cyan = "#7fdcdc"
+orange = "#ffa680"
+brown = "#887551"
+
+bright_red = "#ff9aa3"
+bright_green = "#a0ecc6"
+bright_yellow = "#ffe0a0"
+bright_blue = "#b0d8ff"
+bright_magenta = "#d8acff"
+bright_cyan = "#a0ecec"

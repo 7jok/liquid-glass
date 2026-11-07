@@ -7,7 +7,7 @@ import qs.Commons
 Tile {
   id: w
   property bool wide: false
-  readonly property real leftW: wide ? (height - 0) : width
+  readonly property real leftW: wide ? height : width
   readonly property var wx: svc ? svc.weather : null
   readonly property int code: wx ? wx.code : -1
   readonly property bool day: wx ? wx.isDay : true
@@ -51,45 +51,45 @@ Tile {
   }
 
   Column {
-    anchors { left: parent.left; top: parent.top; margins: 13 }
-    width: w.leftW - 26
+    anchors { left: parent.left; top: parent.top; margins: 13 * w.k }
+    width: w.leftW - 26 * w.k
     spacing: 0
     Row {
       spacing: 3
       Text {
         text: w.wx ? w.wx.city : (svc ? svc.city : "")
-        width: Math.min(implicitWidth, w.leftW - 40)
+        width: Math.min(implicitWidth, w.leftW - 40 * w.k)
         elide: Text.ElideRight
-        font.family: w.font; font.pixelSize: 13; font.weight: Font.DemiBold
+        font.family: w.font; font.pixelSize: Math.round(13 * w.k); font.weight: Font.DemiBold
         color: "white"
       }
-      Text { text: ""; font.family: Style.font.family; font.pixelSize: 8; color: "white"; anchors.verticalCenter: parent.verticalCenter; visible: !(svc && svc.cfg.widgets && svc.cfg.widgets.weather_city) }
+      Text { text: ""; font.family: Style.font.family; font.pixelSize: Math.round(8 * w.k); color: "white"; anchors.verticalCenter: parent.verticalCenter; visible: !(svc && svc.cfg.widgets && svc.cfg.widgets.weather_city) }
     }
     Text {
       text: w.wx ? w.wx.temp + "°" : "--°"
-      font.family: w.font; font.pixelSize: 40; font.weight: Font.Light
+      font.family: w.font; font.pixelSize: Math.round(40 * w.k); font.weight: Font.Light
       color: "white"
     }
   }
 
   Column {
-    anchors { left: parent.left; bottom: parent.bottom; margins: 13 }
-    width: w.leftW - 26
+    anchors { left: parent.left; bottom: parent.bottom; margins: 13 * w.k }
+    width: w.leftW - 26 * w.k
     spacing: 1
     Text {
       text: w.wx ? String.fromCodePoint(w.d[1]) : ""
-      font.family: Style.font.family; font.pixelSize: 17
+      font.family: Style.font.family; font.pixelSize: Math.round(17 * w.k)
       color: "white"
     }
     Text {
       text: svc && svc.weatherError !== "" && !w.wx ? svc.weatherError : w.d[0]
       width: parent.width; elide: Text.ElideRight
-      font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold
+      font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.DemiBold
       color: "white"
     }
     Text {
       text: w.wx ? "Max. " + w.wx.max + "°  Min. " + w.wx.min + "°" : ""
-      font.family: w.font; font.pixelSize: 11; font.weight: Font.Medium
+      font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.Medium
       color: Qt.rgba(1, 1, 1, 0.85)
     }
   }
@@ -97,14 +97,14 @@ Tile {
   // Prévisions heure par heure (format large).
   Rectangle {
     visible: w.wide
-    x: w.leftW - 1; y: 16
-    width: 1; height: w.height - 32
+    x: w.leftW - 1; y: 16 * w.k
+    width: 1; height: w.height - 32 * w.k
     color: Qt.rgba(1, 1, 1, 0.22)
   }
   Row {
     visible: w.wide && hours.count > 0
-    anchors.left: parent.left; anchors.leftMargin: w.leftW + 8
-    anchors.right: parent.right; anchors.rightMargin: 10
+    anchors.left: parent.left; anchors.leftMargin: w.leftW + 8 * w.k
+    anchors.right: parent.right; anchors.rightMargin: 10 * w.k
     anchors.verticalCenter: parent.verticalCenter
     Repeater {
       id: hours
@@ -112,11 +112,11 @@ Tile {
       delegate: Column {
         required property var modelData
         required property int index
-        width: (w.width - w.leftW - 18) / Math.max(1, hours.count)
-        spacing: 6
-        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.h < 0 ? "Maint." : modelData.h + " h"; font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: Qt.rgba(1, 1, 1, 0.85) }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: String.fromCodePoint(w.describe(modelData.code, modelData.isDay)[1]); font.family: Style.font.family; font.pixelSize: 18; color: "white" }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.temp + "°"; font.family: w.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: "white" }
+        width: (w.width - w.leftW - 18 * w.k) / Math.max(1, hours.count)
+        spacing: 6 * w.k
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.h < 0 ? "Maint." : modelData.h + " h"; font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.DemiBold; color: Qt.rgba(1, 1, 1, 0.85) }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: String.fromCodePoint(w.describe(modelData.code, modelData.isDay)[1]); font.family: Style.font.family; font.pixelSize: Math.round(18 * w.k); color: "white" }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.temp + "°"; font.family: w.font; font.pixelSize: Math.round(14 * w.k); font.weight: Font.DemiBold; color: "white" }
       }
     }
   }

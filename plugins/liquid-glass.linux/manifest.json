@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.linux",
+  "name": "Liquid Glass — Bureau Linux",
+  "version": "3.0.0",
+  "author": "Liquid Glass",
+  "description": "Bureau Linux (⌘⇧Espace) : styles Blanc, Sombre, Jouet, Violet, Expressive, Windows, Mono et Forêt, chacun avec sa barre, son lanceur, ses réglages et ses teintes (⌃⌘T)",
+  "kinds": [
+    "service"
+  ],
+  "entryPoints": {
+    "service": "Linux.qml"
+  }
+}

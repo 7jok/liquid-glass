@@ -13,9 +13,33 @@ Commandes :
   liquid-glass status                Résumé de l'état courant
   liquid-glass show-desktop          Écarte / remet les fenêtres du bureau courant (⌘F3)
   liquid-glass hotcorner <action>    Action d'un coin actif (mission, desktop, spotlight…)
+  liquid-glass window <action> [adresse]  Menus app / Fenêtre : minimize hide hide-others show-all
+                                     quit zoom fullscreen fill center left right top bottom
+                                     pin float next-desktop prev-desktop settings
+  liquid-glass resume-music          Relance le dernier morceau Spotify (écran verrouillé)
+  liquid-glass login-item <app> on|off|toggle|status
+                                     Ouvrir l'app à la connexion (~/.config/autostart)
   liquid-glass focus [off|dnd|work|personal|sleep|toggle|status]
                                      Mode de concentration (Ne pas déranger ; Sommeil
                                      ajoute la lumière nocturne)
+  liquid-glass gamemode [on|off|toggle|status]
+                                     Mode Jeu : sans flou, ombres ni animations
+  liquid-glass bar <élément> on|off|toggle|status
+                                     Éléments de la barre des menus : workspaces bluetooth
+                                     sound nowplaying agents spotlight battery wifi
+  liquid-glass wallpapers fetch|generate|list
+                                     Collection de fonds (wallhaven.cc, SFW uniquement) et
+                                     fonds générés, dans ~/.local/share/liquid-glass/wallpapers
+  liquid-glass animated-wallpapers [--force]
+                                     Génère les fonds d'écran animés (vidéos en boucle,
+                                     ffmpeg, en local) dans les thèmes Liquid Glass
+  liquid-glass profile [mac|linux|omarchy|toggle|pick|status|tone [nom]|blanc|sombre|jouet|violet[:nuit|aube|rose]|expressive|windows|mono|foret]
+                                     Bureau Mac ou Linux, et style du bureau Linux
+                                     (pick = sélecteur en cartes, ⌘⇧Espace)
+  liquid-glass rice [launch [n]|next|stop [n]|reset]
+                                     Pages de 1 à 13 terminaux animés (menu : ⌃⌘M)
+  liquid-glass keys on|off|test|status|import <pack Mechvibes>
+                                     Son de clavier mécanique « creamy » sur tout le système
 
 Fichiers :
   ~/.config/liquid-glass/config.toml   config centrale (source de vérité)
@@ -28,14 +52,17 @@ import datetime as dt
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
+import time
 import tomllib
 from pathlib import Path
 
 HOME = Path.home()
 CONF_DIR = Path(os.environ.get("XDG_CONFIG_HOME", HOME / ".config")) / "liquid-glass"
+CACHE_DIR = HOME / ".cache/liquid-glass"
 CONF = CONF_DIR / "config.toml"
 CONF_JSON = CONF_DIR / "config.json"
 HYPR_VARS = CONF_DIR / "hypr-vars.lua"
@@ -88,9 +115,24 @@ def toml_value(raw: str) -> str:
 
 
 def set_key(dotted: str, raw: str) -> None:
-    """Édite config.toml en place, en gardant les commentaires."""
+    """Édite config.toml en place, en gardant les commentaires.
+
+    Verrou exclusif + remplacement atomique : deux `liquid-glass set` lancés en
+    même temps (shell, Réglages, widgets) ne peuvent plus lire un fichier à moitié
+    écrit et l'écraser (incident du 2026-11-06 : en-tête remplacé par [lyrics]).
+    """
+    import fcntl
+    with open(CONF.with_suffix(".lock"), "w") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        _set_key_locked(dotted, raw)
+
+
+def _set_key_locked(dotted: str, raw: str) -> None:
     section, key = dotted.split(".", 1)
-    lines = CONF.read_text().splitlines(keepends=True)
+    original = CONF.read_text()
+    if not original.strip():
+        sys.exit("config.toml vide : modification refusée")
+    lines = original.splitlines(keepends=True)
     value = toml_value(raw)
     # « off » pour une clé texte (ex. spotify.wallpaper) reste du texte.
     try:
@@ -120,8 +162,11 @@ def set_key(dotted: str, raw: str) -> None:
             lines.insert(idx, f"{key} = {value}\n")
         else:
             lines.append(f"\n[{section}]\n{key} = {value}\n")
-    CONF.write_text("".join(lines))
-    tomllib.loads(CONF.read_text())  # valide : lève une erreur si on a cassé le TOML
+    text = "".join(lines)
+    tomllib.loads(text)  # valide AVANT d'écrire : un TOML cassé n'atteint jamais le disque
+    tmp = CONF.with_suffix(".toml.tmp")
+    tmp.write_text(text)
+    os.replace(tmp, CONF)
 
 
 def get_key(cfg: dict, dotted: str):
@@ -160,15 +205,51 @@ def render_hypr_vars(cfg: dict) -> None:
         "gaps_in": int(g.get("gaps_in", 5)),
         "gaps_out": int(g.get("gaps_out", 10)),
         "animations": bool(g.get("animations", True)),
+        "titlebars": bool(g.get("titlebars", True)),
+        "mac_windows": bool(cfg.get("windows", {}).get("floating", True)),
+        # Bouton vert : "menu" (menu Plein écran / Mosaïque de Tahoe) ou "zoom".
+        "green_menu": str(cfg.get("windows", {}).get("green_button", "menu")) == "menu",
     }
+    # Profil actif (⌘⇧Espace) : "linux" charge liquid-glass-linux.lua à la place du réglage Mac.
+    body_profile = current_profile(cfg)
     body = ["-- FICHIER GÉNÉRÉ par `liquid-glass apply` depuis config.toml. Ne pas éditer.", "return {"]
     for k, v in vals.items():
         body.append(f"  {k} = {str(v).lower() if isinstance(v, bool) else v},")
+    body.append(f'  profile = "{body_profile}",')
     vals_keys = bool(cfg.get("keys", {}).get("macos_shortcuts", True))
     body.append(f"  keybindings = {str(vals_keys).lower()},")
     wa = float(g.get("window_opacity_active", 0.96))
     wi = float(g.get("window_opacity_inactive", 0.90))
     body.append(f"  window_opacity = {{ {wa:.2f}, {wi:.2f} }},")
+    # Souris et trackpad ([input]) : seules les clés présentes remplacent celles d'Omarchy.
+    inp = cfg.get("input", {})
+    top, pad = [], []
+    def lua(x):
+        return str(x).lower() if isinstance(x, bool) else f"{float(x):.2f}"
+    for key, opt, dest, lo, hi in (
+        ("sensitivity", "sensitivity", top, -1.0, 1.0),
+        ("mouse_natural_scroll", "natural_scroll", top, None, None),
+        ("mouse_scroll", "scroll_factor", top, 0.1, 3.0),
+        ("natural_scroll", "natural_scroll", pad, None, None),
+        ("tap_to_click", "tap_to_click", pad, None, None),
+        ("disable_while_typing", "disable_while_typing", pad, None, None),
+        ("clickfinger", "clickfinger_behavior", pad, None, None),
+        ("trackpad_scroll", "scroll_factor", pad, 0.1, 3.0),
+    ):
+        if key not in inp:
+            continue
+        x = inp[key]
+        if lo is not None:
+            try:
+                x = max(lo, min(hi, float(x)))
+            except (TypeError, ValueError):
+                continue
+        elif not isinstance(x, bool):
+            continue
+        dest.append(f"{opt} = {lua(x)}")
+    if top or pad:
+        parts = top + ([f"touchpad = {{ {', '.join(pad)} }}"] if pad else [])
+        body.append(f"  input = {{ {', '.join(parts)} }},")
     body.append("}")
     HYPR_VARS.write_text("\n".join(body) + "\n")
 
@@ -251,8 +332,18 @@ def _pair_background(target: str) -> None:
 
 
 def set_theme(slug: str) -> None:
+    # Réappliquer le même thème (liquid-glass apply) ne doit pas changer le fond :
+    # `omarchy theme set` recrée le dossier du thème courant et peut retomber sur
+    # un autre fond. On note celui en place et on le remet ensuite.
+    same = current_theme() == slug
+    keep = os.path.basename(os.path.realpath(BG_LINK)) if same and BG_LINK.exists() else ""
     _pair_background(slug)
     run("omarchy", "theme", "set", slug, quiet=False)
+    if keep:
+        path = HOME / ".local/state/omarchy/current/theme/backgrounds" / keep
+        now = os.path.basename(os.path.realpath(BG_LINK)) if BG_LINK.exists() else ""
+        if path.exists() and now != keep:
+            run("omarchy-theme-bg-set", str(path))
 
 
 # --------------------------------------------------------- réglages système
@@ -314,9 +405,11 @@ def cmd_apply(_args: list[str]) -> None:
     render_hypr_vars(cfg)
     render_themes(cfg)
     sync_dock(cfg)
-    want = THEMES[desired_mode(cfg)]
+    prof = current_profile(cfg)
+    want = style_theme(cfg) if prof == "linux" else (current_theme() if prof == "omarchy" else THEMES[desired_mode(cfg)])
     # Réappliquer le thème recopie les fichiers rendus dans le thème courant.
-    set_theme(want)
+    if prof != "omarchy":
+        set_theme(want)
     run("hyprctl", "reload")
     errors = run("hyprctl", "configerrors").stdout.strip()
     if errors:
@@ -334,6 +427,9 @@ def cmd_mode(args: list[str]) -> None:
     set_key("appearance.mode", mode)
     cfg = load()
     write_json(cfg)
+    if current_profile(cfg) != "mac":
+        print(f"Mode : {mode} (appliqué au retour sur le bureau Mac)")
+        return
     want = THEMES[desired_mode(cfg)]
     if current_theme() != want:
         set_theme(want)
@@ -342,7 +438,7 @@ def cmd_mode(args: list[str]) -> None:
 
 def cmd_auto_tick(_args: list[str]) -> None:
     cfg = load()
-    if cfg.get("appearance", {}).get("mode") != "auto":
+    if cfg.get("appearance", {}).get("mode") != "auto" or current_profile(cfg) != "mac":
         return
     want = THEMES[desired_mode(cfg)]
     if current_theme() != want:
@@ -350,7 +446,7 @@ def cmd_auto_tick(_args: list[str]) -> None:
 
 
 # Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
-LIVE_SECTIONS = {"spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock", "control"}
+LIVE_SECTIONS = {"linux", "spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock", "control", "island", "corners", "menubar", "shortcuts"}
 # Clés isolées lues directement par le shell (pas de régénération du thème).
 LIVE_KEYS = {"appearance.logo", "appearance.logo_path"}
 
@@ -379,7 +475,10 @@ def cmd_set(args: list[str]) -> None:
     elif section == "keys":
         render_hypr_vars(cfg)
         run("hyprctl", "reload")
-    elif section == "glass" and args[0].split(".", 1)[1] in ("blur_size", "blur_passes", "rounding", "gaps_in", "gaps_out", "animations", "window_opacity_active", "window_opacity_inactive"):
+    elif section in ("input", "windows"):
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
+    elif section == "glass" and args[0].split(".", 1)[1] in ("titlebars", "blur_size", "blur_passes", "rounding", "gaps_in", "gaps_out", "animations", "window_opacity_active", "window_opacity_inactive"):
         render_hypr_vars(cfg)
         run("hyprctl", "reload")
     else:
@@ -505,8 +604,1321 @@ def cmd_focus(args: list[str]) -> None:
     print(json.dumps({"mode": mode, "label": FOCUS_MODES.get(mode, "")}, ensure_ascii=False))
 
 
+# ------------------------------------------------- mode Jeu
+GAME_STATE = HOME / ".cache/liquid-glass/gamemode"
+
+
+def _gamemode_on() -> bool:
+    """Actif seulement si l'état le dit ET que les animations sont bien coupées
+    (un rechargement de Hyprland les remet : le mode est alors de fait terminé)."""
+    if not GAME_STATE.exists():
+        return False
+    opt = run("hyprctl", "getoption", "animations:enabled").stdout
+    return "bool: false" in opt
+
+
+def cmd_gamemode(args: list[str]) -> None:
+    """Mode Jeu façon macOS : coupe flou, ombres et animations de Hyprland et passe
+    le profil d'énergie en « performance » ; « off » recharge Hyprland et remet le profil."""
+    act = args[0] if args else "status"
+    on = _gamemode_on()
+    if act == "toggle":
+        act = "off" if on else "on"
+    if act == "status":
+        print(json.dumps({"enabled": on}))
+        return
+    if act == "on":
+        prev = run("powerprofilesctl", "get").stdout.strip() if shutil.which("powerprofilesctl") else ""
+        run("hyprctl", "eval", "hl.config({ animations = { enabled = false }, decoration = "
+            "{ blur = { enabled = false }, shadow = { enabled = false } } })")
+        if prev and prev != "performance":
+            run("powerprofilesctl", "set", "performance")
+        GAME_STATE.parent.mkdir(parents=True, exist_ok=True)
+        GAME_STATE.write_text((prev or "") + "\n")
+    elif act == "off":
+        prev = GAME_STATE.read_text().strip() if GAME_STATE.exists() else ""
+        GAME_STATE.unlink(missing_ok=True)
+        run("hyprctl", "reload")
+        if prev and shutil.which("powerprofilesctl"):
+            run("powerprofilesctl", "set", prev)
+    else:
+        sys.exit("usage : liquid-glass gamemode on|off|toggle|status")
+    print(json.dumps({"enabled": act == "on"}))
+
+
+# ------------------------------------------------- menus « app » et « Fenêtre »
+MINI_WS = "special:minimized"   # même bureau spécial que le Dock (DockModel.js)
+WINDOW_ACTIONS = ("minimize", "hide", "hide-others", "show-all", "quit", "force-quit", "zoom",
+                  "fullscreen", "fill", "center", "left", "right", "top", "bottom",
+                  "top-left", "top-right", "bottom-left", "bottom-right", "pin", "float",
+                  "next-desktop", "prev-desktop", "settings")
+
+
+def _dsp(expr: str) -> None:
+    run("hyprctl", "dispatch", expr)
+
+
+def _target(addr: str) -> str:
+    return f'window = "address:{addr}"'
+
+
+def _workarea() -> tuple[int, int, int, int]:
+    """Zone utile du moniteur actif en coordonnées logiques (barre, Dock, marges)."""
+    mons = _hypr_json("monitors") or []
+    mon = next((m for m in mons if m.get("focused")), mons[0] if mons else None)
+    if not mon:
+        return 0, 0, 1280, 720
+    k = float(mon.get("scale") or 1)
+    w, h = round(mon["width"] / k), round(mon["height"] / k)
+    left, top, right, bottom = (mon.get("reserved") or [0, 0, 0, 0])[:4]
+    gap = 10
+    dock = 0
+    try:
+        cfg = load()
+        if cfg.get("dock", {}).get("always_visible", True) and not cfg.get("dock", {}).get("autohide", False):
+            dock = int(cfg.get("dock", {}).get("icon_size", 42)) + 26
+    except Exception:
+        dock = 68
+    x = mon["x"] + left + gap
+    y = mon["y"] + top + gap
+    # Le Dock réserve déjà sa place quand il est toujours visible (reserved[3]).
+    return x, y, w - left - right - 2 * gap, h - top - bottom - 2 * gap - (0 if bottom else dock)
+
+
+def _place(addr: str, x: int, y: int, w: int, h: int) -> None:
+    t = _target(addr)
+    _dsp(f'hl.dsp.window.float({{ action = "on", {t} }})')
+    _dsp(f'hl.dsp.window.resize({{ x = {int(w)}, y = {int(h)}, {t} }})')
+    _dsp(f'hl.dsp.window.move({{ x = {int(x)}, y = {int(y)}, {t} }})')
+
+
+def cmd_window(args: list[str]) -> None:
+    """Actions des menus macOS de la barre (app et Fenêtre). Adresses validées."""
+    if not args or args[0] not in WINDOW_ACTIONS:
+        sys.exit("usage : liquid-glass window " + "|".join(WINDOW_ACTIONS))
+    act = args[0]
+    clients = _hypr_json("clients") or []
+    win = _hypr_json("activewindow") or {}
+    # Fenêtre visée par son adresse (boutons des barres de titre), sinon la fenêtre active.
+    if len(args) > 1:
+        want = args[1] if args[1].startswith("0x") else "0x" + args[1]
+        win = next((c for c in clients if c.get("address") == want), None) or {}
+    addr = win.get("address", "")
+    cls = win.get("class", "")
+    ws = (_hypr_json("activeworkspace") or {}).get("id")
+
+    if act == "show-all":
+        if isinstance(ws, int) and ws >= 1:
+            for c in clients:
+                if c.get("workspace", {}).get("name") == MINI_WS and ADDR_RE.match(c.get("address", "")):
+                    _dsp(f'hl.dsp.window.move({{ workspace = "{ws}", follow = false, {_target(c["address"])} }})')
+        return
+    if not ADDR_RE.match(addr):
+        return
+    t = _target(addr)
+    same_app = [c["address"] for c in clients if c.get("class") == cls and ADDR_RE.match(c.get("address", ""))]
+
+    if act == "minimize":
+        _dsp(f'hl.dsp.window.move({{ workspace = "{MINI_WS}", follow = false, {t} }})')
+    elif act == "hide":
+        for a in same_app:
+            _dsp(f'hl.dsp.window.move({{ workspace = "{MINI_WS}", follow = false, {_target(a)} }})')
+    elif act == "hide-others":
+        for c in clients:
+            if (c.get("workspace", {}).get("id") == ws and c.get("class") != cls
+                    and ADDR_RE.match(c.get("address", ""))):
+                _dsp(f'hl.dsp.window.move({{ workspace = "{MINI_WS}", follow = false, {_target(c["address"])} }})')
+    elif act == "quit":
+        for a in same_app:
+            _dsp(f'hl.dsp.window.close({{ {_target(a)} }})')
+    elif act == "force-quit":
+        # ⌥ + Quitter (Dock) : SIGKILL sur chaque processus de l'app.
+        pids = {c.get("pid") for c in clients if c.get("class") == cls}
+        for pid in pids:
+            if isinstance(pid, int) and pid > 1:
+                try:
+                    os.kill(pid, 9)
+                except OSError:
+                    pass
+    elif act == "zoom":
+        _dsp(f'hl.dsp.window.fullscreen({{ mode = "maximized", action = "toggle", {t} }})')
+    elif act == "fullscreen":
+        _dsp(f'hl.dsp.window.fullscreen({{ mode = "fullscreen", action = "toggle", {t} }})')
+    elif act == "float":
+        _dsp(f'hl.dsp.window.float({{ action = "toggle", {t} }})')
+    elif act == "pin":
+        if not win.get("floating"):
+            _dsp(f'hl.dsp.window.float({{ action = "on", {t} }})')
+        _dsp(f'hl.dsp.window.pin({{ action = "toggle", {t} }})')
+    elif act == "center":
+        _dsp(f'hl.dsp.window.float({{ action = "on", {t} }})')
+        _dsp(f'hl.dsp.window.center({{ {t} }})')
+    elif act in ("fill", "left", "right", "top", "bottom",
+                 "top-left", "top-right", "bottom-left", "bottom-right"):
+        x, y, w, h = _workarea()
+        half_w, half_h, g = (w - 10) // 2, (h - 10) // 2, 10
+        box = {
+            "fill": (x, y, w, h),
+            "left": (x, y, half_w, h),
+            "right": (x + half_w + g, y, half_w, h),
+            "top": (x, y, w, half_h),
+            "bottom": (x, y + half_h + g, w, half_h),
+            "top-left": (x, y, half_w, half_h),
+            "top-right": (x + half_w + g, y, half_w, half_h),
+            "bottom-left": (x, y + half_h + g, half_w, half_h),
+            "bottom-right": (x + half_w + g, y + half_h + g, half_w, half_h),
+        }[act]
+        _place(addr, *box)
+    elif act in ("next-desktop", "prev-desktop"):
+        if isinstance(ws, int) and ws >= 1:
+            dest = ws + 1 if act == "next-desktop" else max(1, ws - 1)
+            _dsp(f'hl.dsp.window.move({{ workspace = "{dest}", follow = true, {t} }})')
+    elif act == "settings":
+        # Réglages de l'app (⌘, sur Mac) : la plupart des apps Linux utilisent Ctrl+,.
+        run("wtype", "-M", "ctrl", ",", "-m", "ctrl")
+
+
+# Menus Fichier / Édition / Présentation : raccourci envoyé à l'app active.
+# [modificateurs, touche] pour les apps, puis pour les terminaux (None = rien :
+# Ctrl+Z suspendrait le programme du terminal, Ctrl+C l'interromprait).
+KEY_ACTIONS = {
+    "new": (["ctrl"], "n", ["ctrl", "shift"], "n"),
+    "open": (["ctrl"], "o", None, None),
+    "save": (["ctrl"], "s", None, None),
+    "saveas": (["ctrl", "shift"], "s", None, None),
+    "print": (["ctrl"], "p", None, None),
+    "undo": (["ctrl"], "z", None, None),
+    "redo": (["ctrl", "shift"], "z", None, None),
+    "cut": (["ctrl"], "x", None, None),
+    "copy": (["ctrl"], "c", ["ctrl", "shift"], "c"),
+    "paste": (["ctrl"], "v", ["ctrl", "shift"], "v"),
+    "selectall": (["ctrl"], "a", None, None),
+    "find": (["ctrl"], "f", None, None),
+    "zoomin": (["ctrl"], "plus", ["ctrl"], "plus"),
+    "zoomout": (["ctrl"], "minus", ["ctrl"], "minus"),
+    "zoomreset": (["ctrl"], "0", ["ctrl"], "0"),
+}
+TERMINAL_RE = re.compile(r"(foot|alacritty|kitty|ghostty|wezterm|konsole|terminal|org\.omarchy\.agent)", re.I)
+
+
+def cmd_key(args: list[str]) -> None:
+    if not args or args[0] not in KEY_ACTIONS:
+        sys.exit("usage : liquid-glass key " + "|".join(KEY_ACTIONS))
+    # Laisse le menu se fermer et le focus revenir à l'app avant d'envoyer la touche.
+    import time
+    time.sleep(0.15)
+    cls = (_hypr_json("activewindow") or {}).get("class", "")
+    mods, key, tmods, tkey = KEY_ACTIONS[args[0]]
+    if TERMINAL_RE.search(cls or ""):
+        mods, key = tmods, tkey
+    if not key:
+        return
+    cmd = ["wtype"]
+    for m in mods:
+        cmd += ["-M", m]
+    cmd += ["-k", key]
+    for m in reversed(mods):
+        cmd += ["-m", m]
+    run(*cmd)
+
+
+# Éléments optionnels de la barre des menus (shell.json, rechargé à chaud).
+# clé : (id du module, côté, placement) ; placement = id avant lequel l'insérer.
+BAR_ITEMS = {
+    "workspaces": ("omarchy.workspaces", "left", None),
+    "bluetooth": ("omarchy.bluetooth", "right", "liquid-glass.power"),
+    "sound": ("omarchy.audio", "right", "liquid-glass.power"),
+    "nowplaying": ("liquid-glass.spotify", "right", "FIRST"),
+    "agents": ("omarchy.agents", "right", "liquid-glass.power"),
+    "battery": ("liquid-glass.power", "right", "omarchy.network"),
+    "wifi": ("omarchy.network", "right", "liquid-glass.search"),
+    "spotlight": ("liquid-glass.search", "right", "liquid-glass.control"),
+    "shortcuts": ("liquid-glass.shortcuts", "right", "omarchy.indicators"),
+}
+
+
+def cmd_bar(args: list[str]) -> None:
+    sj = Path.home() / ".config/omarchy/shell.json"
+    data = json.loads(sj.read_text())
+    layout = data.setdefault("bar", {}).setdefault("layout", {})
+    if not args or args[0] == "status":
+        present = {m.get("id") for side in ("left", "right", "center") for m in layout.get(side, []) if isinstance(m, dict)}
+        res = {k: v[0] in present for k, v in BAR_ITEMS.items()}
+        res["background"] = data.get("bar", {}).get("background", "opaque")
+        res["battery_percent"] = any(isinstance(m, dict) and m.get("id") == "liquid-glass.power" and m.get("showPercentage")
+                                     for m in layout.get("right", []))
+        print(json.dumps(res))
+        return
+    if args[0] == "background":
+        # Transparente (Tahoe) | verre | opaque ; le texte s'adapte au fond quand elle est transparente.
+        if len(args) < 2 or args[1] not in ("none", "glassy", "opaque"):
+            sys.exit("usage : liquid-glass bar background none|glassy|opaque")
+        run("omarchy-bar", "background", args[1])
+        cmd_bar_contrast([])
+        return
+    if args[0] not in BAR_ITEMS or len(args) < 2 or args[1] not in ("on", "off", "toggle"):
+        sys.exit("usage : liquid-glass bar <" + "|".join(BAR_ITEMS) + "> on|off|toggle")
+    mid, side, before = BAR_ITEMS[args[0]]
+    items = layout.setdefault(side, [])
+    has = any(isinstance(m, dict) and m.get("id") == mid for m in items)
+    want = (not has) if args[1] == "toggle" else args[1] == "on"
+    items = [m for m in items if not (isinstance(m, dict) and m.get("id") == mid)]
+    if want:
+        idx = len(items)
+        if before == "FIRST":
+            idx = 0
+        elif before:
+            idx = next((i for i, m in enumerate(items) if isinstance(m, dict) and m.get("id") == before), len(items))
+        items.insert(idx, {"id": mid})
+    layout[side] = items
+    tmp = sj.with_suffix(".json.tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(sj)
+
+
+# --------------------------------------------------------------- collection
+WALL_DIR = Path.home() / ".local/share/liquid-glass/wallpapers"
+# (catégorie, requête wallhaven, catégories 1=général 2=anime 3=personnes, nombre)
+WALL_QUERIES = [
+    ("anime", "death note", "010", 10),
+    ("anime", "anime minimalism", "010", 14),
+    ("anime", "anime girl simple background", "010", 12),
+    ("anime", "serial experiments lain", "010", 6),
+    ("anime", "neon genesis evangelion minimalism", "010", 6),
+    ("anime", "cowboy bebop", "010", 5),
+    ("anime", "studio ghibli", "010", 8),
+    ("anime", "akira", "010", 4),
+    ("anime", "ghost in the shell", "010", 5),
+    ("anime", "chainsaw man", "010", 5),
+    ("anime", "jujutsu kaisen monochrome", "010", 4),
+    ("anime", "one piece minimalism", "010", 4),
+    ("anime", "monochrome anime", "010", 8),
+    ("anime", "arch linux anime", "010", 4),
+    ("ascii", "ascii art", "110", 14),
+    ("ascii", "dithering", "100", 6),
+    ("minimal", "pokemon minimalism", "010", 8),
+    ("minimal", "minimalism flat", "100", 10),
+    ("minimal", "minimalism dark", "100", 6),
+    ("abstract", "abstract waves", "100", 10),
+    ("abstract", "macOS", "100", 10),
+    ("abstract", "gradient abstract", "100", 6),
+    # Fruits façon fonds MacBook (agrumes, pastèque… sur fond uni).
+    ("fruit", "fruit minimalism", "100", 8),
+    ("fruit", "fruits", "100", 6),
+    ("fruit", "lemon", "100", 3),
+]
+
+
+def _wall_fetch() -> None:
+    import concurrent.futures
+    import time
+    import urllib.parse
+    import urllib.request
+    WALL_DIR.mkdir(parents=True, exist_ok=True)
+    have = {p.stem.rsplit("-", 1)[-1] for p in WALL_DIR.glob("*.jpg")}
+    # Fonds écartés à la main (un id wallhaven par ligne) : jamais retéléchargés.
+    ignore = WALL_DIR / ".ignore"
+    if ignore.exists():
+        have |= {l.strip() for l in ignore.read_text().splitlines() if l.strip()}
+    ua = {"User-Agent": "liquid-glass-wallpapers/1.0"}
+    todo: list[tuple[str, str]] = []
+    seen: set[str] = set()
+    for cat, query, cats, count in WALL_QUERIES:
+        params = urllib.parse.urlencode({"q": query, "categories": cats, "purity": "100", "atleast": "1920x1080",
+                                         "ratios": "16x9,16x10", "sorting": "favorites", "order": "desc"})
+        try:
+            req = urllib.request.Request("https://wallhaven.cc/api/v1/search?" + params, headers=ua)
+            data = json.load(urllib.request.urlopen(req, timeout=20))["data"]
+        except Exception as e:  # réseau, quota…
+            print(f"  {query} : {e}", file=sys.stderr)
+            time.sleep(3)
+            continue
+        n = 0
+        for w in data:
+            if n >= count:
+                break
+            if w.get("purity") != "sfw" or w["id"] in seen:
+                continue
+            seen.add(w["id"])
+            n += 1
+            if w["id"] not in have:
+                todo.append((cat, w))
+        time.sleep(1.6)  # quota de l'API : 45 requêtes / minute
+
+    def grab(item):
+        cat, w = item
+        slug = re.sub(r"[^a-z0-9]+", "-", (w.get("category") or cat).lower()).strip("-")
+        dest = WALL_DIR / f"{cat}-{w['id']}.jpg"
+        raw = dest.with_suffix(".part")
+        try:
+            req = urllib.request.Request(w["path"], headers=ua)
+            raw.write_bytes(urllib.request.urlopen(req, timeout=60).read())
+            # 2560 px de large au plus, JPEG 88 : assez net en 1080p, quatre fois plus léger.
+            subprocess.run(["magick", str(raw), "-resize", "2560x1600>", "-quality", "88", str(dest)], check=True)
+            return f"  + {dest.name}"
+        except Exception as e:
+            return f"  ! {w['id']} : {e}"
+        finally:
+            raw.unlink(missing_ok=True)
+
+    print(f"{len(todo)} fonds à télécharger…")
+    with concurrent.futures.ThreadPoolExecutor(4) as ex:
+        for line in ex.map(grab, todo):
+            print(line, flush=True)
+
+
+# Fonds générés : vagues de papier découpé (calques décalés, ombre portée) et
+# taches de couleur floutées, chacun dans sa propre palette.
+GEN_PALETTES = [
+    ("sauge", ["#9db3a6", "#6f8c7c", "#4b6b5c", "#2c4a3e", "#132820"]),
+    ("lavande", ["#a7a3d6", "#7c77b9", "#56519a", "#332f73", "#17143f"]),
+    ("corail", ["#ffd2c2", "#ff9f87", "#f26b5b", "#c2414b", "#6e2236"]),
+    ("ocean", ["#b9e3f0", "#6fc0de", "#2f8fc0", "#1c5e94", "#0c2f57"]),
+    ("sable", ["#f2e3c9", "#e0c59a", "#c59d68", "#946c42", "#5a3e24"]),
+    ("rose", ["#ffd6e5", "#f7a8c8", "#e477a7", "#b54a83", "#6c2453"]),
+    ("menthe", ["#d8f5e8", "#a1e3c4", "#5cc79b", "#2e9670", "#135c43"]),
+    ("nuit", ["#4a5170", "#353b58", "#252a42", "#171a2d", "#0b0d18"]),
+    ("peche", ["#ffe8cc", "#ffc994", "#ffa25f", "#e8723a", "#a8461f"]),
+    ("glacier", ["#eef4fb", "#cfdcef", "#a5bddf", "#7194c4", "#3f659b"]),
+    ("prune", ["#e3c5dd", "#c48fbc", "#995f95", "#6b3a6d", "#3c1d40"]),
+    ("olive", ["#e5e2c3", "#c4c08c", "#9a955a", "#6b6936", "#3b3a1b"]),
+]
+
+
+def _wall_generate() -> None:
+    import random
+    WALL_DIR.mkdir(parents=True, exist_ok=True)
+    W, H = 2560, 1440
+    for name, cols in GEN_PALETTES:
+        rng = random.Random(name)
+        # 1. Vagues de papier : chaque calque est une courbe lisse, ombre douce au-dessus.
+        dest = WALL_DIR / f"genere-vagues-{name}.jpg"
+        if not dest.exists():
+            args = ["-size", f"{W}x{H}", f"xc:{cols[0]}"]
+            for i, c in enumerate(cols[1:], start=1):
+                base = H * (0.2 + 0.17 * i)
+                pts = []
+                for k in range(0, 9):
+                    x = -80 + k * (W + 160) / 8
+                    pts.append(f"{x:.0f},{base + rng.uniform(-0.09, 0.09) * H:.0f}")
+                path = f"M -80,{H + 80} L -80,{pts[0].split(',')[1]} " + " ".join(
+                    f"S {pts[k]} {pts[k + 1] if k + 1 < len(pts) else pts[k]}" for k in range(1, len(pts), 2)) + f" L {W + 80},{H + 80} Z"
+                # Ombre : le même calque en noir, remonté et flouté, à la même taille (pas de décalage).
+                args += ["(", "-size", f"{W}x{H}", "xc:none", "-fill", "rgba(0,0,0,0.5)",
+                         "-draw", f"translate 0,-16 path '{path}'", "-blur", "0x24", ")",
+                         "-compose", "over", "-composite",
+                         "-fill", c, "-draw", f"path '{path}'"]
+            subprocess.run(["magick", *args, "-quality", "90", str(dest)])
+        # 2. Taches floutées (dégradé « liquide »), avec un léger grain.
+        dest = WALL_DIR / f"genere-fluide-{name}.jpg"
+        if not dest.exists():
+            draws = []
+            # Du plus sombre au plus clair : les teintes claires restent au premier plan.
+            for c in reversed(cols):
+                cx, cy = rng.uniform(40, 600), rng.uniform(30, 330)
+                rx, ry = rng.uniform(160, 320), rng.uniform(110, 220)
+                draws += ["-fill", c, "-draw", f"ellipse {cx:.0f},{cy:.0f} {rx:.0f},{ry:.0f} 0,360"]
+            subprocess.run(["magick", "-size", "640x360", f"xc:{cols[1]}", *draws, "-blur", "0x48",
+                            "-resize", f"{W}x{H}!",
+                            "(", "-size", f"{W}x{H}", "xc:gray50", "+noise", "Gaussian", "-colorspace", "gray",
+                            "-evaluate", "multiply", "0.35", ")", "-compose", "overlay", "-composite",
+                            "-quality", "90", str(dest)])
+        print(f"  + {name}")
+
+
+def cmd_wallpapers(args: list[str]) -> None:
+    action = args[0] if args else "list"
+    if action == "fetch":
+        _wall_fetch()
+    elif action == "generate":
+        _wall_generate()
+    elif action != "list":
+        sys.exit("usage : liquid-glass wallpapers fetch|generate|list")
+    # Visibles dans le sélecteur d'Omarchy et dans Réglages, pour les deux thèmes
+    # (les liens vers des fonds supprimés ou renommés sont retirés).
+    for theme in ("liquid-glass", "liquid-glass-dark"):
+        link = Path.home() / ".config/omarchy/backgrounds" / theme
+        link.mkdir(parents=True, exist_ok=True)
+        for old in link.iterdir():
+            if old.is_symlink() and not old.exists():
+                old.unlink()
+        for f in WALL_DIR.glob("*.jpg"):
+            target = link / f.name
+            if not target.exists():
+                target.symlink_to(f)
+    # Vignettes 480 px pour la grille de Réglages (200 fonds pleine taille seraient lents).
+    thumbs = Path.home() / ".cache/liquid-glass/thumbs"
+    thumbs.mkdir(parents=True, exist_ok=True)
+    for f in WALL_DIR.glob("*.jpg"):
+        t = thumbs / f.name
+        if not t.exists():
+            subprocess.run(["magick", str(f), "-thumbnail", "480x300^", "-gravity", "center", "-extent", "480x300",
+                            "-quality", "82", str(t)], check=False)
+    files = sorted(WALL_DIR.glob("*.jpg"))
+    by: dict[str, int] = {}
+    for f in files:
+        by[f.name.split("-")[0]] = by.get(f.name.split("-")[0], 0) + 1
+    print(f"{len(files)} fonds : " + ", ".join(f"{k} {v}" for k, v in sorted(by.items())))
+
+
+# Fonds d'écran animés (façon fonds dynamiques macOS) : un panoramique lent et
+# une respiration de teinte sur une période exacte → la boucle est parfaite.
+# Le cadrage se fait sur une image deux fois plus grande puis réduite, ce qui
+# donne un mouvement au demi-pixel (pas de saccades). Omarchy lit les vidéos
+# de backgrounds/ comme fonds d'écran (sélecteur : double-clic sur le bureau).
+ANIMATED = {
+    # thème : [(source, sortie, amplitude du panoramique, période en s, teinte en °)]
+    "liquid-glass": [
+        ("03-monterey-light.jpg", "12-monterey-anime.mp4", 0.10, 30, 8),
+        ("09-aurora-day.jpg", "13-aurore-animee.mp4", 0.12, 24, 14),
+        ("07-big-sur.jpg", "14-big-sur-anime.mp4", 0.08, 30, 5),
+    ],
+    "liquid-glass-dark": [
+        ("03-monterey-dark.jpg", "10-monterey-nuit-anime.mp4", 0.10, 30, 8),
+        ("07-aurora-night.jpg", "11-aurore-nuit-animee.mp4", 0.12, 24, 16),
+        ("02-big-sur-dark.jpg", "12-big-sur-nuit-anime.mp4", 0.08, 30, 5),
+    ],
+}
+
+
+def cmd_animated_wallpapers(args: list[str]) -> None:
+    if not shutil.which("ffmpeg"):
+        sys.exit("ffmpeg est nécessaire (sudo pacman -S ffmpeg)")
+    force = "--force" in args
+    themes = Path(__file__).resolve().parent.parent / "themes"
+    for theme, items in ANIMATED.items():
+        bg = themes / theme / "backgrounds"
+        if not bg.is_dir():
+            continue
+        for src, out, amp, period, hue in items:
+            source, target = bg / src, bg / out
+            if not source.exists() or (target.exists() and not force):
+                continue
+            W, H = 3840, 2160                       # rendu ×2, réduit en 1080p
+            big_w, big_h = round(W * (1 + amp)), round(H * (1 + amp))
+            dx, dy = big_w - W, big_h - H
+            # Trajet en ellipse (cos/sin de même période) : départ = arrivée.
+            vf = (f"scale={big_w}:{big_h}:flags=lanczos,"
+                  f"crop={W}:{H}:x='{dx}/2*(1-cos(2*PI*t/{period}))':y='{dy}/2*(1+sin(2*PI*t/{period}))',"
+                  f"scale=1920:1080:flags=bicubic,"
+                  f"hue=h='{hue}*sin(2*PI*t/{period})':s='1+0.06*sin(4*PI*t/{period})',"
+                  "format=yuv420p")
+            tmp = target.with_suffix(".part.mp4")
+            print(f"→ {theme}/{out}")
+            r = subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+                                "-loop", "1", "-framerate", "24", "-t", str(period), "-i", str(source),
+                                "-vf", vf, "-c:v", "libx264", "-preset", "medium", "-crf", "27",
+                                "-tune", "stillimage", "-movflags", "+faststart", "-an", str(tmp)])
+            if r.returncode == 0:
+                tmp.replace(target)
+            else:
+                tmp.unlink(missing_ok=True)
+                print(f"  échec ({src})", file=sys.stderr)
+    # Vignettes pour Réglages → Fond d'écran (une image de chaque vidéo).
+    posters = Path.home() / ".cache/liquid-glass/posters"
+    posters.mkdir(parents=True, exist_ok=True)
+    for theme, items in ANIMATED.items():
+        for _src, out, *_ in items:
+            video = themes / theme / "backgrounds" / out
+            poster = posters / (Path(out).stem + ".jpg")
+            if video.exists() and (force or not poster.exists()):
+                subprocess.run(["ffmpeg", "-hide_banner", "-loglevel", "error", "-y", "-i", str(video),
+                                "-frames:v", "1", "-vf", "scale=640:-2", str(poster)])
+    print("Fonds animés prêts : double-clic sur le bureau pour choisir (ou Réglages → Fond d'écran).")
+
+
+def cmd_tile_menu(args: list[str]) -> None:
+    """Bouton vert des barres de titre : menu Plein écran / Mosaïque sous le curseur."""
+    addr = args[0] if args else ""
+    if addr and not addr.startswith("0x"):
+        addr = "0x" + addr
+    if not ADDR_RE.match(addr):
+        addr = (_hypr_json("activewindow") or {}).get("address", "")
+    if not ADDR_RE.match(addr):
+        return
+    pos = _hypr_json("cursorpos") or {}
+    mons = _hypr_json("monitors") or []
+    mon = next((m for m in mons if m.get("focused")), mons[0] if mons else {})
+    x = int(pos.get("x", 0)) - int(mon.get("x", 0))
+    y = int(pos.get("y", 0)) - int(mon.get("y", 0))
+    run("hyprctl", "dispatch", f'hl.dsp.focus({{ window = "address:{addr}" }})')
+    payload = json.dumps({"addr": addr, "x": x, "y": y})
+    run("omarchy-shell", "shell", "summon", "liquid-glass.tilemenu", payload)
+
+
+def cmd_resume_music(_args: list[str]) -> None:
+    """Relance le dernier morceau Spotify (bouton ▶ de l'écran verrouillé / widget)."""
+    import time
+    last = {}
+    try:
+        last = json.loads((Path.home() / ".cache/liquid-glass/last-track.json").read_text())
+    except Exception:
+        pass
+    uri = str(last.get("uri") or "")
+    if not re.fullmatch(r"spotify:(track|episode):[A-Za-z0-9]+", uri):
+        uri = ""
+
+    def spotify_player() -> str:
+        out = run("playerctl", "-l").stdout or ""
+        return next((l.strip() for l in out.splitlines() if l.strip().startswith("spotify")), "")
+
+    name = spotify_player()
+    if not name:
+        launcher = shutil.which("spotify-launcher") or shutil.which("spotify")
+        if not launcher:
+            sys.exit("Spotify n'est pas installé")
+        subprocess.Popen(["uwsm-app", "--", launcher] if shutil.which("uwsm-app") else [launcher],
+                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)
+        for _ in range(60):
+            time.sleep(0.5)
+            name = spotify_player()
+            if name:
+                break
+        if not name:
+            sys.exit("Spotify ne répond pas")
+        time.sleep(1.5)  # le temps que le lecteur charge sa session
+    if uri:
+        run("playerctl", "-p", name, "open", uri)
+        time.sleep(1.2)
+    if (run("playerctl", "-p", name, "status").stdout or "").strip() != "Playing":
+        run("playerctl", "-p", name, "play")
+
+
+def cmd_bar_contrast(args: list[str]) -> None:
+    """Barre transparente (Tahoe) : texte sombre sur un fond clair, blanc sur un fond sombre.
+
+    Mesure la luminance de la bande du haut du fond d'écran et règle [bar] text
+    dans le thème courant (shell.toml), puis le recharge à chaud.
+    """
+    state = Path.home() / ".local/state/omarchy/current"
+    shell_toml = state / "theme/shell.toml"
+    if not shell_toml.exists():
+        return
+    try:
+        bar_bg = json.loads((Path.home() / ".config/omarchy/shell.json").read_text()).get("bar", {}).get("background")
+    except Exception:
+        bar_bg = None
+    text = shell_toml.read_text()
+    m = re.search(r'(?ms)^\[bar\].*?^text\s*=\s*"(#[0-9a-fA-F]{6})"', text)
+    if not m:
+        return
+    saved = CACHE_DIR / "bar-text-theme"
+    if bar_bg != "none" and "--force" not in args:
+        # Barre en verre ou opaque : la couleur du thème reprend ses droits.
+        if saved.exists():
+            want = saved.read_text().strip()
+            saved.unlink()
+        else:
+            return
+    else:
+        img = Path(args[0]) if args and not args[0].startswith("-") else (state / "background").resolve()
+        if not img.is_file():
+            return
+        r = run("magick", str(img), "-resize", "480x", "-gravity", "North", "-crop", "100%x5%+0+0",
+                "-colorspace", "Gray", "-format", "%[fx:mean]", "info:")
+        try:
+            lum = float((r.stdout or "").strip())
+        except ValueError:
+            return
+        want = "#1d1d1f" if lum > 0.6 else "#ffffff"
+        if not saved.exists():
+            saved.parent.mkdir(parents=True, exist_ok=True)
+            saved.write_text(m.group(1))
+    if m.group(1).lower() == want.lower():
+        return
+    shell_toml.write_text(text[:m.start(1)] + want + text[m.end(1):])
+    flag = CACHE_DIR / "dynamic-colors-active"
+    if flag.exists() and shutil.which("liquid-glass-spotify"):
+        run("liquid-glass-spotify", "colors", "--accent", flag.read_text().strip())
+    else:
+        import base64
+        b64 = lambda t: base64.b64encode(t.encode()).decode()
+        colors = (state / "theme/colors.toml").read_text()
+        run("omarchy-shell", "-q", "shell", "applyTheme", b64(colors), b64(shell_toml.read_text()))
+    print(want)
+
+
+def _desktop_file(app_id: str) -> Path | None:
+    name = app_id if app_id.endswith(".desktop") else app_id + ".desktop"
+    if "/" in name:
+        return None
+    dirs = [Path.home() / ".local/share/applications"]
+    dirs += [Path(d) / "applications" for d in os.environ.get("XDG_DATA_DIRS", "/usr/local/share:/usr/share").split(":") if d]
+    for d in dirs:
+        if (d / name).is_file():
+            return d / name
+    return None
+
+
+def cmd_login_item(args: list[str]) -> None:
+    """Dock → Options → Ouvrir à la connexion : ~/.config/autostart (XDG, lancé par uwsm)."""
+    if len(args) < 2 or args[1] not in ("on", "off", "toggle", "status") or not re.fullmatch(r"[\w.\-]+", args[0]):
+        sys.exit("usage : liquid-glass login-item <app.desktop> on|off|toggle|status")
+    app_id, act = args[0].removesuffix(".desktop"), args[1]
+    target = Path.home() / ".config/autostart" / (app_id + ".desktop")
+    on = target.exists()
+    if act == "status":
+        print("on" if on else "off")
+        return
+    want = (not on) if act == "toggle" else act == "on"
+    if want and not on:
+        src = _desktop_file(app_id)
+        if not src:
+            sys.exit(f"application introuvable : {app_id}")
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(src, target)
+        run("notify-send", "-a", "Réglages Système", "-i", "system-run",
+            "Élément d'ouverture ajouté", f"« {app_id} » s'ouvrira à la prochaine ouverture de session.")
+    elif not want and on:
+        target.unlink()
+    print("on" if want else "off")
+
+
+# ------------------------------------------------------------- profils (⌘⇧Espace)
+# Deux bureaux qui n'ont rien en commun hormis les apps : « mac » (Liquid Glass)
+# et « linux » (rice lain d'après github.com/Teiguuu/dotfiles). Chaque profil a
+# son shell.json (plugins, barre), son thème Omarchy et son réglage Hyprland
+# (hypr-vars.lua → profile). Les shell.json sont gardés dans profiles/ et
+# échangés à chaque bascule ; le shell les recharge à chaud.
+PROFILE_DIR = CONF_DIR / "profiles"
+LINUX_THEME = "lain"   # thème de repli du style « expressive » (couleurs tirées du fond)
+# Styles du bureau Linux et leur thème Omarchy (terminaux, bordures, fonds).
+LINUX_STYLES = ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
+                "ruban", "espace", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "windows", "windows-sombre", "mono", "mono-papier",
+                "mono-sakura", "foret", "ruban", "espace", "debian", "fedora", "mint", "kali", "arch"]
+VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose"}
+# Teintes de chaque style (un seul style, plusieurs couleurs) : clé de [linux] et valeurs.
+STYLE_TONES = {
+    "violet": ("violet_tone", ["nuit", "aube", "rose"]),
+    "blanc": ("blanc_tone", ["pur", "creme"]),
+    "sombre": ("sombre_tone", ["encre", "ambre", "glace", "sang", "indigo"]),
+    "jouet": ("jouet_tone", ["bonbon", "menthe", "peche"]),
+    "foret": ("foret_tone", ["mousse", "cendre"]),
+    "mono": ("mono_tone", ["noir", "papier", "sakura"]),
+    "ruban": ("ruban_tone", ["bleu", "rouge", "or"]),
+    "espace": ("espace_tone", ["bleu", "mars", "nebuleuse"]),
+    "windows": ("windows_tone", ["clair", "sombre"]),
+    "expressive": ("scheme", ["tonal-spot", "expressive", "vibrant", "fruit-salad", "monochrome"]),
+}
+PROFILES = ("mac", "linux", "omarchy")
+# Verrouillage et OSD restent ceux de Liquid Glass : échanger le plugin de
+# verrouillage à chaud laisse deux gestionnaires IPC « lock » en concurrence.
+# Le sélecteur de styles (⌘⇧Espace) est dans les deux profils.
+LINUX_PLUGINS = ["liquid-glass.linux", "liquid-glass.spotify", "liquid-glass.settings", "liquid-glass.lock", "liquid-glass.osd",
+                 "liquid-glass.profiles"]
+PICKER_PLUGIN = "liquid-glass.profiles"
+TEIGUUU_REPO = "https://github.com/Teiguuu/dotfiles"
+BAR_OFF_FLAG = HOME / ".local/state/omarchy/toggles/bar-off"
+
+
+def style_label(st: str) -> str:
+    return {"gouts": "Mes goûts"}.get(st, st.capitalize())
+
+
+def linux_style(cfg: dict | None = None) -> str:
+    cfg = cfg if cfg is not None else load()
+    st = str(cfg.get("linux", {}).get("style", "blanc"))
+    return st if st in LINUX_STYLES else "blanc"   # « lain » (retiré) → blanc
+
+
+def style_theme(cfg: dict | None = None) -> str:
+    """Thème Omarchy du style Linux courant."""
+    cfg = cfg if cfg is not None else load()
+    st = linux_style(cfg)
+    if st == "violet":
+        return VIOLET_TONES.get(str(cfg.get("linux", {}).get("violet_tone", "nuit")), "violet")
+    if st == "windows":
+        return "windows-sombre" if str(cfg.get("linux", {}).get("windows_tone", "clair")) == "sombre" else "windows"
+    if st == "gouts":    # suit un thème Omarchy d'origine
+        return str(cfg.get("linux", {}).get("gouts_theme", "")) or _stock_theme()
+    if st == "mono":
+        t = str(cfg.get("linux", {}).get("mono_tone", "noir"))
+        return "mono-" + t if t in ("papier", "sakura") else "mono"
+    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "debian", "fedora", "mint", "kali", "arch"):
+        return st
+    return LINUX_THEME
+
+
+def _ensure_linux_theme_files(theme: str) -> None:
+    """Thèmes générés : fichiers et fonds créés au premier usage."""
+    if theme == LINUX_THEME:
+        _ensure_linux_wallpapers()
+        return
+    d = REPO / "themes" / theme
+    if theme not in LINUX_THEMES:    # thème Omarchy d'origine (« Mes goûts ») : rien à générer
+        return
+    if not (d / "colors.toml").exists():
+        run(str(REPO / "scripts/gen-linux-themes.py"))
+    if not any((d / "backgrounds").glob("*.jpg")):
+        print("Génération des fonds (une seule fois)…")
+        fam = theme.split("-")[0] if theme.startswith(("windows", "mono")) else theme
+        extra = [fam] if fam in ("windows", "mono", "foret") else []
+        run("nice", "-n", "10", str(REPO / "scripts/gen-linux-wallpapers.py"), str(REPO / "themes"), *extra)
+    if not any((d / "backgrounds").glob("*.jpg")):    # thèmes sans fonds générés : pris sur le web
+        run("nice", "-n", "10", str(REPO / "scripts/fetch-style-wallpapers.py"), theme)
+    link = HOME / ".config/omarchy/themes" / theme
+    if not link.exists():
+        link.parent.mkdir(parents=True, exist_ok=True)
+        link.symlink_to(d)
+
+
+def _with_plugin(data: dict, pid: str) -> dict:
+    ids = [p.get("id") for p in data.get("plugins", []) if isinstance(p, dict)]
+    if pid not in ids:
+        data.setdefault("plugins", []).append({"id": pid})
+    return data
+
+
+def current_profile(cfg: dict | None = None) -> str:
+    cfg = cfg if cfg is not None else load()
+    p = str(cfg.get("profile", {}).get("active", "mac"))
+    return p if p in PROFILES else "mac"
+
+
+def _stock_shell_json() -> dict:
+    """shell.json d'Omarchy « sans aucun changement » : celui d'avant Liquid Glass
+    (sauvegarde ~/.config-backup-*), sinon celui livré par Omarchy. Seul ajout :
+    le sélecteur de bureaux, pour pouvoir revenir (⌘⇧Espace)."""
+    saved = PROFILE_DIR / "omarchy.shell.json"
+    src = None
+    if saved.exists():
+        src = saved
+    else:
+        backups = sorted(HOME.glob(".config-backup-*/files/.config/omarchy/shell.json"))
+        src = backups[0] if backups else Path("/usr/share/omarchy/config/omarchy/shell.json")
+    try:
+        data = json.loads(src.read_text())
+    except (OSError, json.JSONDecodeError):
+        data = {}
+    return _with_plugin(data, PICKER_PLUGIN)
+
+
+def _stock_theme() -> str:
+    f = PROFILE_DIR / "omarchy.theme"
+    if f.exists() and f.read_text().strip():
+        return f.read_text().strip()
+    for b in sorted(HOME.glob(".config-backup-*/omarchy-theme.txt")):
+        slug = re.sub(r"[^a-z0-9]+", "-", b.read_text().strip().lower()).strip("-")
+        if (Path("/usr/share/omarchy/themes") / slug).exists() or (USER_THEMES / slug).exists():
+            return slug
+    return "tokyo-night"
+
+
+def _write_shell_json(data: dict) -> None:
+    tmp = SHELL_JSON.with_suffix(".tmp")
+    tmp.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    tmp.replace(SHELL_JSON)
+
+
+def _linux_shell_json(mac: dict) -> dict:
+    """shell.json du profil Linux : celui déjà gardé, sinon dérivé du Mac
+    (sans aucun plugin Liquid Glass sauf le bureau Linux, Spotify, Réglages,
+    le verrouillage et l'OSD ; pas de Dock)."""
+    saved = PROFILE_DIR / "linux.shell.json"
+    if saved.exists():
+        try:
+            data = json.loads(saved.read_text())
+        except json.JSONDecodeError:
+            data = None
+        if isinstance(data, dict):
+            ids = [p.get("id") for p in data.get("plugins", []) if isinstance(p, dict)]
+            for pid in LINUX_PLUGINS:
+                if pid not in ids:
+                    data.setdefault("plugins", []).append({"id": pid})
+            return data
+    data = json.loads(json.dumps(mac))
+    data["plugins"] = [{"id": pid} for pid in LINUX_PLUGINS]
+    return data
+
+
+def _ensure_linux_wallpapers() -> None:
+    """Fonds lain : récupérés depuis les dotfiles Teiguuu s'ils manquent
+    (non versionnés dans ce dépôt)."""
+    dest = REPO / "themes" / LINUX_THEME / "backgrounds"
+    if any(dest.glob("*.png")) or not have("git"):
+        return
+    import tempfile
+    with tempfile.TemporaryDirectory() as tmp:
+        if run("git", "clone", "--depth", "1", "--filter=blob:none", TEIGUUU_REPO, tmp).returncode != 0:
+            print("fonds lain non récupérés (hors ligne ?)", file=sys.stderr)
+            return
+        src = Path(tmp) / "wallpaper"
+        order = ["wallpaper", "4", "8", "17", "1", "2", "5", "6", "7", "9", "10", "11", "13", "14", "15", "16"]
+        dest.mkdir(parents=True, exist_ok=True)
+        for i, name in enumerate(order, 1):
+            f = src / f"{name}.png"
+            if f.exists():
+                shutil.copy(f, dest / f"{i:02d}-lain.png")
+
+
+def _omarchy_themes() -> list[str]:
+    """Thèmes Omarchy installés, sans ceux de Liquid Glass."""
+    names = set()
+    for base in (Path("/usr/share/omarchy/themes"), HOME / ".config/omarchy/themes"):
+        if base.is_dir():
+            names |= {p.name for p in base.iterdir() if (p / "colors.toml").exists()}
+    return sorted(names - set(LINUX_THEMES) - set(THEMES.values()))
+
+
+def _apply_tone(st: str, tone: str) -> None:
+    key, vals = ("gouts_theme", _omarchy_themes()) if st == "gouts" else STYLE_TONES[st]
+    if tone not in vals:
+        sys.exit(f"teinte inconnue pour {st} : {tone} ({', '.join(vals)})")
+    set_key("linux." + key, tone)
+
+
+def cmd_profile(args: list[str]) -> None:
+    cfg = load()
+    now = current_profile(cfg)
+    want = args[0] if args else "status"
+    if want == "status":
+        st = linux_style(cfg)
+        tone = ""
+        if st in STYLE_TONES:
+            key, vals = STYLE_TONES[st]
+            tone = str(cfg.get("linux", {}).get(key, vals[0]))
+        stock = _stock_theme()
+        stock_bg = ""
+        for d in (USER_THEMES / stock / "backgrounds", Path("/usr/share/omarchy/themes") / stock / "backgrounds"):
+            imgs = sorted(x for x in d.glob("*") if x.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")) if d.is_dir() else []
+            if imgs:
+                stock_bg = str(imgs[0])
+                break
+        print(json.dumps({"profile": now, "style": st, "tone": tone,
+                          "violet_tone": str(cfg.get("linux", {}).get("violet_tone", "nuit")),
+                          "theme": current_theme(), "stock_theme": stock, "stock_bg": stock_bg},
+                         ensure_ascii=False))
+        return
+    if want == "pick":
+        # Sélecteur de bureaux (⌘⇧Espace) ; repli : bascule simple.
+        # (omarchy-shell répond 0 même pour un plugin absent : on vérifie shell.json.)
+        try:
+            loaded = PICKER_PLUGIN in [p.get("id") for p in json.loads(SHELL_JSON.read_text()).get("plugins", [])]
+        except (OSError, json.JSONDecodeError):
+            loaded = False
+        if loaded:
+            run("omarchy-shell", "shell", "toggle", PICKER_PLUGIN)
+        else:
+            cmd_profile(["toggle"])
+        return
+    if want == "tone":
+        # Teinte du style courant : `tone` (suivante), `tone <nom>`.
+        st = linux_style(cfg)
+        if st not in STYLE_TONES:
+            print(f"Le style {st} n'a qu'une teinte.")
+            return
+        key, vals = STYLE_TONES[st]
+        cur = str(cfg.get("linux", {}).get(key, vals[0]))
+        nxt = args[1] if len(args) > 1 and args[1] != "next" else vals[(vals.index(cur) + 1) % len(vals) if cur in vals else 0]
+        _apply_tone(st, nxt)
+        cfg = load()
+        write_json(cfg)
+        if now == "linux":
+            theme = style_theme(cfg)
+            _ensure_linux_theme_files(theme)
+            if current_theme() != theme:
+                set_theme(theme)
+            run("omarchy-notification-send", "-u", "low", f"{style_label(st)} · {nxt}", "⌃⌘T pour la teinte suivante")
+        print(f"Teinte {nxt}.")
+        return
+    if want == "toggle":
+        want = "linux" if now == "mac" else "mac"
+    # Un style, éventuellement avec sa teinte (« violet:aube »), ou un ancien nom de teinte.
+    tones = {"violet-nuit": ("violet", "nuit"), "violet-aube": ("violet", "aube"), "aube": ("violet", "aube"),
+             "rose": ("violet", "rose"), "nuit": ("violet", "nuit")}
+    style, _, tone = want.partition(":")
+    if style in tones:
+        style, tone = tones[style][0], tone or tones[style][1]
+    if style in LINUX_STYLES:
+        if tone and (style in STYLE_TONES or style == "gouts"):
+            _apply_tone(style, tone)
+        set_key("linux.style", style)
+        cfg = load()
+        write_json(cfg)
+        if now == "linux":
+            theme = style_theme(cfg)
+            _ensure_linux_theme_files(theme)
+            if current_theme() != theme:
+                set_theme(theme)
+            run("omarchy-notification-send", "-u", "low", "Bureau " + style_label(style), "⌘⇧Espace pour changer de bureau")
+            print(f"Style {style}.")
+            return
+        want = "linux"
+    if want not in PROFILES:
+        sys.exit("usage : liquid-glass profile [mac|linux|omarchy|toggle|pick|status|tone [nom]|"
+                 + "|".join(LINUX_STYLES) + "|<style>:<teinte>]")
+    if want == now:
+        print(f"Déjà sur le profil {now}.")
+        return
+    PROFILE_DIR.mkdir(parents=True, exist_ok=True)
+    if not SHELL_JSON.exists():
+        sys.exit("shell.json introuvable")
+    current_shell = json.loads(SHELL_JSON.read_text())
+
+    # 1. On garde l'état du profil qu'on quitte.
+    if now == "mac":
+        (PROFILE_DIR / "mac.shell.json").write_text(json.dumps(_with_plugin(current_shell, PICKER_PLUGIN), indent=2, ensure_ascii=False) + "\n")
+        (PROFILE_DIR / "mac.theme").write_text(current_theme() + "\n")
+        (PROFILE_DIR / "mac.bar-off").write_text("1\n" if BAR_OFF_FLAG.exists() else "0\n")
+    elif now == "linux":
+        (PROFILE_DIR / "linux.shell.json").write_text(json.dumps(current_shell, indent=2, ensure_ascii=False) + "\n")
+    else:
+        (PROFILE_DIR / "omarchy.shell.json").write_text(json.dumps(current_shell, indent=2, ensure_ascii=False) + "\n")
+        (PROFILE_DIR / "omarchy.theme").write_text(current_theme() + "\n")
+
+    # 2. On entre dans le nouveau : profil d'abord (le service Spotify rend le fond
+    #    et les couleurs du thème), puis plugins, barre, Hyprland et thème.
+    set_key("profile.active", want)
+    cfg = load()
+    write_json(cfg)
+    if want == "linux":
+        theme = style_theme(cfg)
+        _ensure_linux_theme_files(theme)
+        mac_saved = PROFILE_DIR / "mac.shell.json"
+        base = json.loads(mac_saved.read_text()) if now == "omarchy" and mac_saved.exists() else current_shell
+        _write_shell_json(_linux_shell_json(base))
+        run("omarchy-toggle-bar", "on")     # barre Omarchy masquée : chaque style a la sienne
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
+        time.sleep(1.2)
+        set_theme(theme)
+    elif want == "mac":
+        saved = PROFILE_DIR / "mac.shell.json"
+        if saved.exists():
+            _write_shell_json(_with_plugin(json.loads(saved.read_text()), PICKER_PLUGIN))
+        bar_off = (PROFILE_DIR / "mac.bar-off").read_text().strip() == "1" if (PROFILE_DIR / "mac.bar-off").exists() else False
+        run("omarchy-toggle-bar", "on" if bar_off else "off")
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
+        theme_file = PROFILE_DIR / "mac.theme"
+        theme = theme_file.read_text().strip() if theme_file.exists() else ""
+        if not theme or theme in LINUX_THEMES:
+            theme = THEMES[desired_mode(cfg)]
+        set_theme(theme)
+    else:
+        # Omarchy tel quel : son shell.json, sa barre, son thème, ses raccourcis.
+        _write_shell_json(_stock_shell_json())
+        run("omarchy-toggle-bar", "off")
+        render_hypr_vars(cfg)
+        run("hyprctl", "reload")
+        set_theme(_stock_theme())
+    names = {"mac": "Mac", "linux": "Linux · " + style_label(linux_style(cfg)), "omarchy": "Omarchy (d'origine)"}
+    run("omarchy-notification-send", "-u", "low", "Bureau " + names[want], "⌘⇧Espace pour changer de bureau")
+    print(f"Profil {want}.")
+
+
+# Rice : pages de terminaux animés (⌃⌘M). Une page = un bureau, de 1 à 13 terminaux.
+RICE_FILE = CONF_DIR / "rice.json"
+RICE_SPECIAL = {"fetch": "Fiche système", "shell": "Terminal", "btop": "Moniteur btop"}
+RICE_SCENES = {
+    "eye": "Œil", "heart": "Cœur", "donut": "Donut", "rain": "Pluie de code", "clock": "Horloge", "cava": "Spectre",
+    "cover": "Pochette", "train": "Train", "stars": "Hyperespace", "orbit": "Planètes", "hole": "Trou noir",
+    "fish": "Aquarium", "lava": "Lampe à lave", "leaves": "Feuilles", "petals": "Sakura", "snow": "Neige",
+    "plasma": "Plasma", "snake": "Serpent", "life": "Jeu de la vie", "pipes": "Tuyaux", "tunnel": "Tunnel",
+    "waves": "Mer", "fire": "Feu", "bounce": "Logo", "radar": "Radar", "hex": "Hexa", "cpu": "Processeur",
+    "scope": "Oscilloscope", "cal": "Calendrier", "timer": "Minuteur",
+}
+RICE_FONTS = ["JetBrainsMono Nerd Font", "VT323", "Space Mono", "IBM Plex Mono", "Share Tech Mono", "Press Start 2P",
+              "Fira Code", "DM Mono", "Courier Prime", "Martian Mono", "iA Writer Mono S", "Adwaita Mono", "Noto Sans Mono"]
+# Taille relative : à corps égal, VT323 est petite et Press Start 2P très large.
+RICE_FONT_SCALE = {"VT323": 1.4, "Press Start 2P": 0.7, "Martian Mono": 0.85}
+# Par style : police, opacité, espace entre terminaux, scènes dans l'ordre conseillé.
+RICE_STYLES = {
+    "blanc": ("Courier Prime", 1.0, 8, "clock life cal train cpu cava timer fetch snow scope pipes shell bounce"),
+    "sombre": ("VT323", 0.8, 6, "rain tunnel eye cava cpu clock scope hex fire timer cal fetch shell"),
+    "jouet": ("Press Start 2P", 1.0, 14, "fish snake heart bounce donut clock cava life timer plasma cal snow shell"),
+    "violet": ("Space Mono", 0.75, 12, "lava heart plasma cava clock eye stars cover timer cal scope waves shell"),
+    "expressive": ("DM Mono", 0.85, 14, "plasma cava donut waves clock cover lava heart timer cal scope stars shell"),
+    "windows": ("Fira Code", 1.0, 8, "pipes cpu clock bounce cal fetch timer life cava scope btop snow shell"),
+    "mono": ("iA Writer Mono S", 1.0, 10, "train fetch cava clock petals life cal timer cpu scope eye hex shell"),
+    "foret": ("IBM Plex Mono", 0.82, 12, "leaves waves fire clock cava snow cal timer heart scope life cpu shell"),
+    "ruban": ("Martian Mono", 0.9, 6, "pipes fire plasma cava clock bounce tunnel scope timer cal heart cpu shell"),
+    "espace": ("Space Mono", 0.7, 10, "stars hole orbit cava cal cpu radar clock scope timer tunnel cover shell"),
+    "gouts": ("JetBrainsMono Nerd Font", 0.8, 10, "eye stars lava cava clock cover plasma donut timer cal heart waves fetch"),
+    "debian": ("Adwaita Mono", 0.92, 8, "waves bounce fetch cpu clock cal cava timer btop life scope pipes shell"),
+    "fedora": ("Adwaita Mono", 0.92, 8, "bounce waves cpu fetch clock cal cava timer btop plasma scope snow shell"),
+    "mint": ("Noto Sans Mono", 0.92, 8, "leaves waves fetch cpu clock cal cava bounce timer btop scope snow shell"),
+    "kali": ("Share Tech Mono", 0.85, 6, "radar hex rain cpu fetch shell btop scope clock tunnel cal timer cava"),
+    "arch": ("JetBrainsMono Nerd Font", 0.88, 8, "pipes fetch cpu bounce cava btop rain clock hex cal timer scope shell"),
+}
+RICE_GLYPHS = {"arch": "\uf303", "debian": "\uf306", "fedora": "\uf30a", "mint": "\uf30e", "kali": "\uf327"}
+
+
+def rice_grid(n: int) -> list[list[float]]:
+    """Cases (x, y, l, h) en fractions d'écran. La première est la grande quand il y en a une :
+    13 = grille 4×4 dont le centre fait 2×2, 7 = 4×2 avec une double, etc."""
+    plan = {1: (1, 1, None), 2: (2, 1, None), 3: (2, 2, (0, 0, 1, 2)), 4: (2, 2, None), 5: (3, 2, (0, 0, 2, 1)),
+            6: (3, 2, None), 7: (4, 2, (1, 0, 2, 1)), 8: (4, 2, None), 9: (3, 3, None), 10: (4, 3, (0, 0, 3, 1)),
+            11: (4, 3, (1, 1, 2, 1)), 12: (4, 3, None), 13: (4, 4, (1, 1, 2, 2))}
+    cols, rows, big = plan[max(1, min(13, n))]
+    cells = [[big[0] / cols, big[1] / rows, big[2] / cols, big[3] / rows]] if big else []
+    for y in range(rows):
+        for x in range(cols):
+            if not (big and big[0] <= x < big[0] + big[2] and big[1] <= y < big[1] + big[3]):
+                cells.append([x / cols, y / rows, 1 / cols, 1 / rows])
+    return cells
+
+
+def _rice_defaults(style: str) -> dict:
+    font, alpha, gap, scenes = RICE_STYLES.get(style, RICE_STYLES["gouts"])
+    sc = scenes.split()
+    return {"page": 0, "font": font, "alpha": alpha, "gap": gap, "size": 0, "minutes": 25, "pages": [
+        {"name": "Duo", "panes": sc[:2], "cycle": 0},
+        {"name": "Mosaïque", "panes": sc[:5], "cycle": 60},
+        {"name": "Mur", "panes": sc[:13], "cycle": 120},
+    ]}
+
+
+def _rice_all() -> dict:
+    try:
+        return json.loads(RICE_FILE.read_text())
+    except (OSError, ValueError):
+        return {}
+
+
+def rice_state(style: str | None = None) -> dict:
+    style = style or linux_style()
+    d = _rice_defaults(style)
+    saved = _rice_all().get(style)
+    if isinstance(saved, dict):
+        d.update({k: v for k, v in saved.items() if k in d})
+    ok = set(RICE_SCENES) | set(RICE_SPECIAL)
+    pages = []
+    for p in d["pages"] if isinstance(d["pages"], list) else []:
+        panes = [x for x in p.get("panes", []) if x in ok][:13]
+        if panes:
+            pages.append({"name": str(p.get("name", "Page")), "panes": panes, "cycle": int(p.get("cycle", 0))})
+    d["pages"] = pages or _rice_defaults(style)["pages"]
+    d["page"] = max(0, min(len(d["pages"]) - 1, int(d["page"])))
+    return d
+
+
+def rice_save(style: str, state: dict) -> None:
+    allp = _rice_all()
+    allp[style] = {k: state[k] for k in ("page", "font", "alpha", "gap", "size", "minutes", "pages") if k in state}
+    tmp = RICE_FILE.with_suffix(".tmp")
+    tmp.write_text(json.dumps(allp, ensure_ascii=False, indent=1))
+    tmp.replace(RICE_FILE)
+
+
+def _rice_clients(page: int | None = None) -> list[dict]:
+    pre = "liquid-glass-rice-" + ("" if page is None else f"{page}-")
+    try:
+        return [c for c in json.loads(run("hyprctl", "clients", "-j").stdout or "[]") if str(c.get("class", "")).startswith(pre)]
+    except json.JSONDecodeError:
+        return []
+
+
+def rice_stop(page: int | None = None) -> None:
+    pat = "--app-id liquid-glass-rice-" + ("" if page is None else f"{page}-")
+    subprocess.run(["pkill", "-f", "--", pat], check=False)
+
+
+def _lua_str(s: str) -> str:
+    return "[==[" + s + "]==]"
+
+
+def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = False, monitor: str = "") -> None:
+    style = linux_style()
+    st = rice_state(style)
+    page = st["page"] if page is None else page % len(st["pages"])
+    pg = st["pages"][page]
+    if ws is None and (open_now := _rice_clients(page)):      # déjà ouverte : on y va
+        run("hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{open_now[0]["workspace"]["id"]}" }})')
+        return
+    rice_stop(page)
+    st["page"] = page
+    rice_save(style, st)
+    try:
+        mons = json.loads(run("hyprctl", "monitors", "-j").stdout or "[]")
+        used = {w.get("id") for w in json.loads(run("hyprctl", "workspaces", "-j").stdout or "[]")}
+    except json.JSONDecodeError:
+        mons, used = [], set()
+    m = next((x for x in mons if x["name"] == monitor), None) or next((x for x in mons if x.get("focused")), mons[0] if mons else None)
+    if not m:
+        sys.exit("aucun écran")
+    if ws is None:
+        ws = next((i for i in range(1, 10) if i not in used), 9)
+    sc = float(m.get("scale", 1)) or 1
+    W, H = m["width"] / sc, m["height"] / sc
+    rl, rt, rr, rb = (m.get("reserved") or [0, 0, 0, 0])[:4]
+    gap = int(st["gap"])
+    ax, ay = rl + gap, rt + gap
+    aw, ah = W - rl - rr - 2 * gap, H - rt - rb - 2 * gap
+    panes = pg["panes"]
+    n = len(panes)
+    font = st["font"]
+    size = int(st["size"]) or (14 if n <= 2 else 11 if n <= 5 else 9 if n <= 9 else 8)
+    size = max(5, round(size * RICE_FONT_SCALE.get(font, 1)))
+    fps = 24 if n <= 2 else 20 if n <= 5 else 12 if n <= 9 else 8
+    tty = str(REPO / "bin/liquid-glass-tty")
+    box = str(REPO / "terminal/fastfetch/box.jsonc")
+    alpha = st["alpha"]
+    bus = os.environ.get("XDG_RUNTIME_DIR", "/tmp") + f"/liquid-glass-rice-audio-{page}"
+    loop = ",".join(x for x in RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split() if x in RICE_SCENES and x not in ("timer", "cover"))
+    label = style_label(style)
+    glyph = RICE_GLYPHS.get(style, "")
+    master_done = False
+    if not silent:
+        run("hyprctl", "dispatch", f'hl.dsp.focus({{ workspace = "{ws}" }})')
+    for i, (scene, cell) in enumerate(zip(panes, rice_grid(n))):
+        x = ax + cell[0] * (aw + gap)
+        y = ay + cell[1] * (ah + gap)
+        w = cell[2] * (aw + gap) - gap
+        h = cell[3] * (ah + gap) - gap
+        if scene == "fetch":
+            logo = " --logo none" if n >= 6 else ""
+            argv = ["sh", "-c", f"clear; fastfetch -c {box}{logo}; exec \"${{SHELL:-bash}}\""]
+        elif scene == "shell":
+            argv = ["sh", "-c", "exec \"${SHELL:-bash}\""]
+        elif scene == "btop":
+            argv = ["btop"]
+        else:
+            argv = [tty, scene, "--fps", str(fps), "--minutes", str(st["minutes"]), "--label", label, "--glyph", glyph]
+            argv += ["--audio", ("" if master_done else "+") + bus]
+            master_done = True
+            if pg["cycle"] and scene not in ("timer", "cover"):
+                argv += ["--cycle", str(round(pg["cycle"] * (1 + 0.13 * i), 1)), "--list", loop]
+        term = ["foot", "--app-id", f"liquid-glass-rice-{page}-{i}", "--title", RICE_SCENES.get(scene, RICE_SPECIAL.get(scene, scene)),
+                "-o", f"font={font}:size={size}", "-o", f"colors-dark.alpha={alpha}", "-o", f"colors-light.alpha={alpha}",
+                "-o", "pad=6x4 center"]
+        cmd = " ".join(shlex.quote(a) for a in term + argv)
+        rules = f'float = true, size = "{int(w)} {int(h)}", move = "{int(x)} {int(y)}", workspace = "{ws} silent"'
+        run("hyprctl", "dispatch", f"hl.dsp.exec_cmd({_lua_str(cmd)}, {{ {rules} }})")
+        time.sleep(0.06)
+
+
+def cmd_rice(args: list[str]) -> None:
+    """Pages de terminaux animés : sans argument lance la page active ; launch [n], next,
+    stop [n], dump, save JSON, reset. Le menu ⌃⌘M (RiceMenu.qml) passe par ces commandes."""
+    want = args[0] if args else "launch"
+    style = linux_style()
+    if want == "dump":
+        st = rice_state(style)
+        print(json.dumps({**st, "style": style, "label": style_label(style),
+                          "scenes": {**RICE_SCENES, **RICE_SPECIAL}, "fonts": RICE_FONTS,
+                          "recommended": RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split(),
+                          "themeFont": RICE_STYLES.get(style, RICE_STYLES["gouts"])[0],
+                          "layouts": {str(i): rice_grid(i) for i in range(1, 14)},
+                          "open": sorted({int(c["class"].split("-")[3]) for c in _rice_clients()})}, ensure_ascii=False))
+    elif want == "save":
+        rice_save(style, json.loads(args[1]))
+    elif want == "reset":
+        allp = _rice_all()
+        allp.pop(style, None)
+        RICE_FILE.write_text(json.dumps(allp, ensure_ascii=False, indent=1))
+    elif want == "stop":
+        rice_stop(int(args[1]) if len(args) > 1 else None)
+    elif want == "next":
+        st = rice_state(style)
+        rice_launch(st["page"] + 1)
+    elif want == "launch":
+        opts = args[1:]
+        ws = int(opts[opts.index("--workspace") + 1]) if "--workspace" in opts else None
+        mon = opts[opts.index("--monitor") + 1] if "--monitor" in opts else ""
+        pos = [o for o in opts if o.isdigit() and (not ws or o != str(ws))]
+        rice_launch(int(pos[0]) if pos else None, ws, "--silent" in opts, mon)
+    else:
+        sys.exit("usage : liquid-glass rice [launch [n] | next | stop [n] | dump | save JSON | reset]")
+
+
+def _wall_tint(path: Path) -> str | None:
+    """Teinte dominante d'une image : un mot parmi ceux du carrousel."""
+    import colorsys
+    size = 40
+    out = subprocess.run(["magick", f"{path}[0]", "-resize", f"{size}x{size}!", "-depth", "8", "rgb:-"],
+                         capture_output=True, timeout=30).stdout
+    if len(out) < size * size * 3:
+        return None
+    hues, lum, sat = [0.0] * 12, 0.0, 0.0
+    for i in range(0, size * size * 3, 3):
+        h, s_, v = colorsys.rgb_to_hsv(out[i] / 255, out[i + 1] / 255, out[i + 2] / 255)
+        lum += v
+        w = s_ * v
+        sat += w
+        hues[int(h * 12) % 12] += w
+    n = size * size
+    if sat / n < 0.12:
+        return "sombre" if lum / n < 0.5 else "clair"
+    return ["rouge", "orange", "jaune", "vert", "vert", "cyan", "cyan", "bleu", "bleu", "violet", "rose", "rose"][hues.index(max(hues))]
+
+
+def cmd_wall_colors(args: list[str]) -> None:
+    """Calcule la teinte de chaque fond une seule fois (cache), pour le filtre du carrousel."""
+    from concurrent.futures import ThreadPoolExecutor
+    cache = HOME / ".cache/liquid-glass/wall-colors.json"
+    try:
+        known = json.loads(cache.read_text())
+    except (OSError, ValueError):
+        known = {}
+    roots = [HOME / ".local/share/liquid-glass/wallpapers", *(HOME / ".config/omarchy/themes").glob("*/backgrounds")]
+    files = [f for r in roots if r.is_dir() for f in r.iterdir() if f.suffix.lower() in (".jpg", ".jpeg", ".png", ".webp")]
+    todo = [f for f in files if str(f) not in known]
+    if todo:
+        def one(f: Path):
+            try:
+                return str(f), _wall_tint(f)
+            except (OSError, subprocess.SubprocessError):
+                return str(f), None
+        with ThreadPoolExecutor(2) as ex:
+            known.update({k: v for k, v in ex.map(one, todo) if v})
+        cache.parent.mkdir(parents=True, exist_ok=True)
+        tmp = cache.with_suffix(".tmp")
+        tmp.write_text(json.dumps(known))
+        tmp.replace(cache)
+    print(f"{len(known)} fonds classés.")
+
+
+KEYS_UNIT = "liquid-glass-keys.service"
+
+
+def cmd_keys(args: list[str]) -> None:
+    """Son de clavier « creamy » : on | off | test | status | import DOSSIER."""
+    want = args[0] if args else "status"
+    unit_dir = HOME / ".config/systemd/user"
+    unit = unit_dir / KEYS_UNIT
+    if want in ("on", "off"):
+        if want == "on":
+            unit_dir.mkdir(parents=True, exist_ok=True)
+            unit.write_text(
+                "[Unit]\nDescription=Liquid Glass — son de clavier\nAfter=graphical-session.target pipewire.service\n"
+                "PartOf=graphical-session.target\n\n[Service]\n"
+                f"ExecStart={REPO / 'bin/liquid-glass-keys'}\nRestart=on-failure\nRestartSec=3\nNice=-2\n\n"
+                "[Install]\nWantedBy=graphical-session.target\n")
+            run("systemctl", "--user", "daemon-reload")
+            run("systemctl", "--user", "enable", "--now", KEYS_UNIT)
+        else:
+            run("systemctl", "--user", "disable", "--now", KEYS_UNIT)
+        set_key("keys.sound", "true" if want == "on" else "false")
+        write_json(load())
+        print("Son du clavier " + ("activé." if want == "on" else "coupé."))
+    elif want == "test":
+        run(str(REPO / "bin/liquid-glass-keys"), "test", quiet=False)
+    elif want == "import" and len(args) > 1:
+        run(str(REPO / "bin/liquid-glass-keys"), "import", args[1], quiet=False)
+    else:
+        active = run("systemctl", "--user", "is-active", KEYS_UNIT).stdout.strip() if unit.exists() else "absent"
+        print(json.dumps({"service": active, "source": "Hyprland (sans groupe input)",
+                          "pack": load().get("keys", {}).get("sound_pack", "auto")}, ensure_ascii=False))
+
+
 COMMANDS = {
+    "keys": cmd_keys,
+    "rice": cmd_rice,
+    "wall-colors": cmd_wall_colors,
+    "profile": cmd_profile,
+    "login-item": cmd_login_item,
+    "tile-menu": cmd_tile_menu,
+    "resume-music": cmd_resume_music,
+    "bar-contrast": cmd_bar_contrast,
+    "key": cmd_key,
+    "window": cmd_window,
     "focus": cmd_focus,
+    "gamemode": cmd_gamemode,
+    "animated-wallpapers": cmd_animated_wallpapers,
+    "bar": cmd_bar,
+    "wallpapers": cmd_wallpapers,
     "apply": cmd_apply,
     "mode": cmd_mode,
     "auto-tick": cmd_auto_tick,

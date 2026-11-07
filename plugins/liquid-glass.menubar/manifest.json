@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "id": "liquid-glass.menubar",
+  "name": "Liquid Glass — Menus de la barre",
+  "version": "1.0.0",
+  "author": "Liquid Glass",
+  "description": "Nom de l'app en gras puis Fichier, Édition, Présentation, Fenêtre, Aide, façon macOS",
+  "kinds": ["bar-widget"],
+  "entryPoints": { "barWidget": "MenuBar.qml" },
+  "barWidget": {
+    "displayName": "Menus macOS",
+    "description": "App · Fichier · Édition · Présentation · Fenêtre · Aide",
+    "category": "System",
+    "allowMultiple": false,
+    "defaultSection": "left"
+  }
+}

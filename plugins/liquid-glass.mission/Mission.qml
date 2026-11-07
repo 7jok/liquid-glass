@@ -25,6 +25,11 @@ Item {
   property bool opened: false     // état demandé par le shell
   property bool arranged: false   // fenêtres en grille (sinon à leur place réelle)
   property bool allWindows: false
+  // App Exposé (⌃↓) : seulement les fenêtres d'une app, tous bureaux confondus,
+  // plus ses documents récents en bas. "" = Mission Control normal.
+  property string appClass: ""
+  property bool appRequested: false
+  property var recentFiles: []
 
   readonly property string uiFont: "Inter"
   readonly property string iconFont: Style.font.family
@@ -43,7 +48,14 @@ Item {
     var out = []
     for (var i = 0; i < clients.length; i++) {
       var c = clients[i]
-      if (!c.mapped || c.hidden || !c.workspace || c.workspace.id < 0) continue
+      if (!c.mapped || !c.workspace) continue
+      if (appClass !== "") {
+        if (String(c.class).toLowerCase() !== appClass) continue
+        if (c.workspace.id < 0 && c.workspace.name !== "special:minimized") continue
+        out.push(c)
+        continue
+      }
+      if (c.hidden || c.workspace.id < 0) continue
       if (!allWindows && c.workspace.id !== currentWs) continue
       if (c.monitor !== undefined && monitor.id !== undefined && c.monitor !== monitor.id && !allWindows) continue
       out.push(c)
@@ -127,6 +139,12 @@ Item {
           activeWorkspace: mon.activeWorkspace
         }
         root.clients = d.clients || []
+        if (root.appRequested && root.appClass === "") {
+          var cl = root.clients
+          for (var a = 0; a < cl.length; a++) if (cl[a].focusHistoryID === 0) root.appClass = String(cl[a].class).toLowerCase()
+          if (root.appClass === "") { root.dismiss(); return }
+        }
+        if (root.appClass !== "") { recentQuery.running = false; recentQuery.running = true }
         root.workspaces = (d.workspaces || []).filter(function(w) { return w.id > 0 }).sort(function(a, b) { return a.id - b.id })
         root.selected = 0
         var act = -1
@@ -174,10 +192,26 @@ Item {
 
   // --------------------------------------------------------------- cycle de vie
   function open(payloadJson) {
-    if (opened && win.shown) return
+    var p = {}
+    try { p = payloadJson ? JSON.parse(payloadJson) : {} } catch (e) { p = {} }
+    var wantApp = !!(p && p.app)
+    if (opened && win.shown) {
+      if (wantApp === appRequested) return
+      // Balayage vers le bas pendant Mission Control = fermer (comme macOS) ;
+      // vers le haut pendant App Exposé = passer à Mission Control sur place.
+      if (wantApp) { dismiss(); return }
+      appRequested = wantApp
+      appClass = wantApp && p.app !== "active" ? String(p.app).toLowerCase() : ""
+      arranged = false
+      query.running = true
+      return
+    }
     opened = true
     arranged = false
     allWindows = false
+    appRequested = wantApp
+    appClass = wantApp && p.app !== "active" ? String(p.app).toLowerCase() : ""
+    recentFiles = []
     hideTimer.stop()
     query.running = true
   }
@@ -192,6 +226,34 @@ Item {
     if (shell && typeof shell.hide === "function") shell.hide((manifest && manifest.id) || "liquid-glass.mission")
   }
   function toggle() { if (opened) dismiss(); else open("") }
+
+  readonly property var appEntry: appClass !== "" ? DesktopEntries.heuristicLookup(appClass) : null
+  readonly property string appName: appEntry && appEntry.name ? appEntry.name : appClass
+
+  // Documents récents de l'app (recently-used.xbel), pour la rangée du bas.
+  Process {
+    id: recentQuery
+    command: ["python3", "-I", "-c",
+      "import sys,re,html,urllib.parse,os\n" +
+      "keys=[k.lower() for k in sys.argv[1:] if k]\n" +
+      "p=os.path.expanduser('~/.local/share/recently-used.xbel')\n" +
+      "try: t=open(p,encoding='utf-8').read()\n" +
+      "except Exception: sys.exit(0)\n" +
+      "out=[]\n" +
+      "for m in re.finditer(r'<bookmark href=\"([^\"]+)\"[^>]*modified=\"([^\"]+)\"(.*?)</bookmark>',t,re.S):\n" +
+      "  apps=str(re.findall(r'application name=\"([^\"]+)\"[^>]*exec=\"([^\"]*)\"',m.group(3))).lower()\n" +
+      "  if not any(k in apps for k in keys): continue\n" +
+      "  u=html.unescape(m.group(1))\n" +
+      "  if not u.startswith('file://'): continue\n" +
+      "  f=urllib.parse.unquote(u[7:])\n" +
+      "  if os.path.exists(f): out.append((m.group(2),f))\n" +
+      "out.sort(reverse=True)\n" +
+      "print('\\n'.join(f for _,f in out[:8]))\n",
+      root.appClass, root.appName, (root.appEntry && root.appEntry.id) ? String(root.appEntry.id).replace(/\.desktop$/, "") : ""]
+    stdout: StdioCollector {
+      onStreamFinished: root.recentFiles = text.split("\n").filter(function(l) { return l.length > 0 })
+    }
+  }
 
   function move(dx, dy) {
     var n = windows.length
@@ -212,7 +274,9 @@ Item {
   }
 
   readonly property real stripH: Style.space(92)
-  readonly property var slotsFor: layout(win.width - Style.space(120), win.height - stripH - Style.space(150))
+  readonly property real gridTop: appClass !== "" ? Style.space(84) : stripH + Style.space(40)
+  readonly property real gridBottom: appClass !== "" ? (recentFiles.length > 0 ? Style.space(150) : Style.space(40)) : Style.space(110)
+  readonly property var slotsFor: layout(win.width - Style.space(120), win.height - gridTop - gridBottom)
 
   // --------------------------------------------------------------- fenêtre
   OverlayWindow {
@@ -251,7 +315,7 @@ Item {
       Row {
         id: strip
         anchors.horizontalCenter: parent.horizontalCenter
-        y: root.arranged ? Style.space(22) : -root.stripH
+        y: root.arranged && root.appClass === "" ? Style.space(22) : -root.stripH
         Behavior on y { SpringAnimation { spring: 3.2; damping: 0.36; epsilon: 0.25 } }
         spacing: Style.space(12)
 
@@ -300,6 +364,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: Style.space(22)
         textFormat: Text.PlainText
+        visible: root.appClass === ""
         text: (root.allWindows ? "Toutes les fenêtres" : "Bureau " + root.currentWs) + "   ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer"
         font.family: root.uiFont; font.pixelSize: Style.space(12)
         color: "white"
@@ -311,18 +376,104 @@ Item {
         anchors.centerIn: parent
         visible: root.windows.length === 0 && root.arranged
         textFormat: Text.PlainText
-        text: "Aucune fenêtre sur ce bureau"
+        text: root.appClass !== "" ? "Aucune fenêtre ouverte pour " + root.appName : "Aucune fenêtre sur ce bureau"
         font.family: root.uiFont; font.pixelSize: Style.space(20); font.weight: Font.Medium
         color: "white"; opacity: 0.7
+      }
+
+      // ---- App Exposé : nom de l'app en haut, documents récents en bas
+      Rectangle {
+        id: appTitle
+        visible: root.appClass !== ""
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: root.arranged ? Style.space(28) : -height
+        Behavior on y { SpringAnimation { spring: 3.2; damping: 0.4; epsilon: 0.25 } }
+        width: appTitleRow.implicitWidth + Style.space(28)
+        height: Style.space(36)
+        radius: height / 2
+        color: Qt.rgba(0, 0, 0, 0.32)
+        border.width: 1
+        border.color: Qt.rgba(1, 1, 1, 0.18)
+        Row {
+          id: appTitleRow
+          anchors.centerIn: parent
+          spacing: Style.space(8)
+          Image {
+            anchors.verticalCenter: parent.verticalCenter
+            width: Style.space(22); height: width
+            sourceSize: Qt.size(64, 64)
+            source: Quickshell.iconPath(root.appEntry && root.appEntry.icon ? root.appEntry.icon : "application-x-executable", true)
+          }
+          Text {
+            anchors.verticalCenter: parent.verticalCenter
+            textFormat: Text.PlainText
+            text: root.appName + "  ·  " + root.windows.length + (root.windows.length > 1 ? " fenêtres" : " fenêtre")
+            font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold
+            color: "white"
+          }
+        }
+      }
+
+      Row {
+        id: recentRow
+        visible: root.appClass !== "" && root.recentFiles.length > 0
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: root.arranged ? win.height - height - Style.space(24) : win.height + Style.space(10)
+        Behavior on y { SpringAnimation { spring: 3.0; damping: 0.42; epsilon: 0.25 } }
+        spacing: Style.space(14)
+        Repeater {
+          model: root.recentFiles
+          delegate: Rectangle {
+            id: doc
+            required property string modelData
+            readonly property string base: modelData.substring(modelData.lastIndexOf("/") + 1)
+            readonly property bool isImage: /\.(png|jpe?g|webp|gif|bmp|svg)$/i.test(base)
+            width: Style.space(96); height: Style.space(104)
+            radius: Style.space(12)
+            color: docMouse.containsMouse ? Qt.rgba(1, 1, 1, 0.22) : Qt.rgba(1, 1, 1, 0.10)
+            border.width: 1
+            border.color: Qt.rgba(1, 1, 1, 0.16)
+            scale: docMouse.pressed ? 0.94 : (docMouse.containsMouse ? 1.05 : 1)
+            Behavior on scale { SpringAnimation { spring: 4; damping: 0.4 } }
+            Image {
+              anchors.horizontalCenter: parent.horizontalCenter
+              y: Style.space(10)
+              width: Style.space(56); height: width
+              fillMode: Image.PreserveAspectFit
+              asynchronous: true
+              sourceSize: Qt.size(128, 128)
+              source: doc.isImage ? "file://" + doc.modelData : Quickshell.iconPath("text-x-generic", true)
+            }
+            Text {
+              anchors.horizontalCenter: parent.horizontalCenter
+              anchors.bottom: parent.bottom
+              anchors.bottomMargin: Style.space(8)
+              width: parent.width - Style.space(10)
+              horizontalAlignment: Text.AlignHCenter
+              textFormat: Text.PlainText
+              text: doc.base
+              elide: Text.ElideMiddle
+              font.family: root.uiFont; font.pixelSize: 11
+              color: "white"
+            }
+            MouseArea {
+              id: docMouse
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: { root.dismiss(); Quickshell.execDetached(["xdg-open", doc.modelData]) }
+            }
+          }
+        }
       }
 
       // ---- Aperçus des fenêtres
       Item {
         id: grid
         x: Style.space(60)
-        y: root.stripH + Style.space(40)
+        y: root.gridTop
         width: win.width - Style.space(120)
-        height: win.height - root.stripH - Style.space(150)
+        height: win.height - root.gridTop - root.gridBottom
 
         Repeater {
           model: root.windows
@@ -342,7 +493,7 @@ Item {
             y: root.arranged ? slot.y : realY
             width: root.arranged ? slot.w : modelData.size[0]
             height: root.arranged ? slot.h : modelData.size[1]
-            opacity: root.arranged || sameWs ? 1 : 0
+            opacity: root.arranged || (sameWs && modelData.workspace.id > 0) ? 1 : 0
             z: dragging ? 10 : (hot ? 2 : 1)
             Behavior on x { enabled: !tile.dragging; SpringAnimation { spring: 3.4; damping: 0.38; epsilon: 0.3 } }
             Behavior on y { enabled: !tile.dragging; SpringAnimation { spring: 3.4; damping: 0.38; epsilon: 0.3 } }

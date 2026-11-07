@@ -1,0 +1,37 @@
+# Liquid Glass — fedora — GNOME, bleu Fedora (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#3c6eb4"
+selection = "#24406a"
+muted = "#7c7c7c"
+
+background = "#1e2228"
+dark_background = "#171a1f"
+darker_background = "#101317"
+lighter_background = "#2a3038"
+
+foreground = "#f2f2f2"
+dark_foreground = "#b8b8b8"
+light_foreground = "#dcdcdc"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(3c6eb4ee) rgba(3c6eb4aa) 45deg"
+
+hyprland_inactive_border = "rgba(3a3a3aff)"
+
+red = "#e05561"
+green = "#4fb06a"
+yellow = "#d6a23d"
+blue = "#4c8dd6"
+magenta = "#b06bd6"
+cyan = "#3fb4b4"
+orange = "#db7b4f"
+brown = "#826835"
+
+bright_red = "#ff7b86"
+bright_green = "#6fd18b"
+bright_yellow = "#f0c060"
+bright_blue = "#72acf0"
+bright_magenta = "#cc8ff0"
+bright_cyan = "#60d0d0"

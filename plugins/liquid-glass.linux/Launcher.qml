@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Lanceur d'applications (⌘Espace) de chaque bureau Linux, à la place de celui
 // d'Omarchy. Même moteur, allure propre au style :
@@ -103,7 +104,7 @@ PanelWindow {
         onTextChanged: win.query = text
         Text {
           visible: parent.text === ""
-          text: term ? "lancer…" : (monoStyle ? "Tapez « > » pour les commandes" : (st === "foret" ? "Rechercher une appli…" : "Rechercher"))
+          text: term ? T.t("lancer…") : (monoStyle ? T.t("Tapez « > » pour les commandes") : (st === "foret" ? T.t("Rechercher une appli…") : T.t("Rechercher")))
           font: parent.font; color: win.sub
         }
         Keys.onEscapePressed: { if (text !== "") text = ""; else s.closeAll() }
@@ -213,7 +214,7 @@ PanelWindow {
       visible: win.results.length === 0
       anchors.horizontalCenter: parent.horizontalCenter
       y: monoStyle ? 24 : 80
-      text: win.query.charAt(0) === ">" ? "Entrée pour lancer la commande" : "Aucune application"
+      text: win.query.charAt(0) === ">" ? T.t("Entrée pour lancer la commande") : T.t("Aucune application")
       font.family: win.font; font.pixelSize: 13; color: win.sub
     }
   }

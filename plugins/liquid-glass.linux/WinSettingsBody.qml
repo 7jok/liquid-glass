@@ -5,6 +5,7 @@ import Quickshell.Io
 import Quickshell.Widgets
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import "T.js" as T
 
 // Style « windows » : l'appli Paramètres (⌘⌥Espace, ⚙ des paramètres rapides),
 // une vraie fenêtre Hyprland (flottante, centrée) avec la barre latérale de
@@ -29,16 +30,16 @@ Rectangle {
   function cap(t) { t = String(t); return t.charAt(0).toUpperCase() + t.slice(1) }
 
   readonly property var pages: [
-    ["home", "Accueil", "home", "#4f8ef7"],
-    ["system", "Système", "computer", "#3a8ee6"],
-    ["bt", "Bluetooth et appareils", "bluetooth", "#2a7fd9"],
-    ["net", "Réseau et Internet", "wifi", "#4a6bdc"],
-    ["perso", "Personnalisation", "brush", "#e0803a"],
+    ["home", T.t("Accueil"), "home", "#4f8ef7"],
+    ["system", T.t("Système"), "computer", "#3a8ee6"],
+    ["bt", T.t("Bluetooth et appareils"), "bluetooth", "#2a7fd9"],
+    ["net", T.t("Réseau et Internet"), "wifi", "#4a6bdc"],
+    ["perso", T.t("Personnalisation"), "brush", "#e0803a"],
     ["apps", "Applications", "apps", "#6b6fd6"],
-    ["accounts", "Comptes", "person", "#2fa36b"],
-    ["time", "Heure et langue", "schedule", "#3a9ad9"],
-    ["access", "Accessibilité", "accessibility_new", "#2d8cd6"],
-    ["update", "Mise à jour", "sync", "#1f7ad1"]
+    ["accounts", T.t("Comptes"), "person", "#2fa36b"],
+    ["time", T.t("Heure et langue"), "schedule", "#3a9ad9"],
+    ["access", T.t("Accessibilité"), "accessibility_new", "#2d8cd6"],
+    ["update", T.t("Mise à jour"), "sync", "#1f7ad1"]
   ]
   property string page: s.menuPage && s.menuPage !== "home" ? s.menuPage : "home"
   property var history: []
@@ -78,7 +79,7 @@ Rectangle {
         MouseArea { id: bma; anchors.fill: parent; hoverEnabled: true; onClicked: win.back() }
       }
       WinLogo { anchors.verticalCenter: parent.verticalCenter; size: 14; visible: win.history.length === 0 }
-      Text { anchors.verticalCenter: parent.verticalCenter; text: "Paramètres"; font.family: win.font; font.pixelSize: 12; color: win.ink }
+      Text { anchors.verticalCenter: parent.verticalCenter; text: T.t("Paramètres"); font.family: win.font; font.pixelSize: 12; color: win.ink }
     }
     Row {
       anchors.right: parent.right; anchors.top: parent.top
@@ -115,7 +116,7 @@ Rectangle {
       Column {
         anchors.verticalCenter: parent.verticalCenter
         Text { text: s.user.charAt(0).toUpperCase() + s.user.slice(1); font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
-        Text { text: "Compte local"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+        Text { text: T.t("Compte local"); font.family: win.font; font.pixelSize: 12; color: win.sub }
       }
     }
     Rectangle {
@@ -126,7 +127,7 @@ Rectangle {
         id: findInput
         x: 12; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 44
         font.family: win.font; font.pixelSize: 13; color: win.ink; clip: true
-        Text { visible: parent.text === ""; text: "Rechercher un paramètre"; font: parent.font; color: win.sub }
+        Text { visible: parent.text === ""; text: T.t("Rechercher un paramètre"); font: parent.font; color: win.sub }
         onAccepted: {
           var q = text.toLowerCase()
           for (var i = 0; i < win.pages.length; i++) if (win.pages[i][1].toLowerCase().indexOf(q) >= 0) { win.go(win.pages[i][0]); break }
@@ -186,11 +187,11 @@ Rectangle {
           visible: win.page === "home"
           width: parent.width; spacing: 4
           DeviceHeader {}
-          Section { text: "Paramètres recommandés" }
-          SettingRow { icon: "wifi"; title: "Réseau et Internet"; sub: s.netDev === "" ? "Non connecté" : (s.netWifi && s.wifiList.length && s.wifiList[0].active ? "Connecté à " + s.wifiList[0].ssid : "Connecté"); chevron: true; onClicked: win.go("net") }
-          SettingRow { icon: "bluetooth"; title: "Bluetooth et appareils"; sub: win.bt && win.bt.enabled ? "Activé" : "Désactivé"; chevron: true; onClicked: win.go("bt") }
-          SettingRow { icon: "brush"; title: "Personnalisation"; sub: "Fond d'écran, mode clair ou sombre, bureaux"; chevron: true; onClicked: win.go("perso") }
-          SettingRow { icon: "info"; title: "Informations"; sub: "Caractéristiques de l'appareil"; chevron: true; onClicked: win.go("about") }
+          Section { text: T.t("Paramètres recommandés") }
+          SettingRow { icon: "wifi"; title: T.t("Réseau et Internet"); sub: s.netDev === "" ? T.t("Non connecté") : (s.netWifi && s.wifiList.length && s.wifiList[0].active ? T.t("Connecté à ") + s.wifiList[0].ssid : T.t("Connecté")); chevron: true; onClicked: win.go("net") }
+          SettingRow { icon: "bluetooth"; title: T.t("Bluetooth et appareils"); sub: win.bt && win.bt.enabled ? T.t("Activé") : T.t("Désactivé"); chevron: true; onClicked: win.go("bt") }
+          SettingRow { icon: "brush"; title: T.t("Personnalisation"); sub: T.t("Fond d'écran, mode clair ou sombre, bureaux"); chevron: true; onClicked: win.go("perso") }
+          SettingRow { icon: "info"; title: T.t("Informations"); sub: T.t("Caractéristiques de l'appareil"); chevron: true; onClicked: win.go("about") }
         }
 
         // ======================================== Système
@@ -198,39 +199,39 @@ Rectangle {
           visible: win.page === "system"
           width: parent.width; spacing: 4
           DeviceHeader {}
-          SettingRow { icon: "desktop_windows"; title: "Écran"; sub: "Luminosité, éclairage nocturne"; chevron: true; onClicked: win.go("display") }
-          SettingRow { icon: "volume_up"; title: "Son"; sub: "Volume, périphériques de sortie"; chevron: true; onClicked: win.go("sound") }
-          SettingRow { icon: "notifications"; title: "Notifications"; sub: "Historique des notifications"; chevron: true
+          SettingRow { icon: "desktop_windows"; title: T.t("Écran"); sub: T.t("Luminosité, éclairage nocturne"); chevron: true; onClicked: win.go("display") }
+          SettingRow { icon: "volume_up"; title: T.t("Son"); sub: T.t("Volume, périphériques de sortie"); chevron: true; onClicked: win.go("sound") }
+          SettingRow { icon: "notifications"; title: "Notifications"; sub: T.t("Historique des notifications"); chevron: true
             onClicked: Quickshell.execDetached(["sh", "-c", "omarchy-shell notifications showHistory"]) }
-          SettingRow { icon: "battery_full"; title: "Alimentation et batterie"; sub: s.batteryPct >= 0 ? s.batteryPct + " %" + (s.charging ? ", en charge" : "") : "Secteur"; chevron: true; onClicked: win.go("power") }
-          SettingRow { icon: "hard_drive"; title: "Stockage"; sub: (win.s.info.disk || "") + " utilisés"; chevron: false }
-          SettingRow { icon: "content_copy"; title: "Presse-papiers"; sub: "Historique du presse-papiers"; chevron: false }
-          SettingRow { icon: "info"; title: "Informations"; sub: "Caractéristiques de l'appareil, renommer le PC"; chevron: true; onClicked: win.go("about") }
+          SettingRow { icon: "battery_full"; title: T.t("Alimentation et batterie"); sub: s.batteryPct >= 0 ? s.batteryPct + " %" + (s.charging ? T.t(", en charge") : "") : T.t("Secteur"); chevron: true; onClicked: win.go("power") }
+          SettingRow { icon: "hard_drive"; title: T.t("Stockage"); sub: (win.s.info.disk || "") + T.t(" utilisés"); chevron: false }
+          SettingRow { icon: "content_copy"; title: T.t("Presse-papiers"); sub: T.t("Historique du presse-papiers"); chevron: false }
+          SettingRow { icon: "info"; title: T.t("Informations"); sub: T.t("Caractéristiques de l'appareil, renommer le PC"); chevron: true; onClicked: win.go("about") }
         }
 
         // ======================================== Écran
         Column {
           visible: win.page === "display"
           width: parent.width; spacing: 4
-          SettingRow { icon: "light_mode"; title: "Luminosité"; sub: "Régler la luminosité de l'écran intégré"
+          SettingRow { icon: "light_mode"; title: T.t("Luminosité"); sub: T.t("Régler la luminosité de l'écran intégré")
             Slider { value: Math.max(0, s.brightness); onMoved: function(v) { s.setBrightness(v) } } }
-          SettingRow { icon: "nightlight"; title: "Éclairage nocturne"; sub: "Couleurs plus chaudes pour mieux dormir"
+          SettingRow { icon: "nightlight"; title: T.t("Éclairage nocturne"); sub: T.t("Couleurs plus chaudes pour mieux dormir")
             Toggle { on: false; onToggled: Quickshell.execDetached(["omarchy-toggle-nightlight"]) } }
-          SettingRow { icon: "aspect_ratio"; title: "Résolution d'écran"; sub: win.s.info.res || "" }
-          SettingRow { icon: "zoom_in"; title: "Mise à l'échelle"; sub: "150 % (recommandé)" }
+          SettingRow { icon: "aspect_ratio"; title: T.t("Résolution d'écran"); sub: win.s.info.res || "" }
+          SettingRow { icon: "zoom_in"; title: T.t("Mise à l'échelle"); sub: T.t("150 % (recommandé)") }
         }
 
         // ======================================== Son
         Column {
           visible: win.page === "sound"
           width: parent.width; spacing: 4
-          Section { text: "Sortie" }
-          SettingRow { icon: "speaker"; title: win.sink ? (win.sink.description || win.sink.name) : "Aucun périphérique"; sub: "Volume"
+          Section { text: T.t("Sortie") }
+          SettingRow { icon: "speaker"; title: win.sink ? (win.sink.description || win.sink.name) : T.t("Aucun périphérique"); sub: "Volume"
             Slider { value: win.sink && win.sink.audio ? win.sink.audio.volume : 0; onMoved: function(v) { if (win.sink && win.sink.audio) win.sink.audio.volume = v } } }
-          SettingRow { icon: "volume_off"; title: "Muet"; sub: "Couper le son"
+          SettingRow { icon: "volume_off"; title: T.t("Muet"); sub: T.t("Couper le son")
             Toggle { on: !!win.sink && !!win.sink.audio && win.sink.audio.muted; onToggled: if (win.sink && win.sink.audio) win.sink.audio.muted = !win.sink.audio.muted } }
-          Section { text: "Entrée" }
-          SettingRow { icon: "mic"; title: Pipewire.defaultAudioSource ? (Pipewire.defaultAudioSource.description || Pipewire.defaultAudioSource.name) : "Aucun micro"; sub: "Volume du micro"
+          Section { text: T.t("Entrée") }
+          SettingRow { icon: "mic"; title: Pipewire.defaultAudioSource ? (Pipewire.defaultAudioSource.description || Pipewire.defaultAudioSource.name) : T.t("Aucun micro"); sub: T.t("Volume du micro")
             Slider {
               value: Pipewire.defaultAudioSource && Pipewire.defaultAudioSource.audio ? Pipewire.defaultAudioSource.audio.volume : 0
               onMoved: function(v) { if (Pipewire.defaultAudioSource && Pipewire.defaultAudioSource.audio) Pipewire.defaultAudioSource.audio.volume = v }
@@ -241,9 +242,9 @@ Rectangle {
         Column {
           visible: win.page === "power"
           width: parent.width; spacing: 4
-          SettingRow { icon: s.charging ? "battery_charging_full" : "battery_full"; title: s.batteryPct >= 0 ? "Niveau de batterie : " + s.batteryPct + " %" : "Sur secteur"; sub: s.charging ? "En charge" : "Sur batterie" }
-          SettingRow { icon: "bedtime"; title: "Mettre en veille"; sub: "Suspendre maintenant"; chevron: true; onClicked: s.power("suspend") }
-          SettingRow { icon: "lock"; title: "Verrouiller"; sub: "Écran de verrouillage"; chevron: true; onClicked: s.power("lock") }
+          SettingRow { icon: s.charging ? "battery_charging_full" : "battery_full"; title: s.batteryPct >= 0 ? T.t("Niveau de batterie : ") + s.batteryPct + " %" : T.t("Sur secteur"); sub: s.charging ? T.t("En charge") : T.t("Sur batterie") }
+          SettingRow { icon: "bedtime"; title: T.t("Mettre en veille"); sub: T.t("Suspendre maintenant"); chevron: true; onClicked: s.power("suspend") }
+          SettingRow { icon: "lock"; title: T.t("Verrouiller"); sub: T.t("Écran de verrouillage"); chevron: true; onClicked: s.power("lock") }
         }
 
         // ======================================== Informations
@@ -275,27 +276,27 @@ Rectangle {
               anchors.right: parent.right; anchors.rightMargin: 20; anchors.verticalCenter: parent.verticalCenter
               width: 150; height: 32; radius: 4; color: rnma.containsMouse ? win.cardHover : (win.dark ? "#373737" : "#fdfdfd")
               border.width: 1; border.color: win.line
-              Text { anchors.centerIn: parent; text: "Renommer ce PC"; font.family: win.font; font.pixelSize: 12; color: win.ink }
+              Text { anchors.centerIn: parent; text: T.t("Renommer ce PC"); font.family: win.font; font.pixelSize: 12; color: win.ink }
               MouseArea { id: rnma; anchors.fill: parent; hoverEnabled: true
                 onClicked: Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "sh -c 'read -p \"Nouveau nom du PC : \" n && sudo hostnamectl set-hostname \"$n\"'"]) }
             }
           }
           Expander {
-            icon: "computer"; title: "Caractéristiques de l'appareil"
+            icon: "computer"; title: T.t("Caractéristiques de l'appareil")
             copyText: "Nom de l'appareil\t" + (win.s.info.host || "") + "\nProcesseur\t" + (win.s.info.cpu || "") + "\nMémoire RAM installée\t" + (win.s.info.ram || "") + " Go\nCarte graphique\t" + (win.s.info.gpu || "") + "\nType du système\tSystème d'exploitation 64 bits, processeur x64"
             rows: [["Nom de l'appareil", win.s.info.host || ""], ["Processeur", win.s.info.cpu || ""], ["Mémoire RAM installée", (win.s.info.ram || "?") + " Go"],
                    ["Carte graphique", win.s.info.gpu || ""], ["Stockage", (win.s.info.disk || "") + " utilisés"],
                    ["Type du système", "Système d'exploitation 64 bits, processeur x64"], ["Stylet et fonctions tactiles", "La fonctionnalité d'entrée tactile ou avec un stylet n'est pas disponible sur cet écran"]]
           }
           Expander {
-            icon: "grid_view"; title: "Caractéristiques du système"; logo: true
+            icon: "grid_view"; title: T.t("Caractéristiques du système"); logo: true
             copyText: "Édition\t" + (win.s.info.os || "") + "\nVersion\t" + (win.s.info.omarchy || "") + "\nInstallé le\t" + (win.s.info.installed || "") + "\nNoyau\t" + (win.s.info.kernel || "")
             rows: [["Édition", (win.s.info.os || "Omarchy") + " · Liquid Glass"], ["Version", win.s.info.omarchy || ""], ["Installé le", win.s.info.installed || ""],
-                   ["Noyau", win.s.info.kernel || ""], ["Bureau", "Hyprland + Quickshell"], ["Expérience", "Liquid Glass — style Windows"]]
+                   ["Noyau", win.s.info.kernel || ""], ["Bureau", "Hyprland + Quickshell"], ["Expérience", T.t("Liquid Glass — style Windows")]]
           }
-          Section { text: "Paramètres associés" }
-          SettingRow { icon: "key"; title: "Clé de produit et activation"; sub: "Logiciel libre, rien à activer"; chevron: false }
-          SettingRow { icon: "terminal"; title: "Informations détaillées"; sub: "fastfetch dans un terminal"; chevron: true
+          Section { text: T.t("Paramètres associés") }
+          SettingRow { icon: "key"; title: T.t("Clé de produit et activation"); sub: T.t("Logiciel libre, rien à activer"); chevron: false }
+          SettingRow { icon: "terminal"; title: T.t("Informations détaillées"); sub: T.t("fastfetch dans un terminal"); chevron: true
             onClicked: Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "fastfetch"]) }
         }
 
@@ -303,19 +304,19 @@ Rectangle {
         Column {
           visible: win.page === "bt"
           width: parent.width; spacing: 4
-          SettingRow { icon: "bluetooth"; title: "Bluetooth"; sub: win.bt ? (win.bt.enabled ? "Détectable sous le nom « " + (win.s.info.host || "PC") + " »" : "Désactivé") : "Pas d'adaptateur"
+          SettingRow { icon: "bluetooth"; title: "Bluetooth"; sub: win.bt ? (win.bt.enabled ? T.t("Détectable sous le nom « ") + (win.s.info.host || "PC") + " »" : T.t("Désactivé")) : T.t("Pas d'adaptateur")
             Toggle { on: !!win.bt && win.bt.enabled; onToggled: if (win.bt) win.bt.enabled = !win.bt.enabled } }
-          SettingRow { icon: "add"; title: "Ajouter un appareil"; sub: win.bt && win.bt.discovering ? "Recherche en cours…" : "Rechercher les appareils à proximité"; chevron: true
+          SettingRow { icon: "add"; title: T.t("Ajouter un appareil"); sub: win.bt && win.bt.discovering ? T.t("Recherche en cours…") : T.t("Rechercher les appareils à proximité"); chevron: true
             onClicked: if (win.bt) win.bt.discovering = !win.bt.discovering }
-          Section { text: "Appareils" }
+          Section { text: T.t("Appareils") }
           Repeater {
             model: win.bt && win.bt.devices ? win.bt.devices.values : []
             delegate: SettingRow {
               required property var modelData
               icon: String(modelData.icon || "").indexOf("audio") >= 0 ? "headphones" : (String(modelData.icon || "").indexOf("input") >= 0 ? "mouse" : "devices_other")
               title: modelData.name || modelData.deviceName || modelData.address
-              sub: modelData.connected ? "Connecté" + (modelData.batteryAvailable ? " · " + Math.round(modelData.battery * 100) + " %" : "") : (modelData.paired ? "Associé" : "Disponible")
-              Button2 { label: modelData.connected ? "Déconnecter" : "Connecter"; onClicked: modelData.connected = !modelData.connected }
+              sub: modelData.connected ? T.t("Connecté") + (modelData.batteryAvailable ? " · " + Math.round(modelData.battery * 100) + " %" : "") : (modelData.paired ? T.t("Associé") : T.t("Disponible"))
+              Button2 { label: modelData.connected ? T.t("Déconnecter") : T.t("Connecter"); onClicked: modelData.connected = !modelData.connected }
             }
           }
         }
@@ -331,22 +332,22 @@ Rectangle {
               MIcon { anchors.verticalCenter: parent.verticalCenter; icon: s.netWifi ? "wifi" : (s.netDev === "" ? "wifi_off" : "lan"); size: 40; color: s.primary }
               Column {
                 anchors.verticalCenter: parent.verticalCenter
-                Text { text: s.netWifi && s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : (s.netDev === "" ? "Non connecté" : "Ethernet"); font.family: win.font; font.pixelSize: 16; font.weight: Font.DemiBold; color: win.ink }
-                Text { text: s.netDev === "" ? "Aucune connexion Internet" : "Connecté, sécurisé · " + s.netDev; font.family: win.font; font.pixelSize: 12; color: win.sub }
+                Text { text: s.netWifi && s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : (s.netDev === "" ? T.t("Non connecté") : "Ethernet"); font.family: win.font; font.pixelSize: 16; font.weight: Font.DemiBold; color: win.ink }
+                Text { text: s.netDev === "" ? T.t("Aucune connexion Internet") : T.t("Connecté, sécurisé · ") + s.netDev; font.family: win.font; font.pixelSize: 12; color: win.sub }
               }
             }
           }
-          SettingRow { icon: "wifi"; title: "Wi-Fi"; sub: s.wifiOn ? "Activé" : "Désactivé"
+          SettingRow { icon: "wifi"; title: "Wi-Fi"; sub: s.wifiOn ? T.t("Activé") : T.t("Désactivé")
             Toggle { on: s.wifiOn; onToggled: s.setWifi(!s.wifiOn) } }
-          SettingRow { icon: "refresh"; title: "Afficher les réseaux disponibles"; sub: s.wifiBusy ? "Recherche…" : s.wifiList.length + " réseaux"; chevron: true; onClicked: s.scanWifi() }
+          SettingRow { icon: "refresh"; title: T.t("Afficher les réseaux disponibles"); sub: s.wifiBusy ? T.t("Recherche…") : s.wifiList.length + T.t(" réseaux"); chevron: true; onClicked: s.scanWifi() }
           Repeater {
             model: s.wifiList
             delegate: SettingRow {
               required property var modelData
               icon: modelData.signal > 66 ? "network_wifi" : (modelData.signal > 33 ? "network_wifi_2_bar" : "network_wifi_1_bar")
               title: modelData.ssid
-              sub: (modelData.active ? "Connecté, " : "") + (modelData.secure ? "sécurisé" : "ouvert") + " · " + modelData.signal + " %"
-              Button2 { visible: !modelData.active; label: "Se connecter"; onClicked: s.connectWifi(modelData.ssid) }
+              sub: (modelData.active ? T.t("Connecté, ") : "") + (modelData.secure ? T.t("sécurisé") : "ouvert") + " · " + modelData.signal + " %"
+              Button2 { visible: !modelData.active; label: T.t("Se connecter"); onClicked: s.connectWifi(modelData.ssid) }
             }
           }
         }
@@ -366,7 +367,7 @@ Rectangle {
             }
             Column {
               x: 330; y: 24; spacing: 10; width: parent.width - 350
-              Text { text: "Sélectionnez un thème à appliquer"; font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
+              Text { text: T.t("Sélectionnez un thème à appliquer"); font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
               Row {
                 spacing: 12
                 Repeater {
@@ -378,15 +379,15 @@ Rectangle {
                     border.width: s.wtone === modelData[0] ? 2 : 1
                     border.color: s.wtone === modelData[0] ? s.primary : win.line
                     WinLogo { anchors.centerIn: parent; size: 20; c1: modelData[2]; c2: modelData[2] }
-                    Text { anchors.horizontalCenter: parent.horizontalCenter; anchors.top: parent.bottom; anchors.topMargin: 4; text: modelData[0] === "clair" ? "Clair" : "Sombre"; font.family: win.font; font.pixelSize: 11; color: win.ink }
+                    Text { anchors.horizontalCenter: parent.horizontalCenter; anchors.top: parent.bottom; anchors.topMargin: 4; text: modelData[0] === "clair" ? T.t("Clair") : T.t("Sombre"); font.family: win.font; font.pixelSize: 11; color: win.ink }
                     MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["liquid-glass", "profile", "windows:" + modelData[0]]) }
                   }
                 }
               }
             }
           }
-          SettingRow { icon: "wallpaper"; title: "Arrière-plan"; sub: "Choisir parmi les fonds (carrousel)"; chevron: true; onClicked: { s.menuOpen = false; s.wallsOpen = true } }
-          SettingRow { icon: "dashboard_customize"; title: "Changer de bureau"; sub: "Mac, Omarchy, Mono, Forêt, Violet… (⌘⇧Espace)"; chevron: true
+          SettingRow { icon: "wallpaper"; title: T.t("Arrière-plan"); sub: T.t("Choisir parmi les fonds (carrousel)"); chevron: true; onClicked: { s.menuOpen = false; s.wallsOpen = true } }
+          SettingRow { icon: "dashboard_customize"; title: T.t("Changer de bureau"); sub: T.t("Mac, Omarchy, Mono, Forêt, Violet… (⌘⇧Espace)"); chevron: true
             onClicked: { s.menuOpen = false; Quickshell.execDetached(["liquid-glass", "profile", "pick"]) } }
           // Couleurs : accent comme dans Windows 11 (Manuel / Automatique depuis l'arrière-plan).
           Rectangle {
@@ -399,14 +400,14 @@ Rectangle {
                 MIcon { anchors.verticalCenter: parent.verticalCenter; icon: "palette"; size: 22; color: win.ink }
                 Column {
                   x: 36; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 36 - modeRow.width - 12
-                  Text { text: "Couleur d'accentuation"; font.family: win.font; font.pixelSize: 14; color: win.ink }
-                  Text { text: s.colorMode === "fond" ? "Automatique, tirée de l'arrière-plan" : (s.colorMode === "perso" ? "Manuel" : "Bleu Windows (par défaut)"); font.family: win.font; font.pixelSize: 12; color: win.sub }
+                  Text { text: T.t("Couleur d'accentuation"); font.family: win.font; font.pixelSize: 14; color: win.ink }
+                  Text { text: s.colorMode === "fond" ? T.t("Automatique, tirée de l'arrière-plan") : (s.colorMode === "perso" ? T.t("Manuel") : T.t("Bleu Windows (par défaut)")); font.family: win.font; font.pixelSize: 12; color: win.sub }
                 }
                 Row {
                   id: modeRow
                   anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 6
                   Repeater {
-                    model: [["theme", "Par défaut"], ["fond", "Automatique"], ["perso", "Manuel"]]
+                    model: [["theme", T.t("Par défaut")], ["fond", T.t("Automatique")], ["perso", T.t("Manuel")]]
                     delegate: Rectangle {
                       required property var modelData
                       readonly property bool cur: s.colorMode === modelData[0]
@@ -425,7 +426,7 @@ Rectangle {
                   }
                 }
               }
-              Text { text: "Couleurs Windows"; font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: win.ink }
+              Text { text: T.t("Couleurs Windows"); font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: win.ink }
               Grid {
                 columns: 12; spacing: 6
                 Repeater {
@@ -450,8 +451,8 @@ Rectangle {
               }
             }
           }
-          SettingRow { icon: "lock"; title: "Écran de verrouillage"; sub: "Horloge, image et état de la musique"; chevron: true; onClicked: s.power("lock") }
-          SettingRow { icon: "settings_applications"; title: "Réglages avancés de Liquid Glass"; sub: "Tous les réglages du bureau"; chevron: true
+          SettingRow { icon: "lock"; title: T.t("Écran de verrouillage"); sub: T.t("Horloge, image et état de la musique"); chevron: true; onClicked: s.power("lock") }
+          SettingRow { icon: "settings_applications"; title: T.t("Réglages avancés de Liquid Glass"); sub: T.t("Tous les réglages du bureau"); chevron: true
             onClicked: { s.menuOpen = false; Quickshell.execDetached(["sh", "-c", "omarchy-shell shell toggle liquid-glass.settings"]) } }
         }
 
@@ -459,7 +460,7 @@ Rectangle {
         Column {
           visible: win.page === "apps"
           width: parent.width; spacing: 4
-          Section { text: "Applications installées" }
+          Section { text: T.t("Applications installées") }
           Repeater {
             model: win.page === "apps" ? s.apps("") : []
             delegate: SettingRow {
@@ -467,7 +468,7 @@ Rectangle {
               title: s.appName(modelData)
               sub: String(modelData.genericName || modelData.comment || "")
               appIcon: s.appIcon(modelData)
-              Button2 { label: "Ouvrir"; onClicked: s.launch(modelData) }
+              Button2 { label: T.t("Ouvrir"); onClicked: s.launch(modelData) }
             }
           }
         }
@@ -484,13 +485,13 @@ Rectangle {
               Column {
                 anchors.verticalCenter: parent.verticalCenter
                 Text { text: s.user.charAt(0).toUpperCase() + s.user.slice(1); font.family: win.font; font.pixelSize: 18; font.weight: Font.DemiBold; color: win.ink }
-                Text { text: "Compte local · Administrateur"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+                Text { text: T.t("Compte local · Administrateur"); font.family: win.font; font.pixelSize: 12; color: win.sub }
               }
             }
           }
-          SettingRow { icon: "lock"; title: "Verrouiller la session"; chevron: true; onClicked: s.power("lock") }
-          SettingRow { icon: "logout"; title: "Se déconnecter"; chevron: true; onClicked: s.power("logout") }
-          SettingRow { icon: "image"; title: "Votre photo"; sub: "Placer une image dans ~/.face" }
+          SettingRow { icon: "lock"; title: T.t("Verrouiller la session"); chevron: true; onClicked: s.power("lock") }
+          SettingRow { icon: "logout"; title: T.t("Se déconnecter"); chevron: true; onClicked: s.power("logout") }
+          SettingRow { icon: "image"; title: T.t("Votre photo"); sub: T.t("Placer une image dans ~/.face") }
         }
 
         // ======================================== Heure et langue
@@ -502,23 +503,23 @@ Rectangle {
             Column {
               x: 22; anchors.verticalCenter: parent.verticalCenter
               Text { text: Qt.formatTime(win.now, "HH:mm"); font.family: win.font; font.pixelSize: 34; font.weight: Font.DemiBold; color: win.ink }
-              Text { text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM yyyy")); font.family: win.font; font.pixelSize: 13; color: win.sub }
+              Text { text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM yyyy")); font.family: win.font; font.pixelSize: 13; color: win.sub }
             }
           }
-          SettingRow { icon: "public"; title: "Fuseau horaire"; sub: win.tz }
-          SettingRow { icon: "keyboard"; title: "Clavier"; sub: s.layout !== "" ? s.layout : "Français" }
-          SettingRow { icon: "translate"; title: "Langue d'affichage"; sub: "Français (France)" }
+          SettingRow { icon: "public"; title: T.t("Fuseau horaire"); sub: win.tz }
+          SettingRow { icon: "keyboard"; title: T.t("Clavier"); sub: s.layout !== "" ? s.layout : T.t("Français") }
+          SettingRow { icon: "translate"; title: T.t("Langue d'affichage"); sub: T.t("Français (France)") }
         }
 
         // ======================================== Accessibilité
         Column {
           visible: win.page === "access"
           width: parent.width; spacing: 4
-          SettingRow { icon: "animation"; title: "Effets d'animation"; sub: "Animations des fenêtres"
+          SettingRow { icon: "animation"; title: T.t("Effets d'animation"); sub: T.t("Animations des fenêtres")
             Toggle { on: true; onToggled: Quickshell.execDetached(["omarchy-toggle-animations"]) } }
-          SettingRow { icon: "dark_mode"; title: "Mode sombre"; sub: "Thème de contraste foncé"
+          SettingRow { icon: "dark_mode"; title: T.t("Mode sombre"); sub: T.t("Thème de contraste foncé")
             Toggle { on: s.wtone === "sombre"; onToggled: Quickshell.execDetached(["liquid-glass", "profile", "windows:" + (s.wtone === "sombre" ? "clair" : "sombre")]) } }
-          SettingRow { icon: "keyboard"; title: "Son des touches"; sub: "Clavier mécanique (Mechvibes)"; chevron: true
+          SettingRow { icon: "keyboard"; title: T.t("Son des touches"); sub: T.t("Clavier mécanique (Mechvibes)"); chevron: true
             onClicked: Quickshell.execDetached(["sh", "-c", "mechvibes || liquid-glass keys test"]) }
         }
 
@@ -534,14 +535,14 @@ Rectangle {
                 MIcon { anchors.centerIn: parent; icon: "sync"; size: 32; color: s.primary } }
               Column {
                 anchors.verticalCenter: parent.verticalCenter
-                Text { text: "Mises à jour d'Omarchy"; font.family: win.font; font.pixelSize: 18; font.weight: Font.DemiBold; color: win.ink }
-                Text { text: "Version " + (win.s.info.omarchy || "?") + " · système, paquets et firmware"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+                Text { text: T.t("Mises à jour d'Omarchy"); font.family: win.font; font.pixelSize: 18; font.weight: Font.DemiBold; color: win.ink }
+                Text { text: "Version " + (win.s.info.omarchy || "?") + T.t(" · système, paquets et firmware"); font.family: win.font; font.pixelSize: 12; color: win.sub }
               }
             }
             Rectangle {
               anchors.right: parent.right; anchors.rightMargin: 20; anchors.verticalCenter: parent.verticalCenter
               width: 230; height: 32; radius: 4; color: upma.containsMouse ? Qt.lighter(s.primary, 1.1) : s.primary
-              Text { anchors.centerIn: parent; text: "Rechercher des mises à jour"; font.family: win.font; font.pixelSize: 12; color: s.colOnPrimary }
+              Text { anchors.centerIn: parent; text: T.t("Rechercher des mises à jour"); font.family: win.font; font.pixelSize: 12; color: s.colOnPrimary }
               MouseArea { id: upma; anchors.fill: parent; hoverEnabled: true; onClicked: Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "omarchy-update"]) }
             }
           }
@@ -567,7 +568,7 @@ Rectangle {
         anchors.verticalCenter: parent.verticalCenter; spacing: 2
         Text { text: win.s.info.host || "PC"; font.family: win.font; font.pixelSize: 18; font.weight: Font.DemiBold; color: win.ink }
         Text { text: win.s.info.model || ""; font.family: win.font; font.pixelSize: 12; color: win.sub }
-        Text { text: "Renommer"; font.family: win.font; font.pixelSize: 12; color: s.primary; MouseArea { anchors.fill: parent; onClicked: win.go("about") } }
+        Text { text: T.t("Renommer"); font.family: win.font; font.pixelSize: 12; color: s.primary; MouseArea { anchors.fill: parent; onClicked: win.go("about") } }
       }
     }
   }
@@ -603,7 +604,7 @@ Rectangle {
     property bool on: false
     signal toggled()
     spacing: 12
-    Text { anchors.verticalCenter: parent.verticalCenter; text: tg.on ? "Activé" : "Désactivé"; font.family: win.font; font.pixelSize: 12; color: win.ink }
+    Text { anchors.verticalCenter: parent.verticalCenter; text: tg.on ? T.t("Activé") : T.t("Désactivé"); font.family: win.font; font.pixelSize: 12; color: win.ink }
     Rectangle {
       width: 40; height: 20; radius: 10
       color: tg.on ? s.primary : "transparent"
@@ -666,7 +667,7 @@ Rectangle {
     Rectangle {
       anchors.right: parent.right; anchors.rightMargin: 52; y: 14
       width: 80; height: 32; radius: 4; color: cpma.containsMouse ? win.cardHover : (win.dark ? "#373737" : "#fdfdfd"); border.width: 1; border.color: win.line
-      Text { id: cpTxt; anchors.centerIn: parent; text: "Copier"; font.family: win.font; font.pixelSize: 12; color: win.ink }
+      Text { id: cpTxt; anchors.centerIn: parent; text: T.t("Copier"); font.family: win.font; font.pixelSize: 12; color: win.ink }
       MouseArea { id: cpma; anchors.fill: parent; hoverEnabled: true; onClicked: { Quickshell.execDetached(["wl-copy", ex.copyText]); cpTxt.text = "Copié" } }
     }
     MIcon { anchors.right: parent.right; anchors.rightMargin: 18; y: 20; icon: ex.open ? "keyboard_arrow_up" : "keyboard_arrow_down"; size: 18; color: win.ink }

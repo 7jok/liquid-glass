@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Services.UPower
+import "T.js" as T
 
 // Liquid Glass — profil « Linux » (⌘⇧Espace, `liquid-glass profile linux`).
 //
@@ -77,19 +78,19 @@ Item {
   // Teintes de chaque style : [clé de config, [valeur, nom, couleur d'aperçu]…] (menus, sélecteur).
   readonly property var toneDefs: ({
     gouts: ["gouts_theme", omarchyThemes],
-    violet: ["violet_tone", [["nuit", "Nuit", "#4a3687"], ["aube", "Aube", "#d9c8f5"], ["rose", "Rose", "#f6cfdc"]]],
-    blanc: ["blanc_tone", [["pur", "Pur", "#f7f7f7"], ["creme", "Crème", "#efe3c8"]]],
-    sombre: ["sombre_tone", [["encre", "Encre", "#f2f2f2"], ["ambre", "Ambre", "#ffb454"], ["glace", "Glace", "#9fd8ff"],
-                            ["sang", "Sang", "#ff5a6e"], ["indigo", "Indigo", "#a6b1ff"]]],
-    jouet: ["jouet_tone", [["bonbon", "Bonbon", "#ff5fa2"], ["menthe", "Menthe", "#18b98f"], ["peche", "Pêche", "#ff7a45"]]],
-    mono: ["mono_tone", [["noir", "Noir", "#000000"], ["papier", "Papier", "#ffffff"], ["sakura", "Sakura", "#f7a8c4"]]],
-    windows: ["windows_tone", [["clair", "Clair", "#f3f3f3"], ["sombre", "Sombre", "#202020"]]],
-    cosmos: ["cosmos_tone", [["orbite", "Orbite", "#9fdcf5"], ["mousse", "Mousse", "#a8e0a4"], ["corail", "Corail", "#ffb09c"]]],
-    espace: ["espace_tone", [["bleu", "Bleu", "#8fc7ff"], ["mars", "Mars", "#ff8a6b"], ["nebuleuse", "Nébuleuse", "#c58bff"]]],
-    ruban: ["ruban_tone", [["bleu", "Bleu", "#19d3ff"], ["rouge", "Rouge", "#ff3b3b"], ["or", "Or", "#ffc800"]]],
-    foret: ["foret_tone", [["mousse", "Mousse", "#cfe89a"], ["cendre", "Cendre", "#f3b6c8"]]],
-    expressive: ["scheme", [["tonal-spot", "Tonal", "#adc6ff"], ["expressive", "Expressif", "#debcdf"], ["vibrant", "Vif", "#ffb4ab"],
-                            ["fruit-salad", "Fruité", "#ffb59c"], ["monochrome", "Mono", "#c4c6d0"]]]
+    violet: ["violet_tone", [["nuit", T.t("Nuit"), "#4a3687"], ["aube", T.t("Aube"), "#d9c8f5"], ["rose", "Rose", "#f6cfdc"]]],
+    blanc: ["blanc_tone", [["pur", T.t("Pur"), "#f7f7f7"], ["creme", T.t("Crème"), "#efe3c8"]]],
+    sombre: ["sombre_tone", [["encre", T.t("Encre"), "#f2f2f2"], ["ambre", T.t("Ambre"), "#ffb454"], ["glace", T.t("Glace"), "#9fd8ff"],
+                            ["sang", T.t("Sang"), "#ff5a6e"], ["indigo", "Indigo", "#a6b1ff"]]],
+    jouet: ["jouet_tone", [["bonbon", T.t("Bonbon"), "#ff5fa2"], ["menthe", T.t("Menthe"), "#18b98f"], ["peche", T.t("Pêche"), "#ff7a45"]]],
+    mono: ["mono_tone", [["noir", T.t("Noir"), "#000000"], ["papier", T.t("Papier"), "#ffffff"], ["sakura", "Sakura", "#f7a8c4"]]],
+    windows: ["windows_tone", [["clair", T.t("Clair"), "#f3f3f3"], ["sombre", T.t("Sombre"), "#202020"]]],
+    cosmos: ["cosmos_tone", [["orbite", T.t("Orbite"), "#9fdcf5"], ["mousse", T.t("Mousse"), "#a8e0a4"], ["corail", T.t("Corail"), "#ffb09c"]]],
+    espace: ["espace_tone", [["bleu", T.t("Bleu"), "#8fc7ff"], ["mars", "Mars", "#ff8a6b"], ["nebuleuse", T.t("Nébuleuse"), "#c58bff"]]],
+    ruban: ["ruban_tone", [["bleu", T.t("Bleu"), "#19d3ff"], ["rouge", T.t("Rouge"), "#ff3b3b"], ["or", T.t("Or"), "#ffc800"]]],
+    foret: ["foret_tone", [["mousse", T.t("Mousse"), "#cfe89a"], ["cendre", T.t("Cendre"), "#f3b6c8"]]],
+    expressive: ["scheme", [["tonal-spot", "Tonal", "#adc6ff"], ["expressive", T.t("Expressif"), "#debcdf"], ["vibrant", T.t("Vif"), "#ffb4ab"],
+                            ["fruit-salad", T.t("Fruité"), "#ffb59c"], ["monochrome", "Mono", "#c4c6d0"]]]
   })
   // Accents proposés (mode perso) : nuancier façon Windows / GNOME.
   readonly property var accentSwatches: ["#e8475f", "#ff7a45", "#ffb454", "#f4d03f", "#8bc34a", "#18b98f", "#26c6da",
@@ -773,16 +774,16 @@ Item {
   // Code WMO → [libellé, icône Material Symbols (jour), icône (nuit)].
   function weatherInfo(code) {
     var c = Number(code)
-    if (c === 0) return ["ciel dégagé", "clear_day", "clear_night"]
-    if (c <= 2) return ["quelques nuages", "partly_cloudy_day", "partly_cloudy_night"]
-    if (c === 3) return ["couvert", "cloud", "cloud"]
-    if (c <= 48) return ["brouillard", "foggy", "foggy"]
-    if (c <= 57) return ["bruine", "rainy_light", "rainy_light"]
-    if (c <= 67) return ["pluie", "rainy", "rainy"]
-    if (c <= 77) return ["neige", "weather_snowy", "weather_snowy"]
-    if (c <= 82) return ["averses", "rainy_heavy", "rainy_heavy"]
-    if (c <= 86) return ["averses de neige", "weather_snowy", "weather_snowy"]
-    return ["orages", "thunderstorm", "thunderstorm"]
+    if (c === 0) return [T.t("ciel dégagé"), "clear_day", "clear_night"]
+    if (c <= 2) return [T.t("quelques nuages"), "partly_cloudy_day", "partly_cloudy_night"]
+    if (c === 3) return [T.t("couvert"), "cloud", "cloud"]
+    if (c <= 48) return [T.t("brouillard"), "foggy", "foggy"]
+    if (c <= 57) return [T.t("bruine"), "rainy_light", "rainy_light"]
+    if (c <= 67) return [T.t("pluie"), "rainy", "rainy"]
+    if (c <= 77) return [T.t("neige"), "weather_snowy", "weather_snowy"]
+    if (c <= 82) return [T.t("averses"), "rainy_heavy", "rainy_heavy"]
+    if (c <= 86) return [T.t("averses de neige"), "weather_snowy", "weather_snowy"]
+    return [T.t("orages"), "thunderstorm", "thunderstorm"]
   }
   readonly property string weatherDesc: weather ? weatherInfo(weather.code)[0] : ""
   readonly property string weatherIcon: weather ? weatherInfo(weather.code)[weather.isDay ? 1 : 2] : "cloud_off"

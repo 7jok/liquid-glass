@@ -158,6 +158,20 @@ feuilles, sakura, serpent, jeu de la vie, tuyaux, radar, minuteur…), temps ent
 scènes, durée du minuteur, police et opacité. Chaque style a ses scènes et sa police ;
 **⌃⌘⇧ M** lance la page suivante. Réglages : `~/.config/liquid-glass/rice.json`.
 
+**Installer sur un autre Omarchy** : sur ta machine, `liquid-glass export` enregistre tes
+réglages et ta liste d'applications dans `state/` (à commiter). Sur l'autre machine :
+
+```
+git clone <ton dépôt> ~/Work/liquid-glass && cd ~/Work/liquid-glass
+./install.sh --packages --restore
+```
+
+Les fonds d'écran ne sont pas dans le dépôt : ils se téléchargent en arrière-plan après
+l'installation. Textures de Cosmos : Lune NASA LROC (domaine public), Terre NASA Blue
+Marble (domaine public), nuages Solar System Scope (CC BY 4.0).
+
+**Langue** : `liquid-glass lang en` ou `fr`, ou Réglages → Bureau Linux → Langue.
+
 **Son des touches** : `liquid-glass keys on` — clavier mécanique « creamy » sur tout le
 système (sons synthétisés : creamy, thocky, clicky ; ou un pack Mechvibes avec
 `liquid-glass keys import <dossier>`). Une seule fois : `sudo usermod -aG input $USER`.

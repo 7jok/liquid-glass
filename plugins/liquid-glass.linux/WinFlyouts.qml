@@ -7,6 +7,7 @@ import Quickshell.Widgets
 import Quickshell.Hyprland
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import "T.js" as T
 
 // Style « windows » : tous les volets qui sortent de la barre des tâches.
 //   menu Démarrer (⌘Espace)  : recherche, Épinglé, Toutes les applications, Recommandé, compte, marche/arrêt
@@ -110,7 +111,7 @@ PanelWindow {
         selectionColor: s.primary
         clip: true
         onTextChanged: win.query = text
-        Text { visible: parent.text === ""; text: "Rechercher des applications, des paramètres et des documents"; font: parent.font; color: win.sub }
+        Text { visible: parent.text === ""; text: T.t("Rechercher des applications, des paramètres et des documents"); font: parent.font; color: win.sub }
         Keys.onEscapePressed: { if (text !== "") text = ""; else win.close() }
         Keys.onDownPressed: win.sel = Math.min(win.sel + 1, Math.max(0, win.results.length - 1))
         Keys.onUpPressed: win.sel = Math.max(0, win.sel - 1)
@@ -126,7 +127,7 @@ PanelWindow {
       visible: win.query.trim() !== ""
       x: 32; y: 84
       width: parent.width - 64; height: parent.height - 84 - 70
-      Text { text: "Meilleur résultat"; font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: win.ink }
+      Text { text: T.t("Meilleur résultat"); font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: win.ink }
       Column {
         y: 28
         width: parent.width
@@ -156,7 +157,7 @@ PanelWindow {
           Row {
             x: 12; anchors.verticalCenter: parent.verticalCenter; spacing: 12
             MIcon { icon: "travel_explore"; size: 20; color: win.ink }
-            Text { text: "Rechercher « " + win.query + " » sur le Web"; font.family: win.font; font.pixelSize: 13; color: win.ink }
+            Text { text: T.t("Rechercher « ") + win.query + T.t(" » sur le Web"); font.family: win.font; font.pixelSize: 13; color: win.ink }
           }
           MouseArea { id: wma; anchors.fill: parent; hoverEnabled: true; onClicked: { Quickshell.execDetached(["xdg-open", "https://duckduckgo.com/?q=" + encodeURIComponent(win.query)]); win.close() } }
         }
@@ -168,8 +169,8 @@ PanelWindow {
       visible: win.query.trim() === "" && !win.showAll
       x: 32; y: 84
       width: parent.width - 64; height: parent.height - 84 - 70
-      Text { text: "Épinglé"; font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
-      SmallBtn { anchors.right: parent.right; y: -4; label: "Toutes les applications"; trailing: "chevron_right"; onClicked: win.showAll = true }
+      Text { text: T.t("Épinglé"); font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
+      SmallBtn { anchors.right: parent.right; y: -4; label: T.t("Toutes les applications"); trailing: "chevron_right"; onClicked: win.showAll = true }
       Grid {
         id: pinGrid
         y: 34
@@ -192,7 +193,7 @@ PanelWindow {
           }
         }
       }
-      Text { id: recTitle; y: pinGrid.y + pinGrid.height + 18; text: "Recommandé"; font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
+      Text { id: recTitle; y: pinGrid.y + pinGrid.height + 18; text: T.t("Recommandé"); font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
       Grid {
         y: recTitle.y + 32
         columns: 2
@@ -217,7 +218,7 @@ PanelWindow {
       Text {
         visible: win.recent.length === 0
         y: recTitle.y + 40; width: parent.width; horizontalAlignment: Text.AlignHCenter
-        text: "Vos fichiers récents apparaîtront ici."; font.family: win.font; font.pixelSize: 12; color: win.sub
+        text: T.t("Vos fichiers récents apparaîtront ici."); font.family: win.font; font.pixelSize: 12; color: win.sub
       }
     }
 
@@ -226,8 +227,8 @@ PanelWindow {
       visible: win.query.trim() === "" && win.showAll
       x: 32; y: 84
       width: parent.width - 64; height: parent.height - 84 - 70
-      Text { text: "Toutes les applications"; font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
-      SmallBtn { anchors.right: parent.right; y: -4; label: "Retour"; leading: "chevron_left"; onClicked: win.showAll = false }
+      Text { text: T.t("Toutes les applications"); font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
+      SmallBtn { anchors.right: parent.right; y: -4; label: T.t("Retour"); leading: "chevron_left"; onClicked: win.showAll = false }
       ListView {
         y: 34
         width: parent.width; height: parent.height - 34
@@ -293,14 +294,14 @@ PanelWindow {
       id: powerMenu
       anchors.right: parent.right; anchors.rightMargin: 24
       anchors.bottom: parent.bottom; anchors.bottomMargin: 58
-      items: [["lock", "Verrouiller", "lock"], ["suspend", "Mettre en veille", "bedtime"], ["poweroff", "Arrêter", "power_settings_new"], ["reboot", "Redémarrer", "restart_alt"]]
+      items: [["lock", T.t("Verrouiller"), "lock"], ["suspend", T.t("Mettre en veille"), "bedtime"], ["poweroff", T.t("Arrêter"), "power_settings_new"], ["reboot", T.t("Redémarrer"), "restart_alt"]]
       onPicked: function(id) { s.power(id) }
     }
     Menu {
       id: userMenu
       x: 32
       anchors.bottom: parent.bottom; anchors.bottomMargin: 58
-      items: [["settings", "Modifier les paramètres du compte", "manage_accounts"], ["lock", "Verrouiller", "lock"], ["logout", "Se déconnecter", "logout"]]
+      items: [["settings", T.t("Modifier les paramètres du compte"), "manage_accounts"], ["lock", T.t("Verrouiller"), "lock"], ["logout", T.t("Se déconnecter"), "logout"]]
       onPicked: function(id) { if (id === "settings") { s.closeAll(); s.toggleMenu("accounts") } else s.power(id) }
     }
   }
@@ -348,19 +349,19 @@ PanelWindow {
           onMore: win.quickPage = "bt"
         }
         QuickTile {
-          icon: "nightlight"; label: "Éclairage nocturne"; on: win.nightOn
+          icon: "nightlight"; label: T.t("Éclairage nocturne"); on: win.nightOn
           onToggled: { win.nightOn = !win.nightOn; Quickshell.execDetached(["omarchy-toggle-nightlight"]) }
         }
         QuickTile {
-          icon: "do_not_disturb_on"; label: "Ne pas déranger"; on: win.dndOn
+          icon: "do_not_disturb_on"; label: T.t("Ne pas déranger"); on: win.dndOn
           onToggled: { win.dndOn = !win.dndOn; Quickshell.execDetached(["omarchy-toggle-notification-silencing"]) }
         }
         QuickTile {
-          icon: "screenshot_region"; label: "Capture"; on: false
+          icon: "screenshot_region"; label: T.t("Capture"); on: false
           onToggled: { win.close(); Quickshell.execDetached(["sh", "-c", "sleep 0.3; omarchy-capture-screenshot"]) }
         }
         QuickTile {
-          icon: "wallpaper"; label: "Fond d'écran"; on: false
+          icon: "wallpaper"; label: T.t("Fond d'écran"); on: false
           onToggled: { win.close(); s.wallsOpen = true }
         }
       }
@@ -415,7 +416,7 @@ PanelWindow {
             x: 44; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 54
             Text { width: parent.width; elide: Text.ElideRight; text: net.isWifi ? net.modelData.ssid : (net.modelData.name || net.modelData.deviceName || ""); font.family: win.font; font.pixelSize: 13; color: win.ink }
             Text {
-              text: net.connected ? "Connecté" + (net.isWifi && net.modelData.secure ? ", sécurisé" : "") : (net.isWifi ? (net.modelData.secure ? "Sécurisé" : "Ouvert") : (net.modelData.paired ? "Associé" : ""))
+              text: net.connected ? T.t("Connecté") + (net.isWifi && net.modelData.secure ? T.t(", sécurisé") : "") : (net.isWifi ? (net.modelData.secure ? T.t("Sécurisé") : T.t("Ouvert")) : (net.modelData.paired ? T.t("Associé") : ""))
               font.family: win.font; font.pixelSize: 11; color: win.sub
             }
           }
@@ -465,21 +466,21 @@ PanelWindow {
       Item {
         width: parent.width; height: 24
         Text { text: "Notifications"; font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink }
-        SmallBtn { anchors.right: parent.right; label: "Historique"; onClicked: { win.close(); Quickshell.execDetached(["sh", "-c", "omarchy-shell notifications showHistory"]) } }
+        SmallBtn { anchors.right: parent.right; label: T.t("Historique"); onClicked: { win.close(); Quickshell.execDetached(["sh", "-c", "omarchy-shell notifications showHistory"]) } }
       }
-      Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: "Aucune nouvelle notification"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+      Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; text: T.t("Aucune nouvelle notification"); font.family: win.font; font.pixelSize: 12; color: win.sub }
       Rectangle { width: parent.width; height: 1; color: win.line }
       Item {
         width: parent.width; height: 28
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM"))
+          text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM"))
           font.family: win.font; font.pixelSize: 14; font.weight: Font.DemiBold; color: win.ink
         }
       }
       Item {
         width: parent.width; height: 28
-        Text { anchors.verticalCenter: parent.verticalCenter; text: win.cap(win.month.toLocaleDateString(Qt.locale("fr_FR"), "MMMM yyyy")); font.family: win.font; font.pixelSize: 13; color: win.ink }
+        Text { anchors.verticalCenter: parent.verticalCenter; text: win.cap(win.month.toLocaleDateString(Qt.locale(T.loc), "MMMM yyyy")); font.family: win.font; font.pixelSize: 13; color: win.ink }
         Row {
           anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter; spacing: 4
           SmallBtn { leading: "keyboard_arrow_up"; onClicked: win.month = new Date(win.month.getFullYear(), win.month.getMonth() - 1, 1) }
@@ -531,7 +532,7 @@ PanelWindow {
           width: 184; height: 184
           Column {
             x: 16; y: 14; spacing: 4
-            Text { text: "Météo"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+            Text { text: T.t("Météo"); font.family: win.font; font.pixelSize: 12; color: win.sub }
             Text { text: s.weather ? s.weather.city : "—"; font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: win.ink }
             Row {
               spacing: 8
@@ -547,7 +548,7 @@ PanelWindow {
           width: 184; height: 184
           Column {
             x: 16; y: 14; spacing: 10; width: parent.width - 32
-            Text { text: "Système"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+            Text { text: T.t("Système"); font.family: win.font; font.pixelSize: 12; color: win.sub }
             Repeater {
               model: [["Processeur", s.cpu], ["Mémoire", s.memPct], ["Disque", s.diskPct]]
               delegate: Column {
@@ -620,10 +621,10 @@ PanelWindow {
                 model: desk.wins.slice(0, 4)
                 delegate: Text { required property var modelData; width: 160; elide: Text.ElideRight; horizontalAlignment: Text.AlignHCenter; text: modelData.title; font.family: win.font; font.pixelSize: 10; color: win.ink }
               }
-              Text { visible: desk.wins.length === 0; text: "Vide"; font.family: win.font; font.pixelSize: 11; color: win.sub; anchors.horizontalCenter: parent.horizontalCenter }
+              Text { visible: desk.wins.length === 0; text: T.t("Vide"); font.family: win.font; font.pixelSize: 11; color: win.sub; anchors.horizontalCenter: parent.horizontalCenter }
             }
           }
-          Text { x: 12; y: 118; text: "Bureau " + desk.ws; font.family: win.font; font.pixelSize: 12; color: win.ink }
+          Text { x: 12; y: 118; text: T.t("Bureau ") + desk.ws; font.family: win.font; font.pixelSize: 12; color: win.ink }
           MouseArea {
             id: dkma; anchors.fill: parent; hoverEnabled: true
             onClicked: { Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + desk.ws + "\" })"]); win.close() }

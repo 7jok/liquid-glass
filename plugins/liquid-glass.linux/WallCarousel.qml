@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Carrousel de fonds façon Serpantinum : cartes en parallélogramme, la carte du
 // centre large, les voisines en lamelles qui rapetissent. Puces de catégorie
@@ -22,8 +23,8 @@ PanelWindow {
   WlrLayershell.keyboardFocus: s.testing ? WlrKeyboardFocus.None : WlrKeyboardFocus.Exclusive
 
   readonly property string home: Quickshell.env("HOME")
-  readonly property var cats: [["all", "Tout"], ["lain", "Lain"], ["anime", "Anime"], ["abstract", "Abstrait"], ["ascii", "ASCII"],
-                               ["minimal", "Minimal"], ["fruit", "Fruits"], ["espace", "Espace"], ["distros", "Distros"], ["genere", "Générés"]]
+  readonly property var cats: [["all", T.t("Tout")], ["lain", "Lain"], ["anime", "Anime"], ["abstract", T.t("Abstrait")], ["ascii", "ASCII"],
+                               ["minimal", "Minimal"], ["fruit", T.t("Fruits")], ["espace", T.t("Espace")], ["distros", "Distros"], ["genere", T.t("Générés")]]
   property string cat: "all"
   property var all: []
   // Filtre couleur (une teinte dominante par fond, calculée par `liquid-glass wall-colors`)
@@ -316,7 +317,7 @@ PanelWindow {
             MIcon { anchors.verticalCenter: parent.verticalCenter; icon: "search"; size: 14; color: win.searching ? win.s.colOnPrimary : win.s.colOnSurfaceVariant }
             Text {
               anchors.verticalCenter: parent.verticalCenter
-              text: win.query !== "" ? win.query : (win.searching ? "Tape un nom" : "Touche /")
+              text: win.query !== "" ? win.query : (win.searching ? T.t("Tape un nom") : T.t("Touche /"))
               font.family: win.s.sansFont; font.pixelSize: 12
               color: win.searching ? win.s.colOnPrimary : win.s.colOnSurfaceVariant
             }
@@ -325,7 +326,7 @@ PanelWindow {
         }
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: win.items.length + (win.items.length > 1 ? " fonds" : " fond")
+          text: win.items.length + (win.items.length > 1 ? T.t(" fonds") : T.t(" fond"))
           font.family: win.s.sansFont; font.pixelSize: 11; color: "white"
         }
       }
@@ -353,7 +354,7 @@ PanelWindow {
           }
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: "Entrée pour appliquer"
+            text: T.t("Entrée pour appliquer")
             font.family: win.s.sansFont
             font.pixelSize: 11
             color: win.s.colOnSurfaceVariant

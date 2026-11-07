@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Tableau de bord du style Espace, au centre de l'écran : heure, calendrier,
 // météo, lecteur avec égaliseur, batterie et jauges.
@@ -45,7 +46,7 @@ PanelWindow {
     // Calendrier
     Column {
       x: 24; y: 22; width: 250; spacing: 8
-      Text { text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "MMMM yyyy"); font.family: win.font; font.pixelSize: 13; font.weight: Font.Bold; color: win.ink }
+      Text { text: win.now.toLocaleDateString(Qt.locale(T.loc), "MMMM yyyy"); font.family: win.font; font.pixelSize: 13; font.weight: Font.Bold; color: win.ink }
       Grid {
         columns: 7; rowSpacing: 3; columnSpacing: 0
         Repeater {
@@ -85,7 +86,7 @@ PanelWindow {
       }
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM")
+        text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM")
         font.family: win.font; font.pixelSize: 12; color: win.sub
       }
       Item { width: 1; height: 14 }
@@ -130,7 +131,7 @@ PanelWindow {
       }
       Column {
         y: 112; width: parent.width; spacing: 1
-        Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: win.s.trackTitle || "Rien en lecture"; font.family: win.font; font.pixelSize: 14; font.weight: Font.Bold; color: win.ink }
+        Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: win.s.trackTitle || T.t("Rien en lecture"); font.family: win.font; font.pixelSize: 14; font.weight: Font.Bold; color: win.ink }
         Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: win.s.trackArtist; font.family: win.font; font.pixelSize: 11; color: win.sub }
       }
       Row {
@@ -175,7 +176,7 @@ PanelWindow {
       Column {
         x: 286; anchors.verticalCenter: parent.verticalCenter; spacing: 6
         Text { text: win.s.user; font.family: win.font; font.pixelSize: 15; font.weight: Font.Bold; color: win.ink }
-        Text { text: "Allumé depuis " + win.s.uptimeText; font.family: win.font; font.pixelSize: 11; color: win.sub }
+        Text { text: T.t("Allumé depuis ") + win.s.uptimeText; font.family: win.font; font.pixelSize: 11; color: win.sub }
       }
       Row {
         anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter

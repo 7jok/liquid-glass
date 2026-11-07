@@ -6,6 +6,7 @@ import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Pipewire
 import Quickshell.Bluetooth
+import "T.js" as T
 
 // Barre façon end4-pC (style « Float ») : une bande arrondie aux couleurs
 // Material You, découpée en îlots.
@@ -119,7 +120,7 @@ PanelWindow {
           Text {
             id: top1
             width: parent.width
-            text: winLabel.empty ? "Bureau" : (winLabel.appId !== "" ? winLabel.appId : "Fenêtre")
+            text: winLabel.empty ? T.t("Bureau") : (winLabel.appId !== "" ? winLabel.appId : T.t("Fenêtre"))
             elide: Text.ElideRight
             font.family: s.sansFont
             font.pixelSize: 9
@@ -128,7 +129,7 @@ PanelWindow {
           Text {
             id: top2
             width: parent.width
-            text: winLabel.empty ? "Espace " + win.activeWs : String(winLabel.tl.title || "")
+            text: winLabel.empty ? T.t("Espace ") + win.activeWs : String(winLabel.tl.title || "")
             elide: Text.ElideRight
             font.family: s.sansFont
             font.pixelSize: 12
@@ -300,7 +301,7 @@ PanelWindow {
           Text {
             anchors.verticalCenter: parent.verticalCenter
             text: {
-              var d = win.now.toLocaleDateString(Qt.locale("fr_FR"), "ddd dd/MM")
+              var d = win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd/MM")
               return d.charAt(0).toUpperCase() + d.slice(1) + "  •  " + Qt.formatTime(win.now, "HH:mm")
             }
             font.family: s.sansFont

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Wayland
+import "T.js" as T
 
 // Style Cosmos : le bureau est un système solaire. La Terre tourne sur elle-même, la
 // Lune tourne autour et passe devant comme derrière, et les widgets sont des
@@ -127,7 +128,7 @@ PanelWindow {
       }
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM").toUpperCase()
+        text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM").toUpperCase()
         font.family: win.font; font.pixelSize: 15; font.weight: Font.Bold; font.letterSpacing: 2; color: win.ink
       }
     }
@@ -269,7 +270,7 @@ PanelWindow {
     id: netSat
     Grid {
       columns: 2; spacing: 3
-      Chip { icon: win.s.netDev === "" ? "wifi_off" : "wifi"; label: win.s.netDev === "" ? "Hors ligne" : "Réseau"; lit: win.s.netDev !== "" }
+      Chip { icon: win.s.netDev === "" ? "wifi_off" : "wifi"; label: win.s.netDev === "" ? T.t("Hors ligne") : T.t("Réseau"); lit: win.s.netDev !== "" }
       Chip { visible: win.s.batteryPct >= 0; icon: "battery_full"; label: win.s.batteryPct + " %" }
     }
   }
@@ -279,7 +280,7 @@ PanelWindow {
       spacing: 6
       MIcon { anchors.verticalCenter: parent.verticalCenter; icon: win.s.playing ? "equalizer" : "music_note"; size: 15; color: win.acc }
       Column {
-        Text { width: 96; elide: Text.ElideRight; text: win.s.trackTitle || "Pas de musique"; font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold; color: win.ink }
+        Text { width: 96; elide: Text.ElideRight; text: win.s.trackTitle || T.t("Pas de musique"); font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold; color: win.ink }
         Text { width: 96; elide: Text.ElideRight; text: win.s.trackArtist; font.family: win.font; font.pixelSize: 9; color: win.sub }
       }
     }

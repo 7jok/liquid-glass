@@ -6,6 +6,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Style Espace : barre fine et sombre, presque invisible sur le ciel. Bureaux en
 // points, morceau et heure au centre, état en petites pastilles de couleur.
@@ -91,7 +92,7 @@ PanelWindow {
       }
       Text {
         anchors.horizontalCenter: parent.horizontalCenter
-        text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "ddd d MMM")
+        text: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd d MMM")
         font.family: win.font; font.pixelSize: 9; color: s.colOnSurfaceVariant
       }
       }
@@ -134,7 +135,7 @@ PanelWindow {
     Rectangle {
       id: modePill
       property string mode: "dwindle"
-      readonly property var names: ({ dwindle: "Grille", scrolling: "Ouvert", floating: "Libre" })
+      readonly property var names: ({ dwindle: T.t("Grille"), scrolling: T.t("Ouvert"), floating: T.t("Libre") })
       anchors.verticalCenter: parent.verticalCenter
       width: modeRow.implicitWidth + 12; height: 18; radius: 5
       color: mma.containsMouse ? s.primary : s.alpha(s.colOnSurface, 0.14)
@@ -148,7 +149,7 @@ PanelWindow {
         }
         Text {
           anchors.verticalCenter: parent.verticalCenter
-          text: modePill.names[modePill.mode] || "Grille"
+          text: modePill.names[modePill.mode] || T.t("Grille")
           font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold
           color: mma.containsMouse ? s.colOnPrimary : s.colOnSurface
         }
@@ -174,7 +175,7 @@ PanelWindow {
       MIcon { anchors.centerIn: parent; icon: "bar_chart"; size: 13; color: tma.containsMouse ? s.colOnPrimary : s.colOnSurface }
       MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; onClicked: s.togglePanel("stats") }
     }
-    Chip { panel: "net"; fill: s.primary; ink: s.colOnPrimary; icon: s.netDev === "" ? "wifi_off" : (s.netWifi ? "wifi" : "lan"); label: s.netDev === "" ? "Hors ligne" : (s.netWifi ? "Wi-Fi" : "Ethernet") }
+    Chip { panel: "net"; fill: s.primary; ink: s.colOnPrimary; icon: s.netDev === "" ? "wifi_off" : (s.netWifi ? "wifi" : "lan"); label: s.netDev === "" ? T.t("Hors ligne") : (s.netWifi ? "Wi-Fi" : "Ethernet") }
     Chip { fill: s.tertiary; ink: s.colOnPrimary; icon: win.muted ? "volume_off" : "volume_up"; label: win.muted ? "--" : win.vol + " %" }
     Chip {
       visible: s.batteryPct >= 0

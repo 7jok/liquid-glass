@@ -6,6 +6,8 @@
 #   ./install.sh --packages    installe aussi les paquets (sudo + yay, interactif)
 #   ./install.sh --no-backup   ne crée pas de sauvegarde (déconseillé au 1er lancement)
 #   ./install.sh --animated    génère aussi les fonds d'écran animés (ffmpeg, ~10 min)
+#   ./install.sh --restore     remet tes réglages du dossier state/ (liquid-glass export)
+#   ./install.sh --no-walls    ne télécharge pas les fonds d'écran en arrière-plan
 #
 # Ce que fait le script (rien dans /usr/share/omarchy n'est touché) :
 #   1. sauvegarde ~/.config-backup-<date> (+ restore.sh) au premier lancement
@@ -24,12 +26,16 @@ MARKER="$STATE/.installed"
 DO_PACKAGES=0
 DO_BACKUP=1
 DO_ANIMATED=0
+DO_RESTORE=0
+DO_WALLS=1
 for arg in "$@"; do
   case "$arg" in
     --packages) DO_PACKAGES=1 ;;
     --no-backup) DO_BACKUP=0 ;;
     --animated) DO_ANIMATED=1 ;;
-    -h|--help) sed -n '2,16p' "$0"; exit 0 ;;
+    --restore) DO_RESTORE=1 ;;
+    --no-walls) DO_WALLS=0 ;;
+    -h|--help) sed -n '2,18p' "$0"; exit 0 ;;
     *) echo "Option inconnue : $arg" >&2; exit 2 ;;
   esac
 done
@@ -71,6 +77,12 @@ fi
 if ((DO_PACKAGES)); then
   say "Paquets (sudo / yay)"
   "$REPO/scripts/install-packages.sh"
+  if ((DO_RESTORE)) && [ -s "$REPO/state/packages.txt" ]; then
+    say "Tes applications (state/packages.txt)"
+    # Seuls les paquets des dépôts officiels : les autres restent listés dans state/aur.txt.
+    comm -12 <(sort "$REPO/state/packages.txt") <(pacman -Slq | sort -u) | sudo pacman -S --needed --noconfirm -
+    [ -s "$REPO/state/aur.txt" ] && command -v yay >/dev/null && yay -S --needed --noconfirm - < "$REPO/state/aur.txt"
+  fi
 else
   for p in spotify-launcher playerctl cava inter-font mactahoe-gtk-theme; do
     pacman -Q "$p" &>/dev/null || { warn "paquet $p absent — lancer ./install.sh --packages (ou scripts/install-packages.sh)"; break; }
@@ -92,6 +104,8 @@ link "$REPO/themes/lain" "$CFG/omarchy/themes/lain"
 "$REPO/scripts/gen-linux-themes.py" >/dev/null
 compgen -G "$REPO/themes/violet/backgrounds/*.jpg" >/dev/null || nice -n 10 "$REPO/scripts/gen-linux-wallpapers.py" >/dev/null
 for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace cosmos debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
+mkdir -p "$REPO/themes/cosmos/backgrounds"
+[ -e "$REPO/themes/cosmos/backgrounds/01-cosmos.jpg" ] || cp "$REPO/plugins/liquid-glass.linux/cosmos/sky.jpg" "$REPO/themes/cosmos/backgrounds/01-cosmos.jpg"
 ok "thèmes liés dans ~/.config/omarchy/themes"
 say "Polices du bureau Linux (Material Symbols, Google Sans Flex, Rubik)"
 "$REPO/scripts/fetch-fonts.sh" && ok "polices dans ~/.local/share/fonts/liquid-glass"
@@ -110,6 +124,8 @@ say "Configuration centrale"
 mkdir -p "$STATE"
 if [ ! -f "$STATE/config.toml" ]; then
   cp "$REPO/config/config.toml" "$STATE/config.toml"; ok "config.toml créée"
+elif ((DO_RESTORE)) && [ -f "$REPO/state/config.toml" ]; then
+  :   # remplacée juste après
 else
   # Ajoute les sections apparues dans les versions suivantes, sans toucher aux valeurs.
   python3 - "$REPO/config/config.toml" "$STATE/config.toml" <<'PY'
@@ -125,6 +141,13 @@ if added:
     print("    + sections ajoutées : " + ", ".join(b[1:b.index("]")] for b in added))
 PY
   ok "config.toml conservée"
+fi
+
+if ((DO_RESTORE)) && [ -d "$REPO/state" ]; then
+  for f in config.toml rice.json linux-layout.json; do
+    [ -f "$REPO/state/$f" ] && cp "$REPO/state/$f" "$STATE/$f"
+  done
+  ok "réglages remis depuis state/"
 fi
 
 # ---------------------------------------------------------------- 6. Hyprland
@@ -170,6 +193,7 @@ for dir in "$REPO"/plugins/liquid-glass.*; do
   omarchy plugin validate "$CFG/omarchy/plugins/$name" >/dev/null 2>&1 || warn "validation de $name : à vérifier (omarchy plugin validate)"
 done
 ok "$(ls -d "$REPO"/plugins/liquid-glass.* | wc -l) plugins copiés"
+"$HOME/.local/bin/liquid-glass" lang "$("$HOME/.local/bin/liquid-glass" lang)" >/dev/null
 
 # ---------------------------------------------------------------- 10. shell.json
 say "shell.json (barre, dock, plugins)"
@@ -220,6 +244,14 @@ hyprctl reload >/dev/null
 errors="$(hyprctl configerrors)"
 [ -z "$errors" ] && ok "Hyprland : aucune erreur" || { warn "Hyprland signale :"; echo "$errors"; }
 timeout 25 omarchy restart shell >/dev/null 2>&1 || warn "redémarrage du shell : relancer « omarchy restart shell »"
+
+# Fonds d'écran : hors du dépôt (droits d'auteur et poids), téléchargés en arrière-plan.
+if ((DO_WALLS)); then
+  mkdir -p "$HOME/.cache/liquid-glass"
+  nohup nice -n 15 sh -c "'$HOME/.local/bin/liquid-glass' wallpapers fetch; '$REPO/scripts/fetch-style-wallpapers.py'" \
+    >"$HOME/.cache/liquid-glass/install-fonds.log" 2>&1 &
+  ok "fonds d'écran en téléchargement (~/.cache/liquid-glass/install-fonds.log)"
+fi
 
 date -Iseconds > "$MARKER"
 say "Terminé. ⌘K pour l'aide-mémoire, menu  → Réglages Liquid Glass pour tout ajuster."

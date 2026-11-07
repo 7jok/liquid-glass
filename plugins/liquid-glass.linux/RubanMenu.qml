@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Lanceur du style Rubans : le fond passe à l'accent, un grand mot vertical,
 // et une liste en biais dont les lignes glissent l'une après l'autre.
@@ -69,7 +70,7 @@ PanelWindow {
         Keys.onReturnPressed: if (win.results.length) win.s.launch(win.results[win.sel])
         Text {
           visible: input.text === ""; anchors.verticalCenter: parent.verticalCenter
-          text: "QUE LANCER ?"
+          text: T.t("QUE LANCER ?")
           font.family: win.font; font.pixelSize: 22; font.weight: Font.Black; font.italic: true
           color: win.s.alpha(win.s.colOnPrimary, 0.55)
         }

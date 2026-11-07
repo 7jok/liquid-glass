@@ -8,6 +8,10 @@ REPO_PKGS=(
   spotify-launcher   # client Spotify officiel (installe/maintient le binaire Spotify)
   playerctl          # contrôle MPRIS en ligne de commande (raccourcis média)
   cava               # visualiseur audio (optionnel, désactivé par défaut)
+  foot               # terminal des rices (⌃⌘M)
+  ffmpeg             # scène Vidéo en terminal, fonds animés
+  fastfetch          # fiches système de chaque bureau
+  rsync              # scripts/sync-from-system.sh
   matugen            # extraction de palette depuis la pochette
   inter-font         # police d'interface proche de SF Pro
   sassc              # requis par MacTahoe : sinon son script lance un « pacman -Syyu »

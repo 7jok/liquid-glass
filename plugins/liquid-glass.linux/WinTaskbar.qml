@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Pipewire
+import "T.js" as T
 
 // Style « windows » : barre des tâches façon Windows 11, en bas, centrée.
 //   gauche : météo · centre : Démarrer, Rechercher, Vue des tâches, applis épinglées
@@ -119,7 +120,7 @@ PanelWindow {
         x: 12
         spacing: 8
         MIcon { anchors.verticalCenter: parent.verticalCenter; icon: "search"; size: 18; color: win.ink }
-        Text { anchors.verticalCenter: parent.verticalCenter; text: "Rechercher"; font.family: s.sansFont; font.pixelSize: 13; color: s.colOnSurfaceVariant }
+        Text { anchors.verticalCenter: parent.verticalCenter; text: T.t("Rechercher"); font.family: s.sansFont; font.pixelSize: 13; color: s.colOnSurfaceVariant }
       }
       MouseArea { id: searchMa; anchors.fill: parent; hoverEnabled: true; onClicked: s.toggleLauncher() }
     }

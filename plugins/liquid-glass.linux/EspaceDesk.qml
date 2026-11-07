@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import "T.js" as T
 
 // Bureau du style Espace : les paroles défilent au centre du ciel, l'horloge à
 // planètes tourne en bas à droite, l'activité du processeur se remplit en haut à droite.
@@ -48,7 +49,7 @@ PanelWindow {
     width: heat.width + 20; height: heat.height + 34
     radius: 10; color: win.s.alpha(win.s.surface, 0.6)
     border.width: 1; border.color: win.s.alpha(win.s.colOnSurface, 0.1)
-    Text { x: 10; y: 8; text: "Activité · 1 h"; font.family: win.font; font.pixelSize: 10; color: win.s.colOnSurfaceVariant }
+    Text { x: 10; y: 8; text: T.t("Activité · 1 h"); font.family: win.font; font.pixelSize: 10; color: win.s.colOnSurfaceVariant }
     Grid {
       id: heat
       x: 10; y: 26; columns: 12; spacing: 3

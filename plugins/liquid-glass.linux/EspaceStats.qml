@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Widgets
+import "T.js" as T
 
 // Temps d'écran : par application aujourd'hui, sur sept jours, et heure par heure.
 // Ne montre que ce que Linux.qml compte : nom d'application et durée, en local.
@@ -43,13 +44,13 @@ EspacePanel {
 
   Column {
     x: 24; y: 22; width: 340; spacing: 2
-    Text { text: "Aujourd'hui"; font.family: p.font; font.pixelSize: 12; color: p.sub }
+    Text { text: T.t("Aujourd'hui"); font.family: p.font; font.pixelSize: 12; color: p.sub }
     Text { text: p.dur(p.todaySec); font.family: p.font; font.pixelSize: 40; font.weight: Font.Bold; color: p.ink }
     Item { width: 1; height: 12 }
     Text {
       visible: p.top.length === 0
       width: parent.width; wrapMode: Text.WordWrap
-      text: "Le compteur vient de démarrer. Reviens dans quelques minutes."
+      text: T.t("Le compteur vient de démarrer. Reviens dans quelques minutes.")
       font.family: p.font; font.pixelSize: 12; color: p.sub
     }
     Column {
@@ -94,7 +95,7 @@ EspacePanel {
   // Sept jours
   Item {
     x: 412; y: 22; width: parent.width - 436; height: 180
-    Text { text: "Sept jours"; font.family: p.font; font.pixelSize: 12; color: p.sub }
+    Text { text: T.t("Sept jours"); font.family: p.font; font.pixelSize: 12; color: p.sub }
     Row {
       y: 24; width: parent.width; height: 156; spacing: 14
       Repeater {
@@ -123,7 +124,7 @@ EspacePanel {
   // Heure par heure
   Item {
     x: 412; y: 222; width: parent.width - 436; height: 226
-    Text { text: "Heure par heure"; font.family: p.font; font.pixelSize: 12; color: p.sub }
+    Text { text: T.t("Heure par heure"); font.family: p.font; font.pixelSize: 12; color: p.sub }
     Column {
       y: 24; spacing: 4
       Repeater {

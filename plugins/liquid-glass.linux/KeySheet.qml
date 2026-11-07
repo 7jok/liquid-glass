@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import "T.js" as T
 
 // ⌘K du bureau Linux : tous les raccourcis, lus en direct dans Hyprland
 // (`hyprctl binds -j`), à la place de la liste d'Omarchy. Groupés (Ce bureau,
@@ -217,8 +218,8 @@ PanelWindow {
       }
       Column {
         anchors.verticalCenter: parent.verticalCenter
-        Text { text: "Raccourcis"; font.family: win.titleFont; font.pixelSize: 24; font.weight: Font.Bold; color: win.ink }
-        Text { text: "Bureau " + (s.style === "gouts" ? "Mes goûts" : s.style.charAt(0).toUpperCase() + s.style.slice(1)) + " · lus en direct dans Hyprland"; font.family: win.font; font.pixelSize: 12; color: win.sub }
+        Text { text: T.t("Raccourcis"); font.family: win.titleFont; font.pixelSize: 24; font.weight: Font.Bold; color: win.ink }
+        Text { text: T.t("Bureau ") + (s.style === "gouts" ? T.t("Mes goûts") : s.style.charAt(0).toUpperCase() + s.style.slice(1)) + T.t(" · lus en direct dans Hyprland"); font.family: win.font; font.pixelSize: 12; color: win.sub }
       }
     }
     Rectangle {
@@ -235,7 +236,7 @@ PanelWindow {
         font.family: win.font; font.pixelSize: 14; color: win.ink; clip: true
         selectionColor: win.acc
         onTextChanged: win.query = text
-        Text { visible: parent.text === ""; text: "Filtrer (ex. capture, fenêtre, son)"; font: parent.font; color: win.sub }
+        Text { visible: parent.text === ""; text: T.t("Filtrer (ex. capture, fenêtre, son)"); font: parent.font; color: win.sub }
         Keys.onEscapePressed: { if (text !== "") text = ""; else s.closeAll() }
         Keys.onDownPressed: flick.contentY = Math.min(flick.contentHeight - flick.height, flick.contentY + 120)
         Keys.onUpPressed: flick.contentY = Math.max(0, flick.contentY - 120)
@@ -300,7 +301,7 @@ PanelWindow {
     Text {
       visible: win.model.length === 0
       anchors.centerIn: parent
-      text: win.binds.length ? "Aucun raccourci pour « " + win.query + " »" : "Lecture des raccourcis…"
+      text: win.binds.length ? T.t("Aucun raccourci pour « ") + win.query + " »" : T.t("Lecture des raccourcis…")
       font.family: win.font; font.pixelSize: 14; color: win.sub
     }
   }

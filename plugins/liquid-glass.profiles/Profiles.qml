@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import qs.Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — sélecteur de bureaux (⌘⇧Espace), à la place de la liste de
 // thèmes d'Omarchy : le Mac, l'Omarchy d'origine et les styles du bureau Linux
@@ -61,99 +62,99 @@ Item {
   //   ink/sub2/acc : couleurs de la maquette ; font : police du nom ; mock : type de maquette ;
   //   key/tones : clé [linux] et teintes (chaque teinte peut remplacer bg/ink/sub2/acc).
   readonly property var items: [
-    { id: "mac", name: "Mac", sub: "Liquid Glass, Dock, menus", bg: themes + "liquid-glass/backgrounds/01-tahoe-day.jpg",
+    { id: "mac", name: "Mac", sub: T.t("Liquid Glass, Dock, menus"), bg: themes + "liquid-glass/backgrounds/01-tahoe-day.jpg",
       ink: "#ffffff", sub2: "#e8eef8", acc: "#0a84ff", font: "Inter", mock: "mac" },
-    { id: "omarchy", name: "Omarchy", sub: "Tel qu'à l'installation", bg: "",
+    { id: "omarchy", name: "Omarchy", sub: T.t("Tel qu'à l'installation"), bg: "",
       ink: "#e8e8e8", sub2: "#9a9a9a", acc: "#e8e8e8", font: "JetBrainsMono Nerd Font", mock: "omarchy" },
-    { id: "windows", name: "Windows", sub: "Démarrer, Paramètres", bg: themes + "windows/backgrounds/01-windows-bloom.jpg",
+    { id: "windows", name: "Windows", sub: T.t("Démarrer, Paramètres"), bg: themes + "windows/backgrounds/01-windows-bloom.jpg",
       ink: "#1a1a1a", sub2: "#5d5d5d", acc: "#005fb8", font: "Noto Sans", mock: "win", key: "windows_tone",
       tones: [
-        { id: "clair", name: "Clair", acc: "#005fb8" },
-        { id: "sombre", name: "Sombre", bg: themes + "windows-sombre/backgrounds/01-windows-nuit.jpg", ink: "#f3f3f3", sub2: "#a8a8a8", acc: "#4cc2ff" }
+        { id: "clair", name: T.t("Clair"), acc: "#005fb8" },
+        { id: "sombre", name: T.t("Sombre"), bg: themes + "windows-sombre/backgrounds/01-windows-nuit.jpg", ink: "#f3f3f3", sub2: "#a8a8a8", acc: "#4cc2ff" }
       ] },
-    { id: "mono", name: "Mono", sub: "Caelestia : cadre, tableau de bord", bg: themes + "mono/backgrounds/01-mono-trame.jpg",
+    { id: "mono", name: "Mono", sub: T.t("Caelestia : cadre, tableau de bord"), bg: themes + "mono/backgrounds/01-mono-trame.jpg",
       ink: "#f2f2f2", sub2: "#8d8d8d", acc: "#f2f2f2", font: "Rubik", mock: "mono", key: "mono_tone",
       tones: [
-        { id: "noir", name: "Noir", acc: "#f2f2f2" },
-        { id: "papier", name: "Papier", bg: themes + "mono-papier/backgrounds/01-papier.jpg", ink: "#161616", sub2: "#6a6a6a", acc: "#1a1a1a", frame: "#ffffff" },
+        { id: "noir", name: T.t("Noir"), acc: "#f2f2f2" },
+        { id: "papier", name: T.t("Papier"), bg: themes + "mono-papier/backgrounds/01-papier.jpg", ink: "#161616", sub2: "#6a6a6a", acc: "#1a1a1a", frame: "#ffffff" },
         { id: "sakura", name: "Sakura", bg: themes + "mono-sakura/backgrounds/01-sakura.jpg", ink: "#fbe6ee", sub2: "#c9a3b3", acc: "#f7a8c4", frame: "#160d12" }
       ] },
-    { id: "foret", name: "Forêt", sub: "Puces, météo en orbite", bg: themes + "foret/backgrounds/01-foret-lac.jpg",
+    { id: "foret", name: T.t("Forêt"), sub: T.t("Puces, météo en orbite"), bg: themes + "foret/backgrounds/01-foret-lac.jpg",
       ink: "#e9eedd", sub2: "#9fa88a", acc: "#cfe89a", font: "JetBrainsMono Nerd Font", mock: "chips", key: "foret_tone",
       tones: [
-        { id: "mousse", name: "Mousse", acc: "#cfe89a" },
-        { id: "cendre", name: "Cendre", bg: themes + "foret/backgrounds/03-foret-nuit.jpg", acc: "#f4b6c8", sub2: "#b7a0a8" }
+        { id: "mousse", name: T.t("Mousse"), acc: "#cfe89a" },
+        { id: "cendre", name: T.t("Cendre"), bg: themes + "foret/backgrounds/03-foret-nuit.jpg", acc: "#f4b6c8", sub2: "#b7a0a8" }
       ] },
-    { id: "blanc", name: "Blanc", sub: "Barre texte, bords durs", bg: themes + "blanc/backgrounds/01-blanc-ondes.jpg",
+    { id: "blanc", name: T.t("Blanc"), sub: T.t("Barre texte, bords durs"), bg: themes + "blanc/backgrounds/01-blanc-ondes.jpg",
       ink: "#141414", sub2: "#6e6e6e", acc: "#141414", font: "JetBrainsMono Nerd Font", mock: "paper", key: "blanc_tone",
       tones: [
-        { id: "pur", name: "Pur", acc: "#141414" },
-        { id: "creme", name: "Crème", bg: themes + "blanc/backgrounds/02-creme-ondes.jpg", ink: "#2b2418", sub2: "#7d705c", acc: "#8a6a3c" }
+        { id: "pur", name: T.t("Pur"), acc: "#141414" },
+        { id: "creme", name: T.t("Crème"), bg: themes + "blanc/backgrounds/02-creme-ondes.jpg", ink: "#2b2418", sub2: "#7d705c", acc: "#8a6a3c" }
       ] },
-    { id: "sombre", name: "Sombre", sub: "Mur de tuiles, mot géant", bg: themes + "sombre/backgrounds/01-sombre-crêtes.jpg",
+    { id: "sombre", name: T.t("Sombre"), sub: T.t("Mur de tuiles, mot géant"), bg: themes + "sombre/backgrounds/01-sombre-crêtes.jpg",
       ink: "#ededed", sub2: "#8c8c8c", acc: "#f2f2f2", font: "Silkscreen", mock: "wall", key: "sombre_tone",
       tones: [
-        { id: "encre", name: "Encre", acc: "#f2f2f2" },
-        { id: "ambre", name: "Ambre", acc: "#ffb454", sub2: "#c9a77c" },
-        { id: "glace", name: "Glace", acc: "#9fd8ff", sub2: "#9cb4c8" },
-        { id: "sang", name: "Sang", acc: "#ff5a6e", sub2: "#d99aa2" },
+        { id: "encre", name: T.t("Encre"), acc: "#f2f2f2" },
+        { id: "ambre", name: T.t("Ambre"), acc: "#ffb454", sub2: "#c9a77c" },
+        { id: "glace", name: T.t("Glace"), acc: "#9fd8ff", sub2: "#9cb4c8" },
+        { id: "sang", name: T.t("Sang"), acc: "#ff5a6e", sub2: "#d99aa2" },
         { id: "indigo", name: "Indigo", acc: "#a6b1ff", sub2: "#a0a6d8" }
       ] },
-    { id: "jouet", name: "Jouet", sub: "Gros dock, autocollants", bg: themes + "jouet/backgrounds/01-jouet-bonbon.jpg",
+    { id: "jouet", name: T.t("Jouet"), sub: T.t("Gros dock, autocollants"), bg: themes + "jouet/backgrounds/01-jouet-bonbon.jpg",
       ink: "#1b1030", sub2: "#5b4a7a", acc: "#ff5fa2", font: "Rubik", mock: "dock", key: "jouet_tone",
       tones: [
-        { id: "bonbon", name: "Bonbon", acc: "#ff5fa2" },
-        { id: "menthe", name: "Menthe", acc: "#18b98f", bg: themes + "jouet/backgrounds/02-jouet-menthe.jpg" },
-        { id: "peche", name: "Pêche", acc: "#ff7a45" }
+        { id: "bonbon", name: T.t("Bonbon"), acc: "#ff5fa2" },
+        { id: "menthe", name: T.t("Menthe"), acc: "#18b98f", bg: themes + "jouet/backgrounds/02-jouet-menthe.jpg" },
+        { id: "peche", name: T.t("Pêche"), acc: "#ff7a45" }
       ] },
-    { id: "violet", name: "Violet", sub: "Horloge empilée, brume", bg: themes + "violet/backgrounds/01-violet-nuit.jpg",
+    { id: "violet", name: "Violet", sub: T.t("Horloge empilée, brume"), bg: themes + "violet/backgrounds/01-violet-nuit.jpg",
       ink: "#ece4ff", sub2: "#b79ce8", acc: "#cdb6ff", font: "Google Sans Flex", mock: "stack", key: "violet_tone",
       tones: [
-        { id: "nuit", name: "Nuit", acc: "#9b7bdc" },
-        { id: "aube", name: "Aube", bg: themes + "violet-aube/backgrounds/01-violet-aube.jpg", ink: "#2c1b4d", sub2: "#8a63c9", acc: "#c8b2f0" },
+        { id: "nuit", name: T.t("Nuit"), acc: "#9b7bdc" },
+        { id: "aube", name: T.t("Aube"), bg: themes + "violet-aube/backgrounds/01-violet-aube.jpg", ink: "#2c1b4d", sub2: "#8a63c9", acc: "#c8b2f0" },
         { id: "rose", name: "Rose", bg: themes + "rose/backgrounds/01-rose-pastel.jpg", ink: "#4a2533", sub2: "#c06a8c", acc: "#f2a7c3" }
       ] },
-    { id: "expressive", name: "Expressive", sub: "Material 3, couleurs du fond", bg: themes + "lain/backgrounds/08-lain.png",
+    { id: "expressive", name: "Expressive", sub: T.t("Material 3, couleurs du fond"), bg: themes + "lain/backgrounds/08-lain.png",
       ink: "#e2e2e9", sub2: "#adc6ff", acc: "#adc6ff", font: "Rubik", mock: "cookie", key: "scheme",
       tones: [
         { id: "tonal-spot", name: "Tonal", acc: "#adc6ff" },
-        { id: "expressive", name: "Expressif", acc: "#f0b8e8", sub2: "#f0b8e8" },
-        { id: "vibrant", name: "Vif", acc: "#7fd8ff", sub2: "#7fd8ff" },
-        { id: "fruit-salad", name: "Fruité", acc: "#ffb59c", sub2: "#ffb59c" },
+        { id: "expressive", name: T.t("Expressif"), acc: "#f0b8e8", sub2: "#f0b8e8" },
+        { id: "vibrant", name: T.t("Vif"), acc: "#7fd8ff", sub2: "#7fd8ff" },
+        { id: "fruit-salad", name: T.t("Fruité"), acc: "#ffb59c", sub2: "#ffb59c" },
         { id: "monochrome", name: "Monochrome", acc: "#c6c6c6", sub2: "#c6c6c6" }
       ] },
-    { id: "ruban", name: "Rubans", sub: "Bandes en biais, grande date", bg: themes + "ruban/backgrounds/01-ruban.jpg",
+    { id: "ruban", name: T.t("Rubans"), sub: T.t("Bandes en biais, grande date"), bg: themes + "ruban/backgrounds/01-ruban.jpg",
       ink: "#ffffff", sub2: "#a8dfff", acc: "#19d3ff", font: "Rubik", mock: "ruban", key: "ruban_tone",
       tones: [
-        { id: "bleu", name: "Bleu", acc: "#19d3ff" },
-        { id: "rouge", name: "Rouge", acc: "#ff3b3b", sub2: "#ffb8b8" },
-        { id: "or", name: "Or", acc: "#ffc800", sub2: "#ffe6a8" }
+        { id: "bleu", name: T.t("Bleu"), acc: "#19d3ff" },
+        { id: "rouge", name: T.t("Rouge"), acc: "#ff3b3b", sub2: "#ffb8b8" },
+        { id: "or", name: T.t("Or"), acc: "#ffc800", sub2: "#ffe6a8" }
       ] },
-    { id: "espace", name: "Espace", sub: "Paroles, horloge à planètes", bg: themes + "espace/backgrounds/01-espace.jpg",
+    { id: "espace", name: T.t("Espace"), sub: T.t("Paroles, horloge à planètes"), bg: themes + "espace/backgrounds/01-espace.jpg",
       ink: "#eef3fa", sub2: "#9aa9bd", acc: "#8fc7ff", font: "Inter", mock: "space", key: "espace_tone",
       tones: [
-        { id: "bleu", name: "Bleu", acc: "#8fc7ff" },
+        { id: "bleu", name: T.t("Bleu"), acc: "#8fc7ff" },
         { id: "mars", name: "Mars", acc: "#ff8a6b", sub2: "#bda69c" },
-        { id: "nebuleuse", name: "Nébuleuse", acc: "#c58bff", sub2: "#a99dc2" }
+        { id: "nebuleuse", name: T.t("Nébuleuse"), acc: "#c58bff", sub2: "#a99dc2" }
       ] },
-    { id: "cosmos", name: "Cosmos", sub: "Terre, Lune et satellites", bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
+    { id: "cosmos", name: "Cosmos", sub: T.t("Terre, Lune et satellites"), bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
       ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "space", key: "cosmos_tone",
       tones: [
-        { id: "orbite", name: "Orbite", acc: "#9fdcf5" },
-        { id: "mousse", name: "Mousse", acc: "#a8e0a4" },
-        { id: "corail", name: "Corail", acc: "#ffb09c" }
+        { id: "orbite", name: T.t("Orbite"), acc: "#9fdcf5" },
+        { id: "mousse", name: T.t("Mousse"), acc: "#a8e0a4" },
+        { id: "corail", name: T.t("Corail"), acc: "#ffb09c" }
       ] },
-    { id: "gouts", name: "Mes goûts", sub: "Tout, aux couleurs d'un thème", bg: "/usr/share/omarchy/themes/tokyo-night/backgrounds/1-winding-road.webp",
+    { id: "gouts", name: T.t("Mes goûts"), sub: T.t("Tout, aux couleurs d'un thème"), bg: "/usr/share/omarchy/themes/tokyo-night/backgrounds/1-winding-road.webp",
       ink: "#c0caf5", sub2: "#a9b1d6", acc: "#7aa2f7", font: "Google Sans Flex", mock: "stack" },
-    { id: "debian", name: "Debian", sub: "GNOME, Activités", bg: themes + "debian/backgrounds/01-debian.jpg",
+    { id: "debian", name: "Debian", sub: T.t("GNOME, Activités"), bg: themes + "debian/backgrounds/01-debian.jpg",
       ink: "#ffffff", sub2: "#cfcfcf", acc: "#d70a53", font: "Adwaita Sans", mock: "distro", glyph: "\uf306", barPos: "top" },
-    { id: "fedora", name: "Fedora", sub: "GNOME, bleu Fedora", bg: themes + "fedora/backgrounds/01-fedora.jpg",
+    { id: "fedora", name: "Fedora", sub: T.t("GNOME, bleu Fedora"), bg: themes + "fedora/backgrounds/01-fedora.jpg",
       ink: "#ffffff", sub2: "#cfd8e6", acc: "#3c6eb4", font: "Adwaita Sans", mock: "distro", glyph: "\uf30a", barPos: "top" },
-    { id: "mint", name: "Mint", sub: "Cinnamon, panneau en bas", bg: themes + "mint/backgrounds/01-mint.jpg",
+    { id: "mint", name: "Mint", sub: T.t("Cinnamon, panneau en bas"), bg: themes + "mint/backgrounds/01-mint.jpg",
       ink: "#ffffff", sub2: "#d0e6d6", acc: "#35a854", font: "Noto Sans", mock: "distro", glyph: "\uf30e", barPos: "bottom", logo: true },
-    { id: "kali", name: "Kali", sub: "Xfce, menu des outils", bg: themes + "kali/backgrounds/01-kali.jpg",
+    { id: "kali", name: "Kali", sub: T.t("Xfce, menu des outils"), bg: themes + "kali/backgrounds/01-kali.jpg",
       ink: "#ffffff", sub2: "#c6d4f0", acc: "#367bf0", font: "Noto Sans", mock: "distro", glyph: "\uf327", barPos: "top" },
-    { id: "arch", name: "Arch", sub: "Plasma, Kickoff", bg: themes + "arch/backgrounds/01-arch.jpg",
+    { id: "arch", name: "Arch", sub: T.t("Plasma, Kickoff"), bg: themes + "arch/backgrounds/01-arch.jpg",
       ink: "#ffffff", sub2: "#c6e0f0", acc: "#1793d1", font: "Noto Sans", mock: "distro", glyph: "\uf303", barPos: "bottom", logo: true }
   ]
 
@@ -274,7 +275,7 @@ Item {
         spacing: 10
         Text {
           id: title
-          text: "Bureaux"
+          text: T.t("Bureaux")
           font.family: "Google Sans Flex"
           font.pixelSize: 26
           font.variableAxes: ({ "wght": 800, "ROND": 100 })
@@ -282,7 +283,7 @@ Item {
         }
         Text {
           anchors.baseline: title.baseline
-          text: "flèches ou 1–0 · T teinte · Entrée · Échap"
+          text: T.t("flèches ou 1–0 · T teinte · Entrée · Échap")
           font.family: "Google Sans Flex"
           font.pixelSize: 12
           color: Qt.rgba(1, 1, 1, 0.55)
@@ -363,7 +364,7 @@ Item {
                 anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 8
                 height: 20; width: curText.implicitWidth + 14; radius: 10
                 color: "white"
-                Text { id: curText; anchors.centerIn: parent; text: "actuel"; font.family: "Google Sans Flex"; font.pixelSize: 10; font.weight: Font.Bold; color: "#111" }
+                Text { id: curText; anchors.centerIn: parent; text: T.t("actuel"); font.family: "Google Sans Flex"; font.pixelSize: 10; font.weight: Font.Bold; color: "#111" }
               }
             }
             Column {

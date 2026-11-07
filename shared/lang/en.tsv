@@ -1,0 +1,673 @@
+01 LECTEUR	01 PLAYER
+02 SYSTEME	02 SYSTEM
+03 RESEAU	03 NETWORK
+05 HEURE	05 TIME
+05 PAROLES	05 LYRICS
+06 SPECTRE	06 SPECTRUM
+150 % (recommandé)	150 % (recommended)
+3 doigts ← →	3 fingers ← →
+4 doigts ↑	4 fingers ↑
+4 doigts ↓	4 fingers ↓
+Abstrait	Abstract
+Accent, bordures, barre, dock et terminal	Accent, borders, bar, dock and terminal
+Accents du visualiseur à la couleur de l'album en cours	Visualizer accents match the current album
+Accessibilité	Accessibility
+Accessoires	Accessories
+Accueil	Home
+À côté du widget agrandi	Next to the enlarged widget
+Activé	On
+Activé — visible en tant que « 	On — visible as “
+Activité · 1 h	Activity · 1 h
+Actualiser	Refresh
+actuel	current
+À droite	Right
+À faire	To do
+Affichage des paroles	Lyrics display
+Affichée sur l'écran verrouillé (~/.face)	Shown on the lock screen (~/.face)
+Afficher  ⌘K	Show  ⌘K
+Afficher la date	Show date
+Afficher le bureau	Show desktop
+Afficher les réseaux disponibles	Show available networks
+Afficher les secondes	Show seconds
+À gauche de la pile (aussi : clic droit sur la batterie)	Left of the battery (also: right click on the battery)
+À gauche	Left
+Agrandir	Zoom
+Agrandissement	Magnification
+Aide-mémoire des raccourcis	Shortcut cheat sheet
+à installer	to install
+Ajouter un appareil	Add a device
+Ajouter un appareil…	Add a device…
+Ajouter une app	Add an app
+Ajoutez des apps ci-dessous	Add apps below
+Alimentation et batterie	Power and battery
+Allumé depuis 	Up for 
+Allumé · 	Up · 
+Allure	Look
+Ambre	Amber
+Ancienne présentation : la ligne à côté du titre	Old layout: line next to the title
+Animations à ressort	Spring animations
+Animations des fenêtres	Window animations
+Anime le fond sans vidéo, en pause quand une fenêtre est ouverte	Animates the wallpaper without video, paused when a window is open
+Anneau batterie	Battery ring
+Anneau	Ring
+Aperçu des notifications	Notification preview
+Aperçu	Preview
+Appareil	Device
+Appareils Bluetooth	Bluetooth devices
+Appareils	Devices
+Apparence	Appearance
+App introuvable	App not found
+Application…	Application…
+Applications installées	Installed applications
+Appliquer	Apply
+Appliqué tout de suite à Hyprland (souris et TrackPoint). Le trackpad a sa propre page.	Applied to Hyprland right away (mouse and TrackPoint). The trackpad has its own page.
+À propos	About
+Arc-en-ciel	Rainbow
+Arrête complètement le visualiseur (et cava) si désactivé	Stops the visualizer (and cava) when off
+Arrêter	Shut down
+Arrière-plan	Background
+Arrondi des cartes	Card radius
+Arrondi des fenêtres	Window radius
+Associé	Paired
+Aube	Dawn
+Aucun adaptateur	No adapter
+Aucune application	No application
+Aucune app trouvée	No app found
+Aucune connexion Internet	No Internet connection
+Aucune interface réseau	No network interface
+Aucune	None
+Aucune nouvelle notification	No new notification
+Aucun micro	No microphone
+Aucun	None
+Aucun périphérique	No device
+Aucun raccourci	No shortcut
+Aucun raccourci pour « 	No shortcut for “
+Au-dessus du mot de passe	Above the password
+  (aujourd'hui)	  (today)
+ aujourd'hui	 today
+Aujourd'hui	Today
+Au repos	Idle
+Aussi dans le Centre de contrôle	Also in Control Center
+Automatique	Automatic
+Automatique, tirée de l'arrière-plan	Automatic, taken from the wallpaper
+ autres apps : affinez la recherche.	 more apps: refine your search.
+ autres	 others
+averses de neige	snow showers
+averses	showers
+Balayer à gauche ou à droite avec trois doigts	Swipe left or right with three fingers
+Balayer vers le bas avec quatre doigts	Swipe down with four fingers
+Balayer vers le haut avec quatre doigts	Swipe up with four fingers
+Bandes en biais, grande date	Slanted bands, big date
+Barre des menus	Menu bar
+Barre de titre avec feux tricolores	Title bar with traffic lights
+Barres	Bars
+Barre texte, bords durs	Text bar, hard edges
+Batterie	Battery
+Batterie en haut à droite	Battery at top right
+Bille	Marble
+Blanc	White
+Bleu	Blue
+Bleu glacé, Mars ou nébuleuse	Ice blue, Mars or nebula
+Bleu, rouge ou or	Blue, red or gold
+Bleu Windows (par défaut)	Windows blue (default)
+Blocs	Blocks
+Bluetooth et appareils	Bluetooth and devices
+Bonbon	Candy
+Bonbon (rose), menthe (vert d'eau) ou pêche (orange)	Candy (pink), mint (aqua) or peach (orange)
+Boutons ronds	Round buttons
+Bouton vert	Green button
+Branchement et débranchement, avec le niveau	Plugging in and out, with the level
+Branché sur secteur	Plugged in
+brouillard	fog
+bruine	drizzle
+Bureau	Desktop
+Bureau 	Desktop 
+Bureau et Dock	Desktop and Dock
+Bureau Linux actif	Linux desktop active
+Bureau Linux	Linux desktop
+Bureau Mac actif	Mac desktop active
+Bureautique	Office
+Bureaux (1 2 3…)	Workspaces (1 2 3…)
+Bureaux complets	Full desktops
+Bureaux	Desktops
+Cadran	Dial
+Caelestia : cadre, tableau de bord	Caelestia: frame, dashboard
+Calculette	Calculator
+Calendrier	Calendar
+Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes	Black capsule at top center, Alcove style: hover to expand, click for controls
+Capture d'écran	Screenshot
+Capture	Screenshot
+Caractéristiques de l'appareil	Device specifications
+Caractéristiques de l'appareil, renommer le PC	Device specifications, rename this PC
+Caractéristiques du système	System specifications
+Carte	Card
+Casque connecté, avec sa batterie	Headset connected, with its battery
+cava en bas du fond d'écran pendant la lecture	cava at the bottom of the wallpaper during playback
+Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)	From the style, from the wallpaper (Material You), or your own accent (⌘⌥Space → Colors for the palette)
+Cendre	Ash
+Centre	Center
+Centre de contrôle	Control Center
+Ce PC	This PC
+Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)	Each with its own bar, launcher (⌘Space) and settings (⌘⌥Space)
+Changer…	Change…
+Changer de bureau	Switch desktop
+Charge	Load
+Chercher en orbite…	Search local orbit…
+Chiffres hauts	Tall digits
+Choisir parmi les fonds (carrousel)	Choose from wallpapers (carousel)
+Choisir un bureau  ⌘⇧␣	Choose a desktop  ⌘⇧␣
+Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste.	Choose the round buttons in Control Center (dark mode is always shown). Order follows this list.
+ciel dégagé	clear sky
+Cinnamon, panneau en bas	Cinnamon, bottom panel
+Clair	Light
+Clair ou sombre, comme dans Windows	Light or dark, like in Windows
+Clair : plus transparent · Teinté : plus opaque	Light: more transparent · Tinted: more opaque
+Classique	Classic
+Clavier	Keyboard
+Clavier mécanique (Mechvibes)	Mechanical keyboard (Mechvibes)
+Clé de produit et activation	Product key and activation
+Clic secondaire à deux doigts	Two-finger secondary click
+Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page.	Click a shortcut to open the app, or switch to it if already open. Right click: this page.
+Coins actifs	Hot corners
+Coins d'écran arrondis	Rounded screen corners
+Colonne	Column
+  (comme 	  (like 
+Complet	Full
+Compte local · Administrateur	Local account · Administrator
+Compte local	Local account
+Comptes	Accounts
+Concentration et « Lecture en cours » sont toujours affichés. Mode Jeu : sans flou, ombres ni animations, profil d'énergie performance.	Focus and “Now Playing” are always shown. Game Mode: no blur, shadows or animations, performance power profile.
+Concentration	Focus
+Connecté à 	Connected to 
+Connecté à « 	Connected to “
+Connecté	Connected
+Connecté — 	Connected — 
+Connecté, 	Connected, 
+Connecter	Connect
+Connecté, sécurisé · 	Connected, secured · 
+Copier	Copy
+Corail	Coral
+Corbeille	Recycle Bin
+Couleur	Color
+Couleur d'accentuation	Accent color
+Couleur de la pochette	Cover color
+# couleurs	# colors
+Couleurs	Colors
+Couleurs de la pochette	Cover colors
+Couleurs plus chaudes le soir	Warmer colors in the evening
+Couleurs plus chaudes pour mieux dormir	Warmer colors for better sleep
+Couleurs Windows	Windows colors
+Couper le son	Mute
+couvert	overcast
+Crème	Cream
+Dans la barre (de gauche à droite)	In the bar (left to right)
+Dans la barre	In the bar
+Dans l'île dynamique	In the Dynamic Island
+Déconnecter	Disconnect
+Défilement naturel	Natural scrolling
+Définition	Resolution
+Dégradé	Gradient
+Démarrer, Paramètres	Start, Settings
+Derrière les fenêtres	Behind windows
+Désactivé	Off
+Détails…	Details…
+Détectable sous le nom « 	Discoverable as “
+Développement	Development
+Disponible	Available
+Disposition des widgets	Widget layout
+Disque	Disk
+Di	Su
+Dossier de départ	Home folder
+Douce	Soft
+Du fond	From wallpaper
+Du style	From style
+Dynamiques	Dynamic
+Échelle	Scale
+Éclairage nocturne	Night light
+Économie d'énergie, équilibré ou performances	Power saver, balanced or performance
+Économie	Saver
+Écran de verrouillage	Lock screen
+Écran	Display
+ · écran principal	 · main display
+Écrans	Displays
+Écran verrouillé	Lock screen
+Effets d'animation	Animation effects
+Éléments de la barre	Bar items
+Émojis	Emoji
+En bas à droite	Bottom right
+En bas à gauche	Bottom left
+, en charge	, charging
+en charge	charging
+En charge	Charging
+EN CHARGE	CHARGING
+Encoche	Notch
+Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)	Ink, amber, ice, blood (red) or indigo (blue violet)
+Encre	Ink
+En grand à côté de la pochette (bulle du widget musique)	Large next to the cover (music widget bubble)
+En haut à droite	Top right
+En haut à gauche	Top left
+En plus de l'OSD au-dessus du Dock	In addition to the OSD above the Dock
+Enregistré automatiquement	Saved automatically
+Enregistrement de l'écran	Screen recording
+Enregistrement	Recording
+Entrée	Input
+Entrée pour appliquer	Enter to apply
+Entrée pour lancer la commande	Enter to run the command
+Épinglé	Pinned
+Équilibré	Balanced
+Espace entre fenêtres	Gap between windows
+⌘⇧Espace ouvre le sélecteur : Mac, Omarchy d'origine, Windows, Mono, Forêt, Blanc, Sombre, Jouet, Violet, Expressive. ⌃⌘T change la teinte.	⌘⇧Space opens the picker: Mac, original Omarchy, Windows, Mono, Forest, White, Dark, Toy, Violet, Expressive. ⌃⌘T changes the tint.
+⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5… Désactivé : raccourcis Omarchy d'origine	⌘Space, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5… Off: original Omarchy shortcuts
+⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5…	⌘Space, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5…
+Espaces de travail	Workspaces
+Espace	Space
+Espace 	Space 
+Étire les chiffres pour remplir l'espace, comme iOS 26	Stretches digits to fill the space, like iOS 26
+Expressif	Expressive
+fastfetch dans un terminal	fastfetch in a terminal
+Fenêtre active	Active window
+Fenêtres flottantes comme sur Mac	Floating windows like on Mac
+Fenêtres inactives	Inactive windows
+Fenêtres	Windows
+Fenêtre	Window
+Fermer les terminaux	Close terminals
+Fermer Mission Control	Close Mission Control
+Fichiers	Files
+Filtrer (ex. capture, fenêtre, son)	Filter (e.g. screenshot, window, sound)
+Fine	Thin
+Fixe	Static
+flèches ou 1–0 · T teinte · Entrée · Échap	arrows or number · T tint · Enter · Esc
+Flou	Blur
+Fond d'écran flouté	Blurred wallpaper
+Fond d'écran, mode clair ou sombre, bureaux	Wallpaper, light or dark mode, desktops
+Fond d'écran Spotify	Spotify wallpaper
+Fond d'écran	Wallpaper
+Fond de la barre	Bar background
+Fond normal	Normal wallpaper
+Fond quand la pochette est agrandie	Wallpaper when the cover is enlarged
+Fonds d'écran	Wallpapers
+ fonds	 wallpapers
+Fonds	Wallpapers
+Fond vivant	Live wallpaper
+ fond	 wallpaper
+Forêt	Forest
+Français (France)	French (France)
+Français	French
+Français ou anglais	French or English
+Fréquence de rafraîchissement	Refresh rate
+Fruitée	Fruity
+Fruité	Fruity
+Fruits	Fruit
+Fuseau horaire	Time zone
+Garder le dernier morceau	Keep the last track
+Gauche	Left
+Général	General
+Générés	Generated
+Gestes	Gestures
+Glace	Ice
+Glissez-le où vous voulez : il glisse et rebondit	Drag it anywhere: it glides and bounces
+GNOME, Activités	GNOME, Activities
+GNOME, bleu Fedora	GNOME, Fedora blue
+Goutte	Drop
+Graisse	Weight
+Grand	Large
+Grands chiffres en blocs façon tty-clock, à droite	Big block digits like tty-clock, on the right
+Graphisme	Graphics
+Grille	Grid
+Gros dock, autocollants	Big dock, stickers
+Halo sur les basses	Glow on bass
+Hauteur	Height
+Haut	Top
+Heure et langue	Time and language
+Heure par heure	Hour by hour
+Historique des notifications	Notification history
+Historique du presse-papiers	Clipboard history
+Historique	History
+Horloge 24 heures	24-hour clock
+Horloge bonbon	Candy clock
+Horloge	Clock
+Horloge cookie	Cookie clock
+Horloge empilée, brume	Stacked clock, mist
+Horloge, image et état de la musique	Clock, image and music status
+Horloge pixel	Pixel clock
+Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and lyrics hop a little on each bass hit
+Hors ligne	Offline
+Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
+Ignorer en tapant au clavier	Ignore while typing
+Île dynamique	Dynamic Island
+Indicateur des agents Omarchy	Omarchy agents indicator
+Informations détaillées	Detailed information
+Informations	Information
+Installer tous les outils	Install all tools
+Intensité du flou	Blur strength
+Je	Th
+Jeux	Games
+Jouet	Toy
+Jour en grand	Big day
+Jour en kanji	Day in kanji
+Karaoké	Karaoke
+Karaoké plein écran	Full-screen karaoke
+La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.	The bar is Omarchy's, dressed in glass by the Liquid Glass theme. Widget layout: omarchy bar --help.
+La bulle l'agrandit	The bubble enlarges it
+Lancer la page	Launch page
+lancer…	launch…
+Lance Spotify ♪	Start Spotify ♪
+Langue d'affichage	Display language
+Langue	Language
+La semaine commence le lundi	Week starts on Monday
+Le compteur vient de démarrer. Reviens dans quelques minutes.	The counter just started. Come back in a few minutes.
+Le contenu suit le mouvement de la molette	Content follows the wheel
+Le contenu suit le mouvement des doigts	Content follows your fingers
+Lecteur	Player
+Lecture des raccourcis…	Reading shortcuts…
+Lecture en cours	Now Playing
+Lecture en cours sur le bureau	Now Playing on the desktop
+Le menu tout à gauche	The menu at far left
+Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma	The panel and menu of GNOME, Cinnamon, Xfce or Plasma
+Les notifications sont silencieuses	Notifications are silent
+Les paroles s'afficheront ici	Lyrics will appear here
+Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture	Sound drawn at the bottom of the screen (cava), only during playback
+Libre	Free
+Ligne	Line
+L'île s'élargit et la ligne chantée défile dedans	The island widens and the sung line scrolls inside
+Liquide	Liquid
+Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
+Liquid Glass — style Windows	Liquid Glass — Windows style
+Logiciel libre, rien à activer	Free software, nothing to activate
+Logo de la barre	Bar logo
+Luminosité	Brightness
+Luminosité, éclairage nocturne	Brightness, night light
+Lu	Mo
+ · lus en direct dans Hyprland	 · read live from Hyprland
+Mac, Omarchy, Mono, Forêt, Violet… (⌘⇧Espace)	Mac, Omarchy, Mono, Forest, Violet… (⌘⇧Space)
+Manuel	Manual
+Marge d'écran	Screen margin
+Masquée	Hidden
+Masquer automatiquement	Hide automatically
+Material 3, couleurs du fond	Material 3, wallpaper colors
+Ma	Tu
+Meilleur résultat	Top hit
+Mémoire	Memory
+Menthe	Mint
+Menu Mosaïque	Mosaic menu
+Mes appareils	My devices
+Mes goûts	My Taste
+Météo	Weather
+Météo…	Weather…
+Mettre en veille	Sleep
+Me	We
+Minuteur	Timer
+Miroir	Mirror
+Mise à jour	Update
+Mise à l'échelle	Scaling
+Mises à jour d'Omarchy	Omarchy updates
+Mises à jour	Updates
+Mode avion	Airplane mode
+Mode d'énergie	Power mode
+Mode Jeu	Game Mode
+Mode sombre	Dark mode
+Modifier les paramètres du compte	Change account settings
+Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages.	Wheel on the island: volume. Horizontal swipe: next or previous track. Right click: these settings.
+Moniteurs	Monitors
+Moniteurs…	Monitors…
+Morceau en cours	Current track
+Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien	Giant sung word in the center, full line, in the player card, or nothing
+Mot géant	Giant word
+Mousse	Moss
+Mousse (vert tilleul) ou cendre (rose poudré)	Moss (lime green) or ash (powder pink)
+Moyen	Medium
+Muet	Muted
+Mur de tuiles, mot géant	Tile wall, giant word
+Mur de tuiles	Tile wall
+Musique et paroles	Music and lyrics
+Musique	Music
+Nébuleuse	Nebula
+neige	snow
+Ne pas déranger	Do Not Disturb
+Niveau de batterie : 	Battery level: 
+Niveau de la batterie	Battery level
+Noir	Black
+Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)	Black (black frame), paper (all white, mist) or sakura (plum and pink)
+Nombre	Count
+Nombre de barres	Number of bars
+Nom complet	Full name
+Nom de l'ordinateur	Computer name
+Nom du compte	Account name
+Non connecté	Not connected
+Non connecté (	Not connected (
+Nouvelle tâche…	New task…
+Nuit	Night
+Nuit (violet profond), aube (lilas clair) ou rose pastel	Night (deep violet), dawn (light lilac) or pastel pink
+Numérique	Digital
+Off : le fond normal reste, seul le widget s'affiche	Off: the normal wallpaper stays, only the widget shows
+Opacité du verre	Glass opacity
+Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément.	Glass opacity, font and terminal: the theme is rebuilt (≈1 s). The rest applies instantly.
+Opacité	Opacity
+orages	thunderstorms
+Orbite, mousse ou corail	Orbit, moss or coral
+Orbite	Orbit
+Or	Gold
+Ou la charge du processeur sur un ordinateur fixe	Or CPU load on a desktop computer
+Ouvert	Open
+Ouvrir le dossier	Open folder
+Ouvrir le fichier de configuration	Open config file
+Ouvrir  ⌘⌥M	Open  ⌘⌥M
+Ouvrir	Open
+Page 	Page 
+Papier	Paper
+Paramètres associés	Related settings
+Paramètres recommandés	Recommended settings
+Paramètres	Settings
+Par défaut	Default
+Paroles, horloge à planètes	Lyrics, planet clock
+Paroles karaoké	Karaoke lyrics
+Paroles	Lyrics
+Paroles sur le bureau	Lyrics on the desktop
+Paroles synchronisées fournies par LRCLIB (gratuit, sans compte), mises en cache dans ~/.cache/liquid-glass.	Synced lyrics from LRCLIB (free, no account), cached in ~/.cache/liquid-glass.
+Paroles synchronisées (LRCLIB)	Synced lyrics (LRCLIB)
+Paroles synchronisées	Synced lyrics
+Pas d'adaptateur	No adapter
+Pas de batterie	No battery
+Pas de musique	No music
+Pas de paroles	No lyrics
+Pas de paroles pour ce morceau	No lyrics for this track
+Passage au clair	Switch to light
+Passage au sombre	Switch to dark
+Passes de flou	Blur passes
+Pas sur macOS : Mission Control (⌘↑) les remplace	Not on macOS: Mission Control (⌘↑) replaces them
+Pastilles	Dots
+Pêche	Peach
+Pendant la musique	During music
+Performances	Performance
+Perso	Custom
+Personnalisation	Personalization
+Personnel	Personal
+Petit	Small
+Pipette	Eyedropper
+Placer une image dans ~/.face	Put an image in ~/.face
+Plasma, Kickoff	Plasma, Kickoff
+pluie	rain
+Pochette	Cover
+Pochette et égaliseur aux couleurs de la pochette	Cover and equalizer in cover colors
+Pochette et titre à droite (déjà dans l'île)	Cover and title on the right (already in the island)
+Pochette floue	Blurred cover
+Pointez dans un coin de l'écran pour déclencher l'action (pas en plein écran). ⌘F3 affiche aussi le bureau.	Point to a screen corner to trigger the action (not in full screen). ⌘F3 also shows the desktop.
+Police de l'horloge	Clock font
+Police de l'interface	Interface font
+Police	Font
+Pomme	Apple
+Pourcentage de la batterie	Battery percentage
+Pour ce thème	For this theme
+Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation.	To undo everything: ~/.config-backup-<date>/restore.sh restores the state before install.
+Presse-papiers	Clipboard
+Processeur	Processor
+Profil	Profile
+Puces, météo en orbite	Chips, orbiting weather
+Pur (gris neutres) ou crème (papier chaud)	Pure (neutral greys) or cream (warm paper)
+Pur	Pure
+QUE LANCER ?	WHAT TO LAUNCH?
+quelques nuages	a few clouds
+Raccourcis dans la barre des menus	Shortcuts in the menu bar
+Raccourcis d'apps	App shortcuts
+Raccourcis façon macOS	macOS-style shortcuts
+Raccourcis	Shortcuts
+Rayon	Radius
+Réappliquer tous les réglages	Reapply all settings
+Réappliquer tout	Reapply all
+Rebond	Bounce
+Recherche en cours…	Searching…
+Rechercher des applications, des paramètres et des documents	Search for apps, settings and documents
+Rechercher des applications	Search applications
+Rechercher des mises à jour	Check for updates
+Rechercher les appareils à proximité	Search nearby devices
+Rechercher	Search
+Rechercher « 	Search “
+Rechercher…	Search…
+Rechercher une appli…	Find an app…
+Rechercher un paramètre	Find a setting
+Recherche…	Searching…
+Recommandé	Recommended
+Redémarrer	Restart
+Régénère thème, Hyprland, dock et shell	Rebuilds theme, Hyprland, dock and shell
+Réglages appliqués à chaud. ⌘⇧Espace : bureaux. ⌃⌘Espace : carrousel de fonds. En ligne de commande : liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac.	Settings apply live. ⌘⇧Space: desktops. ⌃⌘Space: wallpaper carousel. Command line: liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac.
+Réglages avancés de Liquid Glass	Advanced Liquid Glass settings
+Réglages du réseau…	Network settings…
+Réglages	Settings
+Régler la luminosité de l'écran intégré	Adjust built-in display brightness
+Réinitialiser	Reset
+Remet chaque widget à sa place d'origine	Puts each widget back in its original place
+Renommer ce PC	Rename this PC
+Renommer	Rename
+Replacer le widget	Reset widget position
+Replacer	Reset position
+Reprendre · 	Resume · 
+ réseau autour de toi	 network around you
+Réseau et Internet	Network and Internet
+Réseau	Network
+ réseaux autour de toi	 networks around you
+Réseaux disponibles	Available networks
+ réseaux	 networks
+Résolution d'écran	Screen resolution
+Respire	Breathe
+Rester éveillé	Stay awake
+Résumé	Summary
+Retour au fond après pause	Back to wallpaper after pause
+Retour	Back
+Rien à faire, profite ✨	Nothing to do, enjoy ✨
+Rien de prévu	Nothing planned
+Rien en lecture	Nothing playing
+Rouge	Red
+Rubans	Ribbons
+Sang	Blood
+Sa	Sa
+Scène suivante	Next scene
+Se connecter	Connect
+Secteur	Plugged in
+, sécurisé	, secured
+sécurisé	secured
+Sécurisé	Secured
+Se déconnecter	Log out
+Sélectionnez un thème à appliquer	Select a theme to apply
+Sensibilité	Sensitivity
+Sept jours	Seven days
+Silence	Silent
+Sombre	Dark
+Sommeil	Sleep
+Son des touches	Key sound
+Son et vidéo	Sound and video
+Son	Sound
+Sortie	Output
+Souris	Mouse
+Sous l'horloge	Under the clock
+Spectre	Spectrum
+Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)	Spotify closed: the card stays with the last song, ▶ restarts it (cover wallpaper and lyrics return)
+Spotlight (loupe)	Spotlight (magnifier)
+Stockage	Storage
+Style de l'horloge	Clock style
+Style du verre	Glass style
+Sur batterie	On battery
+SUR BATTERIE	ON BATTERY
+Sur le bureau, en grand	On the desktop, large
+Sur le fond d'écran	On the wallpaper
+ » sur le Web	” on the Web
+Sur secteur	Plugged in
+Suspendre maintenant	Suspend now
+ · système, paquets et firmware	 · system, packages and firmware
+Système	System
+Taille de la batterie	Battery size
+Taille de la météo	Weather size
+Taille de l'horloge	Clock size
+Taille des paroles	Lyrics size
+Taille du calendrier	Calendar size
+Taille	Size
+Tape un nom	Type a name
+Tapez « > » pour les commandes	Type “>” for commands
+Teinte du bureau	Desktop tint
+# teinte	# tint
+Teinte	Tint
+Teinté	Tinted
+Tel qu'à l'installation	As installed
+Terminal avec Claude Code (omarchy-agent)	Terminal with Claude Code (omarchy-agent)
+Terminal avec Claude Code	Terminal with Claude Code
+Terminal (clair)	Terminal (light)
+Terminal (sombre)	Terminal (dark)
+Terminal	Terminal
+Terminaux	Terminals
+Terre, Lune et satellites	Earth, Moon and satellites
+Thème actif	Active theme
+Thème de contraste foncé	Dark contrast theme
+Thème	Theme
+Touche /	Key /
+Toucher pour cliquer	Tap to click
+Touchez avec un doigt pour cliquer	Tap with one finger to click
+Toujours visible	Always visible
+Tourbillon	Swirl
+Tous	All
+Tous les réglages du bureau	All desktop settings
+Tout	All
+Tout, aux couleurs d'un thème	Everything, in a theme's colors
+Tout en blanc, police mono, horloge pixel, lecteur vinyle	All white, mono font, pixel clock, vinyl player
+Toutes les applications	All apps
+Toutes les autres	All the others
+Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran	Transparent like macOS Tahoe: text turns dark or white depending on the wallpaper
+Transparente	Transparent
+Travail	Work
+Très grand	Very large
+Une lueur qui respire en bas de l'écran au rythme des basses	A glow breathing at the bottom of the screen with the bass
+Une page = un bureau de terminaux, à ton goût	One page = one desktop of terminals, your way
+Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift.	A focus mode silences notifications. Sleep also turns on Night Shift.
+Utilisateurs et groupes	Users and groups
+Utiliser	Use
+ utilisés	 used
+utilisé	used
+Vague	Wave
+Variante matugen calculée depuis le fond d'écran (ou la pochette)	Matugen variant computed from the wallpaper (or the cover)
+Ve	Fr
+Verre	Glass
+Verrouiller la session	Lock session
+Verrouiller l'écran	Lock screen
+Verrouiller	Lock
+Verrouiller maintenant	Lock now
+Vide	Empty
+Vidéo	Video
+Vif	Vivid
+Ville de la météo	Weather city
+Visualiseur audio	Audio visualizer
+Visualiseur cava	Cava visualizer
+Visualiseur	Visualizer
+Vitesse de défilement	Scroll speed
+Vitesse du pointeur	Pointer speed
+Vive	Vivid
+Volume dans l'île	Volume in the island
+Volume de sortie	Output volume
+Volume du micro	Microphone volume
+Volume, périphériques de sortie	Volume, output devices
+Vos fichiers récents apparaîtront ici.	Your recent files will appear here.
+Votre photo	Your photo
+Widget Calendrier	Calendar widget
+Widget flottant	Floating widget
+Widget musique	Music widget
+Widgets sur le bureau	Widgets on the desktop
+Wi-Fi activé	Wi-Fi on
+Wi-Fi coupé	Wi-Fi off
+Xfce, menu des outils	Xfce, tools menu

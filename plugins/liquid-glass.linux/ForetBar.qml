@@ -6,6 +6,7 @@ import Quickshell.Widgets
 import Quickshell.Services.SystemTray
 import Quickshell.Services.Pipewire
 import Quickshell.Bluetooth
+import "T.js" as T
 
 // Style « foret » (rice c01 d'ilyamiro) : barre en puces sombres qui flottent
 // au-dessus du fond, police mono, accents vert tilleul.
@@ -117,7 +118,7 @@ PanelWindow {
       Column {
         anchors.verticalCenter: parent.verticalCenter
         Text { text: Qt.formatTime(win.now, "HH:mm:ss"); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.acc }
-        Text { text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM"); font.family: win.font; font.pixelSize: 8; color: win.sub }
+        Text { text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM"); font.family: win.font; font.pixelSize: 8; color: win.sub }
       }
       Row {
         visible: !!s.weather
@@ -166,9 +167,9 @@ PanelWindow {
         anchors.centerIn: parent
         spacing: 4
         Pill { icon: "keyboard"; label: (s.layout || "fr").slice(0, 2).toUpperCase(); filled: false }
-        Pill { icon: s.netDev === "" ? "wifi_off" : (s.netWifi ? "wifi" : "lan"); label: s.netDev === "" ? "Hors ligne" : (s.netWifi && s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : s.netDev)
+        Pill { icon: s.netDev === "" ? "wifi_off" : (s.netWifi ? "wifi" : "lan"); label: s.netDev === "" ? T.t("Hors ligne") : (s.netWifi && s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : s.netDev)
                filled: s.netDev !== ""; onClicked: s.togglePanel("net") }
-        Pill { visible: !!win.bt; icon: win.btDev ? "headphones" : "bluetooth"; label: win.btDev ? (win.btDev.name || "Appareil") : (win.bt && win.bt.enabled ? "Bluetooth" : "Désactivé")
+        Pill { visible: !!win.bt; icon: win.btDev ? "headphones" : "bluetooth"; label: win.btDev ? (win.btDev.name || T.t("Appareil")) : (win.bt && win.bt.enabled ? "Bluetooth" : T.t("Désactivé"))
                filled: !!win.btDev; onClicked: s.togglePanel("net") }
         Pill { icon: win.volume <= 0.01 ? "volume_off" : "volume_up"; label: Math.round(win.volume * 100); filled: true; tint: s.secondary
                onClicked: s.togglePanel("music")

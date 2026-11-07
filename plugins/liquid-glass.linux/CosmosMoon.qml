@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Lanceur du style Cosmos : les applications sont posées sur la Lune, en sphère.
 // Glisser fait tourner la Lune, taper filtre, Entrée lance, Échap ferme.
@@ -149,7 +150,7 @@ PanelWindow {
     Text {
       visible: input.text === ""
       x: 14; anchors.verticalCenter: parent.verticalCenter
-      text: "Chercher en orbite…"
+      text: T.t("Chercher en orbite…")
       font.family: win.font; font.pixelSize: 13; color: win.s.colOnSurfaceVariant
     }
   }

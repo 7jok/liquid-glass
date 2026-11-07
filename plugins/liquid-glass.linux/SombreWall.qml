@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Bureau du style Sombre : un mur de tuiles qui remplit l'écran (rice « tacoproz »).
 // Pochette, paroles, système, labyrinthe, trame, bande de pixels, mot géant,
@@ -67,12 +68,12 @@ PanelWindow {
 
   // ---------------------------------------------------------------- lecteur
   Tile {
-    c: 2; r: 0; w: 3; h: 2; label: "01 LECTEUR"
+    c: 2; r: 0; w: 3; h: 2; label: T.t("01 LECTEUR")
     Column {
       x: 14; y: 28; width: parent.width - 28; spacing: 2
       Text {
         width: parent.width; elide: Text.ElideRight
-        text: win.s.trackTitle || "Rien en lecture"
+        text: win.s.trackTitle || T.t("Rien en lecture")
         font.family: win.code; font.pixelSize: 15; font.weight: Font.Bold; color: win.ink
       }
       Text {
@@ -116,7 +117,7 @@ PanelWindow {
 
   // ---------------------------------------------------------------- système
   Tile {
-    c: 5; r: 0; w: 3; h: 2; label: "02 SYSTEME"
+    c: 5; r: 0; w: 3; h: 2; label: T.t("02 SYSTEME")
     Text {
       x: 14; y: 30; width: parent.width - 28; clip: true
       lineHeight: 1.25
@@ -133,7 +134,7 @@ PanelWindow {
 
   // ---------------------------------------------------------------- labyrinthe
   Tile {
-    c: 8; r: 0; w: 4; h: 3; label: "03 RESEAU"
+    c: 8; r: 0; w: 4; h: 3; label: T.t("03 RESEAU")
     Canvas {
       id: maze
       anchors.fill: parent; anchors.margins: 8; anchors.topMargin: 26
@@ -271,7 +272,7 @@ PanelWindow {
 
   // ---------------------------------------------------------------- mot géant
   Tile {
-    c: 0; r: 3; w: 5; h: 3; label: win.s.word !== "" ? "05 PAROLES" : "05 HEURE"
+    c: 0; r: 3; w: 5; h: 3; label: win.s.word !== "" ? T.t("05 PAROLES") : T.t("05 HEURE")
     Text {
       id: giant
       anchors.centerIn: parent
@@ -292,14 +293,14 @@ PanelWindow {
       anchors.horizontalCenter: parent.horizontalCenter
       anchors.bottom: parent.bottom; anchors.bottomMargin: 12
       width: parent.width - 40; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-      text: win.s.word !== "" ? win.s.line : win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM")
+      text: win.s.word !== "" ? win.s.line : win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM")
       font.family: win.code; font.pixelSize: 12; color: win.sub
     }
   }
 
   // ---------------------------------------------------------------- spectre
   Tile {
-    c: 5; r: 4; w: 7; h: 2; label: "06 SPECTRE"
+    c: 5; r: 4; w: 7; h: 2; label: T.t("06 SPECTRE")
     Row {
       id: spec
       anchors.left: parent.left; anchors.right: parent.right; anchors.bottom: parent.bottom

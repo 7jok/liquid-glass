@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Style « mono » : le tableau de bord qui descend du haut de l'écran, soudé au
 // cadre noir (coins concaves), en trois onglets comme caelestia :
@@ -154,7 +155,7 @@ PanelWindow {
         Row {
           anchors.horizontalCenter: parent.horizontalCenter; y: 8; spacing: 18
           MIcon { icon: "chevron_left"; size: 16; color: win.ink; MouseArea { anchors.fill: parent; onClicked: calCard.month = new Date(calCard.month.getFullYear(), calCard.month.getMonth() - 1, 1) } }
-          Text { width: 110; horizontalAlignment: Text.AlignHCenter; text: win.cap(calCard.month.toLocaleDateString(Qt.locale("fr_FR"), "MMMM yyyy")); font.family: win.font; font.pixelSize: 12; color: win.ink }
+          Text { width: 110; horizontalAlignment: Text.AlignHCenter; text: win.cap(calCard.month.toLocaleDateString(Qt.locale(T.loc), "MMMM yyyy")); font.family: win.font; font.pixelSize: 12; color: win.ink }
           MIcon { icon: "chevron_right"; size: 16; color: win.ink; MouseArea { anchors.fill: parent; onClicked: calCard.month = new Date(calCard.month.getFullYear(), calCard.month.getMonth() + 1, 1) } }
         }
         Grid {
@@ -216,7 +217,7 @@ PanelWindow {
         }
         Column {
           anchors.horizontalCenter: parent.horizontalCenter; y: 146; width: parent.width - 20; spacing: 2
-          Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: s.trackTitle || "Rien en lecture"; font.family: win.font; font.pixelSize: 14; font.weight: Font.Medium; color: win.ink }
+          Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: s.trackTitle || T.t("Rien en lecture"); font.family: win.font; font.pixelSize: 14; font.weight: Font.Medium; color: win.ink }
           Text { width: parent.width; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight; text: s.trackArtist; font.family: win.font; font.pixelSize: 11; color: win.sub }
         }
         Row {
@@ -272,7 +273,7 @@ PanelWindow {
       }
       Column {
         x: 230; y: 20; width: 170; spacing: 4
-        Text { width: parent.width; elide: Text.ElideRight; text: s.trackTitle || "Rien en lecture"; font.family: win.font; font.pixelSize: 17; font.weight: Font.Medium; color: win.ink }
+        Text { width: parent.width; elide: Text.ElideRight; text: s.trackTitle || T.t("Rien en lecture"); font.family: win.font; font.pixelSize: 17; font.weight: Font.Medium; color: win.ink }
         Text { width: parent.width; elide: Text.ElideRight; text: s.trackArtist; font.family: win.font; font.pixelSize: 12; color: win.sub }
         Item { width: 1; height: 50 }
         Item {
@@ -298,7 +299,7 @@ PanelWindow {
         x: 414; y: 0; width: parent.width - 414; height: parent.height
         Row { x: 12; y: 12; spacing: 6
           MIcon { icon: "lyrics"; size: 15; color: win.ink }
-          Text { text: "Paroles"; font.family: win.font; font.pixelSize: 12; color: win.ink } }
+          Text { text: T.t("Paroles"); font.family: win.font; font.pixelSize: 12; color: win.ink } }
         ListView {
           id: lyr
           x: 12; y: 38; width: parent.width - 24; height: parent.height - 48
@@ -320,7 +321,7 @@ PanelWindow {
             color: index === s.lineIndex ? win.ink : win.sub
           }
         }
-        Text { visible: s.lyrics.length === 0; anchors.centerIn: parent; text: "Pas de paroles"; font.family: win.font; font.pixelSize: 11; color: win.sub }
+        Text { visible: s.lyrics.length === 0; anchors.centerIn: parent; text: T.t("Pas de paroles"); font.family: win.font; font.pixelSize: 11; color: win.sub }
       }
     }
 
@@ -358,7 +359,7 @@ PanelWindow {
         x: 0; y: 0; width: (parent.width - 8) / 2; height: 100
         Row { x: 14; y: 12; spacing: 10
           MIcon { icon: "memory"; size: 20; color: win.ink }
-          Column { Text { text: "Processeur"; font.family: win.font; font.pixelSize: 13; color: win.ink }
+          Column { Text { text: T.t("Processeur"); font.family: win.font; font.pixelSize: 13; color: win.ink }
                    Text { text: (s.info.cpu || "").replace(/\(R\)|\(TM\)|CPU|@.*$/g, "").trim(); font.family: win.font; font.pixelSize: 10; color: win.sub; width: 170; elide: Text.ElideRight } } }
         Text { x: 14; y: 62; text: s.temp > 0 ? "  " + s.temp + "°C" : ""; font.family: win.mono; font.pixelSize: 12; color: win.ink }
         Rectangle { anchors.right: parent.right; anchors.rightMargin: 14; y: 50; width: 60; height: 36; radius: 10; color: win.card2
@@ -370,7 +371,7 @@ PanelWindow {
         x: (parent.width + 8) / 2; y: 0; width: (parent.width - 8) / 2; height: 100
         Row { x: 14; y: 12; spacing: 10
           MIcon { icon: "memory_alt"; size: 20; color: win.ink }
-          Column { Text { text: "Mémoire"; font.family: win.font; font.pixelSize: 13; color: win.ink }
+          Column { Text { text: T.t("Mémoire"); font.family: win.font; font.pixelSize: 13; color: win.ink }
                    Text { text: s.memUsedGb.toFixed(1) + " / " + (s.info.ram || "?") + " Gio"; font.family: win.font; font.pixelSize: 10; color: win.sub } } }
         Item { anchors.right: parent.right; anchors.rightMargin: 14; anchors.verticalCenter: parent.verticalCenter; width: 70; height: 70
           Ring { anchors.fill: parent; value: s.memPct; thickness: 4; color: win.ink; track: win.line }
@@ -378,12 +379,12 @@ PanelWindow {
       }
       Card {
         x: 0; y: 108; width: 170; height: parent.height - 108
-        Text { x: 14; y: 12; text: "Stockage"; font.family: win.font; font.pixelSize: 13; color: win.ink }
+        Text { x: 14; y: 12; text: T.t("Stockage"); font.family: win.font; font.pixelSize: 13; color: win.ink }
         Item { anchors.centerIn: parent; anchors.verticalCenterOffset: 10; width: 90; height: 90
           Ring { anchors.fill: parent; value: s.diskPct; thickness: 5; color: win.ink; track: win.line }
           Column { anchors.centerIn: parent
             Text { anchors.horizontalCenter: parent.horizontalCenter; text: Math.round(s.diskPct * 100) + "%"; font.family: win.font; font.pixelSize: 16; font.weight: Font.Medium; color: win.ink }
-            Text { anchors.horizontalCenter: parent.horizontalCenter; text: "utilisé"; font.family: win.font; font.pixelSize: 10; color: win.sub } } }
+            Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("utilisé"); font.family: win.font; font.pixelSize: 10; color: win.sub } } }
         Text { anchors.horizontalCenter: parent.horizontalCenter; anchors.bottom: parent.bottom; anchors.bottomMargin: 10; text: s.info.disk || ""; font.family: win.font; font.pixelSize: 10; color: win.sub }
       }
       Card {
@@ -391,7 +392,7 @@ PanelWindow {
         x: 178; y: 108; width: parent.width - 178; height: parent.height - 108
         Row { x: 14; y: 12; spacing: 8
           MIcon { icon: "network_check"; size: 16; color: win.ink }
-          Text { text: "Réseau"; font.family: win.font; font.pixelSize: 13; color: win.ink } }
+          Text { text: T.t("Réseau"); font.family: win.font; font.pixelSize: 13; color: win.ink } }
         Shape {
           id: graph
           x: 14; y: 40; width: parent.width - 28; height: 70

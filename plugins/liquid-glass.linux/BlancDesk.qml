@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Bureau du style Blanc : presque rien. Une fiche système et le morceau en cours,
 // bords durs et ombres décalées, plus une grande heure en bas à droite.
@@ -103,7 +104,7 @@ PanelWindow {
     Rectangle { width: parent.width; height: 4; color: win.ink }
     Text {
       anchors.right: parent.right; topPadding: 6
-      text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM").toUpperCase()
+      text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM").toUpperCase()
       font.family: win.font; font.pixelSize: 13; font.weight: Font.Bold; font.letterSpacing: 2; color: win.ink
     }
   }

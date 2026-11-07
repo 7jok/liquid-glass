@@ -5,6 +5,7 @@ import Quickshell
 import Quickshell.Services.UPower
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Widgets du bureau façon end4-pC (Material 3 Expressive), posés sur le fond,
 // sous les fenêtres. Chacun se déplace à la souris : il glisse sur son élan,
@@ -305,7 +306,7 @@ PanelWindow {
           spacing: 1
           Text {
             width: parent.width
-            text: win.s.trackTitle !== "" ? win.s.trackTitle : "Rien en lecture"
+            text: win.s.trackTitle !== "" ? win.s.trackTitle : T.t("Rien en lecture")
             elide: Text.ElideRight
             font.family: win.s.sansFont
             font.pixelSize: 15
@@ -314,7 +315,7 @@ PanelWindow {
           }
           Text {
             width: parent.width
-            text: win.s.resumeMode ? "Reprendre · " + win.s.trackArtist : (win.s.trackArtist !== "" ? win.s.trackArtist : "Lance Spotify ♪")
+            text: win.s.resumeMode ? T.t("Reprendre · ") + win.s.trackArtist : (win.s.trackArtist !== "" ? win.s.trackArtist : T.t("Lance Spotify ♪"))
             elide: Text.ElideRight
             font.family: win.s.sansFont
             font.pixelSize: 12
@@ -454,7 +455,7 @@ PanelWindow {
           Text {
             anchors.centerIn: parent
             visible: win.s.lyrics.length === 0
-            text: win.s.hasTrack ? "Pas de paroles pour ce morceau" : "Les paroles s'afficheront ici"
+            text: win.s.hasTrack ? T.t("Pas de paroles pour ce morceau") : T.t("Les paroles s'afficheront ici")
             font.family: win.s.sansFont
             font.pixelSize: 12
             color: win.s.alpha(win.s.colOnSurfaceVariant, 0.6)
@@ -484,7 +485,7 @@ PanelWindow {
           Column {
             anchors.verticalCenter: parent.verticalCenter
             Text {
-              text: win.s.weather ? win.cap(win.s.weatherDesc) : "Météo…"
+              text: win.s.weather ? win.cap(win.s.weatherDesc) : T.t("Météo…")
               font.family: win.s.sansFont
               font.pixelSize: 13
               font.weight: Font.Medium
@@ -538,7 +539,7 @@ PanelWindow {
         spacing: 8
         SysTile { label: "CPU"; value: win.s.cpu; icon: "memory"; bg: win.s.primaryContainer; fg: win.s.colOnPrimaryContainer; badge: win.s.primary; badgeFg: win.s.colOnPrimary }
         SysTile { label: "RAM"; value: win.s.memPct; icon: "memory_alt"; bg: win.s.secondaryContainer; fg: win.s.colOnSecondaryContainer; badge: win.s.secondary; badgeFg: win.s.surface }
-        SysTile { label: "Disque"; value: win.s.diskPct; icon: "hard_drive"; bg: win.s.tertiaryContainer; fg: win.s.colOnTertiaryContainer; badge: win.s.tertiary; badgeFg: win.s.surface }
+        SysTile { label: T.t("Disque"); value: win.s.diskPct; icon: "hard_drive"; bg: win.s.tertiaryContainer; fg: win.s.colOnTertiaryContainer; badge: win.s.tertiary; badgeFg: win.s.surface }
       }
     }
 
@@ -578,7 +579,7 @@ PanelWindow {
             color: win.s.colOnSurface
           }
           Text {
-            text: "Allumé · " + win.s.uptimeText
+            text: T.t("Allumé · ") + win.s.uptimeText
             font.family: win.s.sansFont
             font.pixelSize: 11
             color: win.s.colOnSurfaceVariant
@@ -590,7 +591,7 @@ PanelWindow {
           MIcon { icon: win.s.weatherIcon; size: 14; color: win.s.colOnSurfaceVariant; anchors.verticalCenter: parent.verticalCenter }
           Text {
             anchors.verticalCenter: parent.verticalCenter
-            text: win.s.weather ? "• " + win.s.weatherDesc + " aujourd'hui" : "• " + win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM"))
+            text: win.s.weather ? "• " + win.s.weatherDesc + T.t(" aujourd'hui") : "• " + win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM"))
             font.family: win.s.sansFont
             font.pixelSize: 11
             color: win.s.colOnSurfaceVariant
@@ -609,7 +610,7 @@ PanelWindow {
               MIcon { icon: "lock"; size: 15; fill: 1; color: lockMouse.containsMouse ? win.s.colOnPrimary : win.s.colOnPrimaryContainer; anchors.verticalCenter: parent.verticalCenter }
               Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Verrouiller"
+                text: T.t("Verrouiller")
                 font.family: win.s.sansFont
                 font.pixelSize: 12
                 font.weight: Font.Medium
@@ -641,7 +642,7 @@ PanelWindow {
           Text {
             id: monthText
             anchors.centerIn: parent
-            text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "MMMM yyyy"))
+            text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "MMMM yyyy"))
             font.family: win.s.sansFont
             font.pixelSize: 11
             font.weight: Font.DemiBold
@@ -666,7 +667,7 @@ PanelWindow {
               Text {
                 width: parent.width
                 horizontalAlignment: Text.AlignHCenter
-                text: ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"][parent.index]
+                text: [T.t("Lu"), T.t("Ma"), T.t("Me"), T.t("Je"), T.t("Ve"), T.t("Sa"), T.t("Di")][parent.index]
                 font.family: win.s.sansFont
                 font.pixelSize: 10
                 color: win.s.colOnSurfaceVariant
@@ -707,7 +708,7 @@ PanelWindow {
         color: win.s.surfaceMid
         Text {
           x: 14; y: 12
-          text: "À faire"
+          text: T.t("À faire")
           font.family: win.s.sansFont
           font.pixelSize: 16
           font.weight: Font.Medium
@@ -754,7 +755,7 @@ PanelWindow {
               Text {
                 anchors.verticalCenter: parent.verticalCenter
                 visible: parent.text === ""
-                text: "Nouvelle tâche…"
+                text: T.t("Nouvelle tâche…")
                 font: parent.font
                 color: win.s.alpha(win.s.colOnSurfaceVariant, 0.6)
               }
@@ -765,7 +766,7 @@ PanelWindow {
             width: parent.width; height: 30
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
-            text: "Rien à faire, profite ✨"
+            text: T.t("Rien à faire, profite ✨")
             font.family: win.s.sansFont
             font.pixelSize: 12
             color: win.s.colOnSurfaceVariant
@@ -863,7 +864,7 @@ PanelWindow {
         Text {
           id: stackDate
           anchors.centerIn: parent
-          text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM"))
+          text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM"))
           font.family: win.s.sansFont
           font.pixelSize: 12
           font.weight: Font.Medium
@@ -916,7 +917,7 @@ PanelWindow {
           x: 24
           anchors.bottom: parent.bottom
           anchors.bottomMargin: 14
-          text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "ddd dd MMM yyyy").toUpperCase().replace(/\./g, "")
+          text: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd MMM yyyy").toUpperCase().replace(/\./g, "")
           font.family: win.s.pixelFont
           font.pixelSize: 13
           font.letterSpacing: 2
@@ -944,7 +945,7 @@ PanelWindow {
           color: win.ink
         }
         Text {
-          text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd").toUpperCase()
+          text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd").toUpperCase()
           font.family: win.s.displayFont
           font.pixelSize: dayW.kana ? 16 : 46
           font.weight: Font.Bold
@@ -955,7 +956,7 @@ PanelWindow {
           spacing: 10
           Rectangle { width: 26; height: 1; color: win.s.colOnSurfaceVariant; anchors.verticalCenter: parent.verticalCenter }
           Text {
-            text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "d MMMM yyyy").toUpperCase()
+            text: win.now.toLocaleDateString(Qt.locale(T.loc), "d MMMM yyyy").toUpperCase()
             font.family: win.s.sansFont
             font.pixelSize: 13
             font.letterSpacing: 3
@@ -1033,7 +1034,7 @@ PanelWindow {
         }
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
-          text: !ringW.batt ? "CPU" : win.charging ? "en charge"
+          text: !ringW.batt ? "CPU" : win.charging ? T.t("en charge")
               : (win.s.battery.timeToEmpty > 0 ? Math.floor(win.s.battery.timeToEmpty / 3600) + " h " + Math.floor(win.s.battery.timeToEmpty % 3600 / 60) : "batterie")
           font.family: win.s.sansFont
           font.pixelSize: 9

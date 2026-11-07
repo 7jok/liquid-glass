@@ -5,6 +5,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Barre du style Blanc : une ligne de texte en bas de l'écran, comme dwm / vxwm.
 // Pas d'îlots ni d'icônes décoratives : des numéros de bureaux, un titre, des valeurs.
@@ -123,7 +124,7 @@ PanelWindow {
     }
     Sep {}
     Cell {
-      label: win.now.toLocaleDateString(Qt.locale("fr_FR"), "ddd dd/MM") + " " + Qt.formatTime(win.now, "HH:mm")
+      label: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd/MM") + " " + Qt.formatTime(win.now, "HH:mm")
       bold: true
       onClicked: s.toggleMenu("home")
     }

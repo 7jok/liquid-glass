@@ -10,6 +10,7 @@ import Quickshell.Services.UPower
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // ============================================================================
 // Liquid Glass — Réglages Système (fenêtre de verre façon macOS Tahoe).
@@ -91,28 +92,28 @@ Item {
   readonly property var pages: [
     ["wifi", "Wi-Fi", 0xF05A9, "#0a84ff", 0],
     ["bluetooth", "Bluetooth", 0xF00AF, "#0a84ff", 0],
-    ["network", "Réseau", 0xF0318, "#0a84ff", 0],
-    ["battery", "Batterie", 0xF0079, "#30d158", 0],
-    ["general", "Général", 0xF0493, "#8e8e93", 1],
-    ["appearance", "Apparence", 0xF050E, "#1c1c1e", 1],
-    ["control", "Centre de contrôle", 0xF0521, "#8e8e93", 1],
-    ["desktop", "Bureau et Dock", 0xF0379, "#1c1c1e", 1],
-    ["displays", "Écrans", 0xF00DF, "#0a84ff", 1],
-    ["menubar", "Barre des menus", 0xF035C, "#1c1c1e", 1],
-    ["shortcuts", "Raccourcis d'apps", 0xF003B, "#5e5ce6", 1],
-    ["wallpaper", "Fond d'écran", 0xF02E9, "#32ade6", 1],
-    ["linux", "Bureau Linux", 0xF033D, "#2f9e9e", 1],
+    ["network", T.t("Réseau"), 0xF0318, "#0a84ff", 0],
+    ["battery", T.t("Batterie"), 0xF0079, "#30d158", 0],
+    ["general", T.t("Général"), 0xF0493, "#8e8e93", 1],
+    ["appearance", T.t("Apparence"), 0xF050E, "#1c1c1e", 1],
+    ["control", T.t("Centre de contrôle"), 0xF0521, "#8e8e93", 1],
+    ["desktop", T.t("Bureau et Dock"), 0xF0379, "#1c1c1e", 1],
+    ["displays", T.t("Écrans"), 0xF00DF, "#0a84ff", 1],
+    ["menubar", T.t("Barre des menus"), 0xF035C, "#1c1c1e", 1],
+    ["shortcuts", T.t("Raccourcis d'apps"), 0xF003B, "#5e5ce6", 1],
+    ["wallpaper", T.t("Fond d'écran"), 0xF02E9, "#32ade6", 1],
+    ["linux", T.t("Bureau Linux"), 0xF033D, "#2f9e9e", 1],
     ["notifications", "Notifications", 0xF009A, "#ff3b30", 2],
-    ["sound", "Son", 0xF057E, "#ff2d55", 2],
-    ["focus", "Concentration", 0xF0594, "#5e5ce6", 2],
-    ["music", "Musique et paroles", 0xF075A, "#ff375f", 2],
-    ["lock", "Écran verrouillé", 0xF033E, "#1c1c1e", 3],
-    ["users", "Utilisateurs et groupes", 0xF0849, "#0a84ff", 3],
-    ["keyboard", "Clavier", 0xF030C, "#8e8e93", 4],
-    ["mouse", "Souris", 0xF037D, "#8e8e93", 4],
+    ["sound", T.t("Son"), 0xF057E, "#ff2d55", 2],
+    ["focus", T.t("Concentration"), 0xF0594, "#5e5ce6", 2],
+    ["music", T.t("Musique et paroles"), 0xF075A, "#ff375f", 2],
+    ["lock", T.t("Écran verrouillé"), 0xF033E, "#1c1c1e", 3],
+    ["users", T.t("Utilisateurs et groupes"), 0xF0849, "#0a84ff", 3],
+    ["keyboard", T.t("Clavier"), 0xF030C, "#8e8e93", 4],
+    ["mouse", T.t("Souris"), 0xF037D, "#8e8e93", 4],
     ["trackpad", "Trackpad", 0xF0A2E, "#8e8e93", 4],
-    ["corners", "Coins actifs", 0xF0294, "#8e8e93", 4],
-    ["about", "À propos", 0xF02FD, "#8e8e93", 5]
+    ["corners", T.t("Coins actifs"), 0xF0294, "#8e8e93", 4],
+    ["about", T.t("À propos"), 0xF02FD, "#8e8e93", 5]
   ]
   function pageInfo(id) { for (var i = 0; i < pages.length; i++) if (pages[i][0] === id) return pages[i]; return pages[0] }
   readonly property var filteredPages: {
@@ -213,8 +214,8 @@ Item {
   function isVideo(p) { return /\.(mp4|webm|mkv|mov)$/i.test(String(p || "")) }
   // Catégorie d'un fond : préfixe du nom pour la collection (liquid-glass wallpapers),
   // « dyn » pour les vidéos, « mac » pour le reste (fonds du thème, vos images).
-  readonly property var bgCats: [["all", "Tous"], ["mac", "Mac"], ["dyn", "Dynamiques"], ["anime", "Anime"], ["ascii", "ASCII"],
-                                 ["minimal", "Minimal"], ["abstract", "Abstrait"], ["fruit", "Fruits"], ["genere", "Générés"]]
+  readonly property var bgCats: [["all", T.t("Tous")], ["mac", "Mac"], ["dyn", T.t("Dynamiques")], ["anime", "Anime"], ["ascii", "ASCII"],
+                                 ["minimal", "Minimal"], ["abstract", T.t("Abstrait")], ["fruit", T.t("Fruits")], ["genere", T.t("Générés")]]
   property string bgFilter: "all"
   function bgCat(p) {
     if (root.isVideo(p)) return "dyn"
@@ -398,7 +399,7 @@ Item {
             clip: true
             Keys.onEscapePressed: { text = ""; keys.forceActiveFocus() }
             Keys.onReturnPressed: keys.forceActiveFocus()
-            Text { visible: !searchInput.text; anchors.verticalCenter: parent.verticalCenter; text: "Rechercher"; font: searchInput.font; color: root.fg; opacity: 0.4 }
+            Text { visible: !searchInput.text; anchors.verticalCenter: parent.verticalCenter; text: T.t("Rechercher"); font: searchInput.font; color: root.fg; opacity: 0.4 }
           }
         }
 
@@ -442,7 +443,7 @@ Item {
                 anchors.left: accAvatar.right; anchors.leftMargin: Style.space(9)
                 anchors.verticalCenter: parent.verticalCenter
                 Text { textFormat: Text.PlainText; text: root.displayName; font.family: root.uiFont; font.pixelSize: Style.space(13); font.weight: Font.DemiBold; color: root.page === "users" ? "white" : root.fg }
-                Text { textFormat: Text.PlainText; text: "Compte local"; font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.page === "users" ? "white" : root.fg; opacity: 0.6 }
+                Text { textFormat: Text.PlainText; text: T.t("Compte local"); font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.page === "users" ? "white" : root.fg; opacity: 0.6 }
               }
               MouseArea { id: accMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.go("users") }
             }
@@ -499,7 +500,7 @@ Item {
           anchors.bottom: parent.bottom; anchors.bottomMargin: Style.space(10)
           x: Style.space(14)
           textFormat: Text.PlainText
-          text: root.busy ? "Application…" : "Enregistré automatiquement"
+          text: root.busy ? T.t("Application…") : T.t("Enregistré automatiquement")
           font.family: root.uiFont; font.pixelSize: Style.space(10.5)
           color: root.fg; opacity: 0.45
         }
@@ -575,12 +576,12 @@ Item {
       Group {
         Row_ {
           label: "Wi-Fi"
-          sub: root.wifiOn ? (root.ssid ? "Connecté à « " + root.ssid + " »" : "Non connecté") : "Désactivé"
+          sub: root.wifiOn ? (root.ssid ? T.t("Connecté à « ") + root.ssid + " »" : T.t("Non connecté")) : T.t("Désactivé")
           icon: 0xF05A9; iconColor: "#0a84ff"
           Switch_ { checked: root.wifiOn; onToggled: function(v) { root.wifiOn = v; root.run(["nmcli", "radio", "wifi", v ? "on" : "off"]) } }
         }
       }
-      SectionTitle { text: "Réseaux disponibles"; visible: root.wifiOn }
+      SectionTitle { text: T.t("Réseaux disponibles"); visible: root.wifiOn }
       Group {
         visible: root.wifiOn && root.wifiList.length > 0
         Repeater {
@@ -588,12 +589,12 @@ Item {
           delegate: Row_ {
             required property var modelData
             label: modelData.ssid
-            sub: modelData.current ? "Connecté" : (modelData.secure ? "Sécurisé" : "Ouvert")
+            sub: modelData.current ? T.t("Connecté") : (modelData.secure ? T.t("Sécurisé") : T.t("Ouvert"))
             icon: modelData.signal > 66 ? 0xF0928 : (modelData.signal > 33 ? 0xF0925 : 0xF091F)
             iconColor: modelData.current ? "#0a84ff" : "#8e8e93"
             Btn {
               visible: !modelData.current
-              text: "Se connecter"
+              text: T.t("Se connecter")
               secondary: true
               onClicked: root.run(["sh", "-c", "nmcli device wifi connect \"$1\" || omarchy-shell omarchy.network toggle", "sh", modelData.ssid])
             }
@@ -602,8 +603,8 @@ Item {
       }
       Row {
         spacing: Style.space(8)
-        Btn { text: "Actualiser"; secondary: true; onClicked: root.run(["nmcli", "device", "wifi", "rescan"]) }
-        Btn { text: "Réglages du réseau…"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.network", "toggle"]) } }
+        Btn { text: T.t("Actualiser"); secondary: true; onClicked: root.run(["nmcli", "device", "wifi", "rescan"]) }
+        Btn { text: T.t("Réglages du réseau…"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.network", "toggle"]) } }
       }
     }
   }
@@ -615,12 +616,12 @@ Item {
       Group {
         Row_ {
           label: "Bluetooth"
-          sub: root.bt ? (root.bt.enabled ? "Activé — visible en tant que « " + (root.bt.name || "Omarchy") + " »" : "Désactivé") : "Aucun adaptateur"
+          sub: root.bt ? (root.bt.enabled ? T.t("Activé — visible en tant que « ") + (root.bt.name || "Omarchy") + " »" : T.t("Désactivé")) : T.t("Aucun adaptateur")
           icon: 0xF00AF; iconColor: "#0a84ff"
           Switch_ { checked: !!(root.bt && root.bt.enabled); onToggled: function(v) { if (root.bt) root.bt.enabled = v } }
         }
       }
-      SectionTitle { text: "Mes appareils"; visible: devRep.count > 0 }
+      SectionTitle { text: T.t("Mes appareils"); visible: devRep.count > 0 }
       Group {
         visible: devRep.count > 0
         Repeater {
@@ -629,13 +630,13 @@ Item {
           delegate: Row_ {
             required property var modelData
             label: modelData.name || modelData.address
-            sub: modelData.connected ? "Connecté" + (modelData.batteryAvailable ? " — " + Math.round(modelData.battery * 100) + " %" : "") : "Non connecté"
+            sub: modelData.connected ? T.t("Connecté") + (modelData.batteryAvailable ? " — " + Math.round(modelData.battery * 100) + " %" : "") : T.t("Non connecté")
             icon: 0xF00AF; iconColor: modelData.connected ? "#0a84ff" : "#8e8e93"
-            Btn { text: modelData.connected ? "Déconnecter" : "Connecter"; secondary: true; onClicked: modelData.connected = !modelData.connected }
+            Btn { text: modelData.connected ? T.t("Déconnecter") : T.t("Connecter"); secondary: true; onClicked: modelData.connected = !modelData.connected }
           }
         }
       }
-      Btn { text: "Ajouter un appareil…"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.bluetooth", "toggle"]) } }
+      Btn { text: T.t("Ajouter un appareil…"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.bluetooth", "toggle"]) } }
     }
   }
 
@@ -649,15 +650,15 @@ Item {
           delegate: Row_ {
             required property var modelData
             label: modelData.type === "wifi" ? "Wi-Fi" : "Ethernet"
-            sub: modelData.state === "connected" ? "Connecté — " + modelData.conn + " (" + modelData.dev + ")" : "Non connecté (" + modelData.dev + ")"
+            sub: modelData.state === "connected" ? T.t("Connecté — ") + modelData.conn + " (" + modelData.dev + ")" : T.t("Non connecté (") + modelData.dev + ")"
             icon: modelData.type === "wifi" ? 0xF05A9 : 0xF0200
             iconColor: modelData.state === "connected" ? "#30d158" : "#8e8e93"
             Dot { on: modelData.state === "connected" }
           }
         }
-        Row_ { visible: root.devices.length === 0; label: "Aucune interface réseau" }
+        Row_ { visible: root.devices.length === 0; label: T.t("Aucune interface réseau") }
       }
-      Btn { text: "Détails…"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.network", "toggle"]) } }
+      Btn { text: T.t("Détails…"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.network", "toggle"]) } }
     }
   }
 
@@ -667,14 +668,14 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: root.hasBat ? "Niveau de la batterie" : "Pas de batterie"
-          sub: root.hasBat ? (UPower.onBattery ? "Sur batterie" : "Branché sur secteur") : ""
+          label: root.hasBat ? T.t("Niveau de la batterie") : T.t("Pas de batterie")
+          sub: root.hasBat ? (UPower.onBattery ? T.t("Sur batterie") : T.t("Branché sur secteur")) : ""
           icon: 0xF0079; iconColor: "#30d158"
           Label_ { visible: root.hasBat; text: root.hasBat ? Math.round(root.batDev.percentage * 100) + " %" : ""; opacity: 0.9; font.weight: Font.DemiBold }
         }
         Row_ {
           visible: root.hasBat
-          label: "Charge"
+          label: T.t("Charge")
           Rectangle {
             width: Style.space(200); height: Style.space(10); radius: height / 2
             color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.12)
@@ -686,13 +687,13 @@ Item {
           }
         }
       }
-      SectionTitle { text: "Mode d'énergie" }
+      SectionTitle { text: T.t("Mode d'énergie") }
       Group {
         Row_ {
-          label: "Profil"
-          sub: "Économie d'énergie, équilibré ou performances"
+          label: T.t("Profil")
+          sub: T.t("Économie d'énergie, équilibré ou performances")
           Seg {
-            options: [["0", "Économie"], ["1", "Équilibré"], ["2", "Performances"]]
+            options: [["0", T.t("Économie")], ["1", T.t("Équilibré")], ["2", T.t("Performances")]]
             value: String(PowerProfiles.profile === PowerProfile.PowerSaver ? 0 : (PowerProfiles.profile === PowerProfile.Performance ? 2 : 1))
             onPicked: function(v) { PowerProfiles.profile = [PowerProfile.PowerSaver, PowerProfile.Balanced, PowerProfile.Performance][parseInt(v)] }
           }
@@ -706,16 +707,16 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        Row_ { label: "Nom de l'ordinateur"; icon: 0xF0379; iconColor: "#8e8e93"; Label_ { text: Quickshell.env("HOSTNAME") || "Omarchy" } }
-        Row_ { label: "Système"; icon: 0xF08C7; iconColor: "#8e8e93"; Label_ { text: "Omarchy — Liquid Glass" } }
+        Row_ { label: T.t("Nom de l'ordinateur"); icon: 0xF0379; iconColor: "#8e8e93"; Label_ { text: Quickshell.env("HOSTNAME") || "Omarchy" } }
+        Row_ { label: T.t("Système"); icon: 0xF08C7; iconColor: "#8e8e93"; Label_ { text: "Omarchy — Liquid Glass" } }
       }
       Group {
-        ToggleRow { label: "Raccourcis façon macOS"; key: "keys.macos_shortcuts"; def: true; sub: "⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5…"; icon: 0xF030C; iconColor: "#8e8e93" }
-        ToggleRow { label: "Animations à ressort"; key: "glass.animations"; def: true; icon: 0xF0E61; iconColor: "#ff9f0a" }
+        ToggleRow { label: T.t("Raccourcis façon macOS"); key: "keys.macos_shortcuts"; def: true; sub: T.t("⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5…"); icon: 0xF030C; iconColor: "#8e8e93" }
+        ToggleRow { label: T.t("Animations à ressort"); key: "glass.animations"; def: true; icon: 0xF0E61; iconColor: "#ff9f0a" }
       }
       Group {
-        Row_ { label: "Réappliquer tous les réglages"; icon: 0xF0450; iconColor: "#30d158"; Btn { text: "Appliquer"; secondary: true; onClicked: root.launch(["liquid-glass", "apply"]) } }
-        Row_ { label: "Ouvrir le fichier de configuration"; icon: 0xF0214; iconColor: "#0a84ff"; Btn { text: "Ouvrir"; secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass/config.toml"]) } } }
+        Row_ { label: T.t("Réappliquer tous les réglages"); icon: 0xF0450; iconColor: "#30d158"; Btn { text: T.t("Appliquer"); secondary: true; onClicked: root.launch(["liquid-glass", "apply"]) } }
+        Row_ { label: T.t("Ouvrir le fichier de configuration"); icon: 0xF0214; iconColor: "#0a84ff"; Btn { text: T.t("Ouvrir"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass/config.toml"]) } } }
       }
     }
   }
@@ -726,11 +727,11 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Apparence"
+          label: T.t("Apparence")
           Row {
             spacing: Style.space(14)
             Repeater {
-              model: [["light", "Clair"], ["dark", "Sombre"], ["auto", "Auto"]]
+              model: [["light", T.t("Clair")], ["dark", T.t("Sombre")], ["auto", "Auto"]]
               delegate: Column {
                 id: ap
                 required property var modelData
@@ -758,45 +759,45 @@ Item {
           }
         }
         Row_ {
-          label: "Passage au clair"
+          label: T.t("Passage au clair")
           visible: root.val("appearance.mode", "light") === "auto"
           Stepper { value: root.val("appearance.auto_light_at", "07:30"); onChanged_: function(v) { root.set("appearance.auto_light_at", v) } }
         }
         Row_ {
-          label: "Passage au sombre"
+          label: T.t("Passage au sombre")
           visible: root.val("appearance.mode", "light") === "auto"
           Stepper { value: root.val("appearance.auto_dark_at", "19:30"); onChanged_: function(v) { root.set("appearance.auto_dark_at", v) } }
         }
       }
-      SectionTitle { text: "Verre" }
+      SectionTitle { text: T.t("Verre") }
       Group {
         Row_ {
-          label: "Style du verre"
-          sub: "Clair : plus transparent · Teinté : plus opaque"
+          label: T.t("Style du verre")
+          sub: T.t("Clair : plus transparent · Teinté : plus opaque")
           Seg {
-            options: [["clear", "Clair"], ["standard", "Standard"], ["tinted", "Teinté"]]
+            options: [["clear", T.t("Clair")], ["standard", "Standard"], ["tinted", T.t("Teinté")]]
             value: root.val("glass.style", "standard")
             onPicked: function(v) { root.set("glass.style", v) }
           }
         }
-        SliderRow { label: "Opacité du verre"; key: "glass.opacity"; from: 0.5; to: 1.4; step: 0.05; def: 1.0; fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Intensité du flou"; key: "glass.blur_size"; from: 2; to: 14; step: 1; def: 7 }
-        SliderRow { label: "Passes de flou"; key: "glass.blur_passes"; from: 1; to: 4; step: 1; def: 3 }
-        SliderRow { label: "Arrondi des fenêtres"; key: "glass.rounding"; from: 0; to: 28; step: 1; def: 16; fmt: function(v) { return v + " px" } }
+        SliderRow { label: T.t("Opacité du verre"); key: "glass.opacity"; from: 0.5; to: 1.4; step: 0.05; def: 1.0; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Intensité du flou"); key: "glass.blur_size"; from: 2; to: 14; step: 1; def: 7 }
+        SliderRow { label: T.t("Passes de flou"); key: "glass.blur_passes"; from: 1; to: 4; step: 1; def: 3 }
+        SliderRow { label: T.t("Arrondi des fenêtres"); key: "glass.rounding"; from: 0; to: 28; step: 1; def: 16; fmt: function(v) { return v + " px" } }
       }
       Group {
-        SliderRow { label: "Fenêtre active"; key: "glass.window_opacity_active"; from: 0.7; to: 1.0; step: 0.01; def: 0.96; fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Fenêtres inactives"; key: "glass.window_opacity_inactive"; from: 0.6; to: 1.0; step: 0.01; def: 0.9; fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Terminal (clair)"; key: "terminal.opacity_light"; from: 0.5; to: 1.0; step: 0.02; def: 0.8; fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Terminal (sombre)"; key: "terminal.opacity_dark"; from: 0.5; to: 1.0; step: 0.02; def: 0.76; fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Espace entre fenêtres"; key: "glass.gaps_in"; from: 0; to: 20; step: 1; def: 5; fmt: function(v) { return v + " px" } }
-        SliderRow { label: "Marge d'écran"; key: "glass.gaps_out"; from: 0; to: 40; step: 1; def: 10; fmt: function(v) { return v + " px" } }
+        SliderRow { label: T.t("Fenêtre active"); key: "glass.window_opacity_active"; from: 0.7; to: 1.0; step: 0.01; def: 0.96; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Fenêtres inactives"); key: "glass.window_opacity_inactive"; from: 0.6; to: 1.0; step: 0.01; def: 0.9; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Terminal (clair)"); key: "terminal.opacity_light"; from: 0.5; to: 1.0; step: 0.02; def: 0.8; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Terminal (sombre)"); key: "terminal.opacity_dark"; from: 0.5; to: 1.0; step: 0.02; def: 0.76; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Espace entre fenêtres"); key: "glass.gaps_in"; from: 0; to: 20; step: 1; def: 5; fmt: function(v) { return v + " px" } }
+        SliderRow { label: T.t("Marge d'écran"); key: "glass.gaps_out"; from: 0; to: 40; step: 1; def: 10; fmt: function(v) { return v + " px" } }
       }
-      SectionTitle { text: "Police" }
+      SectionTitle { text: T.t("Police") }
       Group {
-        FontRow { label: "Police de l'interface"; key: "appearance.font_ui"; def: "Inter" }
+        FontRow { label: T.t("Police de l'interface"); key: "appearance.font_ui"; def: "Inter" }
       }
-      Hint { text: "Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément." }
+      Hint { text: T.t("Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément.") }
     }
   }
 
@@ -804,7 +805,7 @@ Item {
     id: pControl
     Column {
       spacing: Style.space(14)
-      SectionTitle { text: "Pastilles" }
+      SectionTitle { text: T.t("Pastilles") }
       Group {
         Repeater {
           model: ["Pastille 2 (sous Concentration)", "Pastille 3", "Sous « Lecture en cours »"]
@@ -815,8 +816,8 @@ Item {
             readonly property var cur: root.val("control.tiles", ["wifi", "record", "gamemode"])
             label: modelData
             Picker {
-              options: [["wifi", "Wi-Fi"], ["bluetooth", "Bluetooth"], ["airplane", "Mode avion"], ["record", "Enregistrement"],
-                        ["gamemode", "Mode Jeu"], ["nightshift", "Night Shift"], ["awake", "Rester éveillé"], ["dark", "Mode sombre"]]
+              options: [["wifi", "Wi-Fi"], ["bluetooth", "Bluetooth"], ["airplane", T.t("Mode avion")], ["record", T.t("Enregistrement")],
+                        ["gamemode", T.t("Mode Jeu")], ["nightshift", "Night Shift"], ["awake", T.t("Rester éveillé")], ["dark", T.t("Mode sombre")]]
               value: tileRow.cur[tileRow.index] || ["wifi", "record", "gamemode"][tileRow.index]
               onPicked: function(v) {
                 var t = tileRow.cur.slice(0, 3)
@@ -828,16 +829,16 @@ Item {
           }
         }
       }
-      Hint { text: "Concentration et « Lecture en cours » sont toujours affichés. Mode Jeu : sans flou, ombres ni animations, profil d'énergie performance." }
-      SectionTitle { text: "Boutons ronds" }
-      Hint { text: "Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste." }
+      Hint { text: T.t("Concentration et « Lecture en cours » sont toujours affichés. Mode Jeu : sans flou, ombres ni animations, profil d'énergie performance.") }
+      SectionTitle { text: T.t("Boutons ronds") }
+      Hint { text: T.t("Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste.") }
       Group {
         Repeater {
-          model: [["nightshift", "Night Shift", 0xF06E8, "#ff9f0a"], ["awake", "Rester éveillé", 0xF0176, "#a2845e"], ["screenshot", "Capture d'écran", 0xF0100, "#8e8e93"],
-                  ["record", "Enregistrement de l'écran", 0xF044A, "#ff453a"], ["glass", "Style du verre", 0xF0F5A, "#32ade6"], ["lyrics", "Paroles sur le bureau", 0xF0387, "#ff375f"],
-                  ["karaoke", "Karaoké", 0xF0E54, "#bf5af2"], ["mission", "Mission Control", 0xF0570, "#0a84ff"], ["desktop", "Afficher le bureau", 0xF01C4, "#30d158"],
-                  ["lock", "Verrouiller l'écran", 0xF033E, "#1c1c1e"], ["calculator", "Calculette", 0xF00EC, "#ff9f0a"], ["clipboard", "Presse-papiers", 0xF014F, "#8e8e93"],
-                  ["emoji", "Émojis", 0xF0785, "#ffd60a"], ["settings", "Réglages", 0xF0493, "#8e8e93"]]
+          model: [["nightshift", "Night Shift", 0xF06E8, "#ff9f0a"], ["awake", T.t("Rester éveillé"), 0xF0176, "#a2845e"], ["screenshot", T.t("Capture d'écran"), 0xF0100, "#8e8e93"],
+                  ["record", T.t("Enregistrement de l'écran"), 0xF044A, "#ff453a"], ["glass", T.t("Style du verre"), 0xF0F5A, "#32ade6"], ["lyrics", T.t("Paroles sur le bureau"), 0xF0387, "#ff375f"],
+                  ["karaoke", T.t("Karaoké"), 0xF0E54, "#bf5af2"], ["mission", "Mission Control", 0xF0570, "#0a84ff"], ["desktop", T.t("Afficher le bureau"), 0xF01C4, "#30d158"],
+                  ["lock", T.t("Verrouiller l'écran"), 0xF033E, "#1c1c1e"], ["calculator", T.t("Calculette"), 0xF00EC, "#ff9f0a"], ["clipboard", T.t("Presse-papiers"), 0xF014F, "#8e8e93"],
+                  ["emoji", T.t("Émojis"), 0xF0785, "#ffd60a"], ["settings", T.t("Réglages"), 0xF0493, "#8e8e93"]]
           delegate: Row_ {
             id: cb
             required property var modelData
@@ -888,71 +889,71 @@ Item {
       }
       SectionTitle { text: "Dock" }
       Group {
-        SliderRow { label: "Taille"; key: "dock.icon_size"; from: 32; to: 72; step: 2; def: 42; fmt: function(v) { return v + " px" } }
-        SliderRow { label: "Agrandissement"; key: "dock.magnification"; from: 1.0; to: 2.2; step: 0.1; def: 1.6; fmt: function(v) { return v <= 1.0 ? "Désactivé" : "×" + v.toFixed(1) } }
-        ToggleRow { label: "Toujours visible"; key: "dock.always_visible"; def: true }
-        ToggleRow { label: "Masquer automatiquement"; key: "dock.autohide"; def: false }
+        SliderRow { label: T.t("Taille"); key: "dock.icon_size"; from: 32; to: 72; step: 2; def: 42; fmt: function(v) { return v + " px" } }
+        SliderRow { label: T.t("Agrandissement"); key: "dock.magnification"; from: 1.0; to: 2.2; step: 0.1; def: 1.6; fmt: function(v) { return v <= 1.0 ? "Désactivé" : "×" + v.toFixed(1) } }
+        ToggleRow { label: T.t("Toujours visible"); key: "dock.always_visible"; def: true }
+        ToggleRow { label: T.t("Masquer automatiquement"); key: "dock.autohide"; def: false }
       }
-      SectionTitle { text: "Fenêtres" }
+      SectionTitle { text: T.t("Fenêtres") }
       Group {
-        ToggleRow { label: "Fenêtres flottantes comme sur Mac"; key: "windows.floating"; def: true; sub: "Ouvertes au centre ; ⌘T remet une fenêtre en mosaïque" }
-        ToggleRow { label: "Barre de titre avec feux tricolores"; key: "glass.titlebars"; def: true; sub: "Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir" }
+        ToggleRow { label: T.t("Fenêtres flottantes comme sur Mac"); key: "windows.floating"; def: true; sub: "Ouvertes au centre ; ⌘T remet une fenêtre en mosaïque" }
+        ToggleRow { label: T.t("Barre de titre avec feux tricolores"); key: "glass.titlebars"; def: true; sub: "Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir" }
         Row_ {
-          label: "Bouton vert"
-          Seg { options: [["menu", "Menu Mosaïque"], ["zoom", "Agrandir"]]; value: root.val("windows.green_button", "menu"); onPicked: function(v) { root.set("windows.green_button", v) } }
+          label: T.t("Bouton vert")
+          Seg { options: [["menu", T.t("Menu Mosaïque")], ["zoom", T.t("Agrandir")]]; value: root.val("windows.green_button", "menu"); onPicked: function(v) { root.set("windows.green_button", v) } }
         }
       }
       SectionTitle { text: "Widgets" }
       Group {
-        ToggleRow { label: "Widgets sur le bureau"; key: "widgets.enabled"; def: true }
+        ToggleRow { label: T.t("Widgets sur le bureau"); key: "widgets.enabled"; def: true }
         Row_ {
-          label: "Colonne"
-          Seg { options: [["left", "À gauche"], ["right", "À droite"]]; value: root.val("widgets.position", "left"); onPicked: function(v) { root.set("widgets.position", v) } }
+          label: T.t("Colonne")
+          Seg { options: [["left", T.t("À gauche")], ["right", T.t("À droite")]]; value: root.val("widgets.position", "left"); onPicked: function(v) { root.set("widgets.position", v) } }
         }
-        ToggleRow { label: "Horloge"; key: "widgets.clock"; def: true }
+        ToggleRow { label: T.t("Horloge"); key: "widgets.clock"; def: true }
         Row_ {
-          label: "Style de l'horloge"
+          label: T.t("Style de l'horloge")
           visible: root.val("widgets.clock", true) === true
-          Seg { options: [["digital", "Numérique"], ["analog", "Cadran"]]; value: String(root.val("widgets.clock_style", "digital")); onPicked: function(v) { root.set("widgets.clock_style", v) } }
+          Seg { options: [["digital", T.t("Numérique")], ["analog", T.t("Cadran")]]; value: String(root.val("widgets.clock_style", "digital")); onPicked: function(v) { root.set("widgets.clock_style", v) } }
         }
         Row_ {
-          label: "Taille de l'horloge"
+          label: T.t("Taille de l'horloge")
           visible: root.val("widgets.clock", true) === true
           Seg { options: root.widgetSizes; value: root.widgetSize("clock"); onPicked: function(v) { root.set("widgets.clock_size", v) } }
         }
-        ToggleRow { label: "Calendrier"; key: "widgets.calendar"; def: true }
+        ToggleRow { label: T.t("Calendrier"); key: "widgets.calendar"; def: true }
         Row_ {
-          label: "Taille du calendrier"
+          label: T.t("Taille du calendrier")
           visible: root.val("widgets.calendar", true) === true
           Seg { options: root.widgetSizes; value: root.widgetSize("calendar"); onPicked: function(v) { root.set("widgets.calendar_size", v) } }
         }
-        ToggleRow { label: "Météo"; key: "widgets.weather"; def: true }
+        ToggleRow { label: T.t("Météo"); key: "widgets.weather"; def: true }
         Row_ {
-          label: "Taille de la météo"
+          label: T.t("Taille de la météo")
           visible: root.val("widgets.weather", true) === true
           Seg { options: root.widgetSizes; value: root.widgetSize("weather"); onPicked: function(v) { root.set("widgets.weather_size", v) } }
         }
-        ToggleRow { label: "Batterie"; key: "widgets.battery"; def: true }
+        ToggleRow { label: T.t("Batterie"); key: "widgets.battery"; def: true }
         Row_ {
-          label: "Taille de la batterie"
+          label: T.t("Taille de la batterie")
           visible: root.val("widgets.battery", true) === true
           Seg { options: root.widgetSizes; value: root.widgetSize("battery"); onPicked: function(v) { root.set("widgets.battery_size", v) } }
         }
         Row_ {
-          label: "Ville de la météo"
+          label: T.t("Ville de la météo")
           TextBox { value: String(root.val("widgets.weather_city", "")); placeholder: "Automatique"; onCommitted: function(t) { root.set("widgets.weather_city", t) } }
         }
       }
-      SectionTitle { text: "Widget musique" }
+      SectionTitle { text: T.t("Widget musique") }
       Group {
-        ToggleRow { label: "Lecture en cours sur le bureau"; key: "widgets.music"; def: true; sub: "Glissez-le où vous voulez : il glisse et rebondit" }
+        ToggleRow { label: T.t("Lecture en cours sur le bureau"); key: "widgets.music"; def: true; sub: T.t("Glissez-le où vous voulez : il glisse et rebondit") }
         Row_ {
-          label: "Taille"
-          Seg { options: [["small", "Petit"], ["medium", "Moyen"], ["large", "Grand"]]; value: root.val("widgets.music_size", "medium"); onPicked: function(v) { root.set("widgets.music_size", v) } }
+          label: T.t("Taille")
+          Seg { options: [["small", T.t("Petit")], ["medium", T.t("Moyen")], ["large", T.t("Grand")]]; value: root.val("widgets.music_size", "medium"); onPicked: function(v) { root.set("widgets.music_size", v) } }
         }
         Row_ {
           label: "Position"
-          Btn { text: "Replacer"; secondary: true; onClicked: { root.set("widgets.music_x", -1); root.set("widgets.music_y", -1) } }
+          Btn { text: T.t("Replacer"); secondary: true; onClicked: { root.set("widgets.music_x", -1); root.set("widgets.music_y", -1) } }
         }
       }
     }
@@ -964,7 +965,7 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Luminosité"
+          label: T.t("Luminosité")
           icon: 0xF00DF; iconColor: "#0a84ff"
           LiveSlider {
             value: root.brightness
@@ -973,13 +974,13 @@ Item {
         }
         Row_ {
           label: "Night Shift"
-          sub: "Couleurs plus chaudes le soir"
+          sub: T.t("Couleurs plus chaudes le soir")
           icon: 0xF06E8; iconColor: "#ff9f0a"
           Switch_ { checked: root.nightlight; onToggled: function(v) { root.nightlight = v; root.run(["omarchy-shell", "nightlight", "toggle"]) } }
         }
       }
       // Moniteurs (comme la section « Écrans » de la vidéo) : nom, définition, fréquence, échelle.
-      SectionTitle { text: "Moniteurs" }
+      SectionTitle { text: T.t("Moniteurs") }
       Group {
         id: monGroup
         property var mons: []
@@ -996,20 +997,20 @@ Item {
             width: parent.width
             Row_ {
               label: ((mon.modelData.make || "") + " " + (mon.modelData.model || "")).trim() || mon.modelData.name
-              sub: mon.modelData.name + (mon.modelData.focused ? " · écran principal" : "")
+              sub: mon.modelData.name + (mon.modelData.focused ? T.t(" · écran principal") : "")
               icon: 0xF0379; iconColor: "#0a84ff"
             }
-            Row_ { label: "Définition"; Label_ { text: mon.modelData.width + " × " + mon.modelData.height + "  (comme " + Math.round(mon.modelData.width / mon.modelData.scale) + " × " + Math.round(mon.modelData.height / mon.modelData.scale) + ")" } }
-            Row_ { label: "Fréquence de rafraîchissement"; Label_ { text: Math.round(mon.modelData.refreshRate) + " Hz" } }
-            Row_ { label: "Échelle"; Label_ { text: Math.round(mon.modelData.scale * 100) + " %" } }
+            Row_ { label: T.t("Définition"); Label_ { text: mon.modelData.width + " × " + mon.modelData.height + T.t("  (comme ") + Math.round(mon.modelData.width / mon.modelData.scale) + " × " + Math.round(mon.modelData.height / mon.modelData.scale) + ")" } }
+            Row_ { label: T.t("Fréquence de rafraîchissement"); Label_ { text: Math.round(mon.modelData.refreshRate) + " Hz" } }
+            Row_ { label: T.t("Échelle"); Label_ { text: Math.round(mon.modelData.scale * 100) + " %" } }
           }
         }
       }
       Group {
-        ToggleRow { label: "Coins d'écran arrondis"; key: "corners.enabled"; def: true; sub: "Comme la dalle d'un MacBook ; les clics passent au travers" }
-        SliderRow { visible: root.val("corners.enabled", true) === true; label: "Rayon"; key: "corners.radius"; from: 4; to: 24; step: 1; def: 10; fmt: function(v) { return v + " px" } }
+        ToggleRow { label: T.t("Coins d'écran arrondis"); key: "corners.enabled"; def: true; sub: "Comme la dalle d'un MacBook ; les clics passent au travers" }
+        SliderRow { visible: root.val("corners.enabled", true) === true; label: T.t("Rayon"); key: "corners.radius"; from: 4; to: 24; step: 1; def: 10; fmt: function(v) { return v + " px" } }
       }
-      Btn { text: "Moniteurs…"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.monitor", "toggle"]) } }
+      Btn { text: T.t("Moniteurs…"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.monitor", "toggle"]) } }
     }
   }
 
@@ -1019,10 +1020,10 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Logo de la barre"
-          sub: "Le menu tout à gauche"
+          label: T.t("Logo de la barre")
+          sub: T.t("Le menu tout à gauche")
           Seg {
-            options: [["pomme", "Pomme"], ["arch", "Arch"], ["tux", "Tux"], ["omarchy", "Omarchy"], ["orb", "Bille"], ["goutte", "Goutte"]]
+            options: [["pomme", T.t("Pomme")], ["arch", "Arch"], ["tux", "Tux"], ["omarchy", "Omarchy"], ["orb", T.t("Bille")], ["goutte", T.t("Goutte")]]
             value: root.val("appearance.logo", "pomme")
             onPicked: function(v) { root.set("appearance.logo", v) }
           }
@@ -1030,10 +1031,10 @@ Item {
       }
       Group {
         Row_ {
-          label: "Fond de la barre"
-          sub: "Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran"
+          label: T.t("Fond de la barre")
+          sub: T.t("Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran")
           Seg {
-            options: [["none", "Transparente"], ["glassy", "Verre"], ["opaque", "Opaque"]]
+            options: [["none", T.t("Transparente")], ["glassy", T.t("Verre")], ["opaque", "Opaque"]]
             value: String(root.barItems.background || "opaque")
             onPicked: function(v) {
               var next = Object.assign({}, root.barItems); next.background = v; root.barItems = next
@@ -1042,56 +1043,56 @@ Item {
           }
         }
       }
-      SectionTitle { text: "Éléments de la barre" }
+      SectionTitle { text: T.t("Éléments de la barre") }
       Group {
-        BarRow { label: "Batterie"; item: "battery" }
+        BarRow { label: T.t("Batterie"); item: "battery" }
         Row_ {
-          label: "Pourcentage de la batterie"
-          sub: "À gauche de la pile (aussi : clic droit sur la batterie)"
+          label: T.t("Pourcentage de la batterie")
+          sub: T.t("À gauche de la pile (aussi : clic droit sur la batterie)")
           visible: root.barItems.battery === true
           Switch_ { checked: root.barItems.battery_percent === true; onToggled: function(v) { root.run(["omarchy-shell", "liquid-glass.power", "togglePercentage"]); barTimer.restart() } }
         }
         BarRow { label: "Wi-Fi"; item: "wifi" }
-        BarRow { label: "Spotlight (loupe)"; item: "spotlight" }
-        BarRow { label: "Bluetooth"; item: "bluetooth"; sub: "Aussi dans le Centre de contrôle" }
-        BarRow { label: "Son"; item: "sound"; sub: "Aussi dans le Centre de contrôle" }
-        BarRow { label: "Bureaux (1 2 3…)"; item: "workspaces"; sub: "Pas sur macOS : Mission Control (⌘↑) les remplace" }
-        BarRow { label: "Morceau en cours"; item: "nowplaying"; sub: "Pochette et titre à droite (déjà dans l'île)" }
-        BarRow { label: "Agents"; item: "agents"; sub: "Indicateur des agents Omarchy" }
+        BarRow { label: T.t("Spotlight (loupe)"); item: "spotlight" }
+        BarRow { label: "Bluetooth"; item: "bluetooth"; sub: T.t("Aussi dans le Centre de contrôle") }
+        BarRow { label: T.t("Son"); item: "sound"; sub: T.t("Aussi dans le Centre de contrôle") }
+        BarRow { label: T.t("Bureaux (1 2 3…)"); item: "workspaces"; sub: T.t("Pas sur macOS : Mission Control (⌘↑) les remplace") }
+        BarRow { label: T.t("Morceau en cours"); item: "nowplaying"; sub: T.t("Pochette et titre à droite (déjà dans l'île)") }
+        BarRow { label: "Agents"; item: "agents"; sub: T.t("Indicateur des agents Omarchy") }
       }
-      SectionTitle { text: "Paroles" }
+      SectionTitle { text: T.t("Paroles") }
       Group {
-        ToggleRow { label: "Dans l'île dynamique"; key: "island.lyrics"; def: true; sub: "L'île s'élargit et la ligne chantée défile dedans" }
-        ToggleRow { label: "Dans la barre"; key: "lyrics.bar"; def: false; sub: "Ancienne présentation : la ligne à côté du titre" }
-        ToggleRow { label: "Sur le fond d'écran"; key: "lyrics.desktop"; def: false; sub: "En grand à côté de la pochette (bulle du widget musique)" }
+        ToggleRow { label: T.t("Dans l'île dynamique"); key: "island.lyrics"; def: true; sub: T.t("L'île s'élargit et la ligne chantée défile dedans") }
+        ToggleRow { label: T.t("Dans la barre"); key: "lyrics.bar"; def: false; sub: T.t("Ancienne présentation : la ligne à côté du titre") }
+        ToggleRow { label: T.t("Sur le fond d'écran"); key: "lyrics.desktop"; def: false; sub: T.t("En grand à côté de la pochette (bulle du widget musique)") }
       }
-      SectionTitle { text: "Horloge" }
+      SectionTitle { text: T.t("Horloge") }
       Group {
-        ToggleRow { label: "Horloge 24 heures"; key: "menubar.clock_24h"; def: true }
-        ToggleRow { label: "Afficher la date"; key: "menubar.show_date"; def: true }
-        ToggleRow { label: "Afficher les secondes"; key: "menubar.show_seconds"; def: false }
-        ToggleRow { label: "La semaine commence le lundi"; key: "menubar.week_monday"; def: true; sub: "Widget Calendrier" }
+        ToggleRow { label: T.t("Horloge 24 heures"); key: "menubar.clock_24h"; def: true }
+        ToggleRow { label: T.t("Afficher la date"); key: "menubar.show_date"; def: true }
+        ToggleRow { label: T.t("Afficher les secondes"); key: "menubar.show_seconds"; def: false }
+        ToggleRow { label: T.t("La semaine commence le lundi"); key: "menubar.week_monday"; def: true; sub: T.t("Widget Calendrier") }
       }
-      SectionTitle { text: "Île dynamique" }
+      SectionTitle { text: T.t("Île dynamique") }
       Group {
-        ToggleRow { label: "Île dynamique"; key: "island.enabled"; def: true; sub: "Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes" }
+        ToggleRow { label: T.t("Île dynamique"); key: "island.enabled"; def: true; sub: T.t("Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes") }
         Row_ {
-          label: "Au repos"
+          label: T.t("Au repos")
           visible: root.val("island.enabled", true) === true
           Seg {
-            options: [["hidden", "Masquée"], ["notch", "Encoche"]]
+            options: [["hidden", T.t("Masquée")], ["notch", T.t("Encoche")]]
             value: root.val("island.idle", "hidden")
             onPicked: function(v) { root.set("island.idle", v) }
           }
         }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Lecture en cours"; key: "island.music"; def: true; sub: "Pochette et égaliseur aux couleurs de la pochette" }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Secteur"; key: "island.battery"; def: true; sub: "Branchement et débranchement, avec le niveau" }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Appareils Bluetooth"; key: "island.bluetooth"; def: true; sub: "Casque connecté, avec sa batterie" }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Concentration"; key: "island.focus"; def: true }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: "Volume dans l'île"; key: "island.hud"; def: false; sub: "En plus de l'OSD au-dessus du Dock" }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Lecture en cours"); key: "island.music"; def: true; sub: T.t("Pochette et égaliseur aux couleurs de la pochette") }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Secteur"); key: "island.battery"; def: true; sub: T.t("Branchement et débranchement, avec le niveau") }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Appareils Bluetooth"); key: "island.bluetooth"; def: true; sub: T.t("Casque connecté, avec sa batterie") }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Concentration"); key: "island.focus"; def: true }
+        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Volume dans l'île"); key: "island.hud"; def: false; sub: T.t("En plus de l'OSD au-dessus du Dock") }
       }
-      Hint { text: "Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages." }
-      Hint { text: "La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help." }
+      Hint { text: T.t("Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages.") }
+      Hint { text: T.t("La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.") }
     }
   }
 
@@ -1113,10 +1114,10 @@ Item {
     return lib ? lib.iconSource(icon) : Quickshell.iconPath(icon, true)
   }
   function shortcutInfo(id) {
-    if (id === "claude-code") return { name: "Claude Code", sub: "Terminal avec Claude Code (omarchy-agent)", icon: root.claudeIcon }
+    if (id === "claude-code") return { name: "Claude Code", sub: T.t("Terminal avec Claude Code (omarchy-agent)"), icon: root.claudeIcon }
     var e = appEntry(id)
     return e ? { name: e.name, sub: e.genericName || e.comment || "", icon: appIcon(e.icon) }
-             : { name: id, sub: "App introuvable", icon: "" }
+             : { name: id, sub: T.t("App introuvable"), icon: "" }
   }
   function hasShortcut(id) { var n = normId(id); return shortcutIds.some(function(x) { return normId(x) === n }) }
   function addShortcut(id) { if (!hasShortcut(id)) root.set("shortcuts.apps", shortcutIds.concat([id])) }
@@ -1131,7 +1132,7 @@ Item {
   readonly property var installedApps: {
     var q = appQuery.trim().toLowerCase(), out = []
     if (!hasShortcut("claude-code") && (q === "" || "claude code".indexOf(q) !== -1))
-      out.push({ id: "claude-code", name: "Claude Code", sub: "Terminal avec Claude Code", icon: root.claudeIcon })
+      out.push({ id: "claude-code", name: "Claude Code", sub: T.t("Terminal avec Claude Code"), icon: root.claudeIcon })
     var all = DesktopEntries.applications.values.slice().sort(function(a, b) { return String(a.name).localeCompare(String(b.name)) })
     for (var i = 0; i < all.length; i++) {
       var e = all[i]
@@ -1203,9 +1204,9 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        BarRow { label: "Raccourcis dans la barre des menus"; item: "shortcuts"; sub: "Icônes d'apps à gauche des indicateurs, comme le bouton Claude" }
+        BarRow { label: T.t("Raccourcis dans la barre des menus"); item: "shortcuts"; sub: T.t("Icônes d'apps à gauche des indicateurs, comme le bouton Claude") }
       }
-      SectionTitle { text: "Dans la barre (de gauche à droite)" }
+      SectionTitle { text: T.t("Dans la barre (de gauche à droite)") }
       Group {
         Repeater {
           model: root.shortcutIds
@@ -1219,9 +1220,9 @@ Item {
             RoundGlyph { glyph: 0xF0374; filled: true; tint: "#ff3b30"; onClicked: root.removeShortcut(index) }
           }
         }
-        Row_ { visible: root.shortcutIds.length === 0; label: "Aucun raccourci"; sub: "Ajoutez des apps ci-dessous" }
+        Row_ { visible: root.shortcutIds.length === 0; label: T.t("Aucun raccourci"); sub: T.t("Ajoutez des apps ci-dessous") }
       }
-      SectionTitle { text: "Ajouter une app" }
+      SectionTitle { text: T.t("Ajouter une app") }
       TextBox {
         width: parent.width
         placeholder: "Rechercher une app installée…"
@@ -1237,10 +1238,10 @@ Item {
             RoundGlyph { glyph: 0xF0415; filled: true; tint: "#30d158"; onClicked: root.addShortcut(modelData.id) }
           }
         }
-        Row_ { visible: root.installedApps.length === 0; label: "Aucune app trouvée" }
+        Row_ { visible: root.installedApps.length === 0; label: T.t("Aucune app trouvée") }
       }
-      Hint { visible: root.installedApps.length > 60; text: (root.installedApps.length - 60) + " autres apps : affinez la recherche." }
-      Hint { text: "Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page." }
+      Hint { visible: root.installedApps.length > 60; text: (root.installedApps.length - 60) + T.t(" autres apps : affinez la recherche.") }
+      Hint { text: T.t("Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page.") }
     }
   }
 
@@ -1262,24 +1263,24 @@ Item {
           Text { textFormat: Text.PlainText; text: root.currentBg ? root.currentBg.split("/").pop().replace(/\.[^.]+$/, "") : "—"; font.family: root.uiFont; font.pixelSize: Style.space(14); font.weight: Font.DemiBold; color: root.fg; width: Style.space(260); elide: Text.ElideRight }
           Row {
             spacing: Style.space(8)
-            Btn { text: "Ouvrir le dossier"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy", "theme", "bg", "install"]) } }
-            Btn { text: "Actualiser"; secondary: true; onClicked: root.refresh() }
+            Btn { text: T.t("Ouvrir le dossier"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy", "theme", "bg", "install"]) } }
+            Btn { text: T.t("Actualiser"); secondary: true; onClicked: root.refresh() }
           }
         }
       }
-      SectionTitle { text: "Pendant la musique" }
+      SectionTitle { text: T.t("Pendant la musique") }
       Group {
         Row_ {
-          label: "Fond d'écran Spotify"
-          sub: "Off : le fond normal reste, seul le widget s'affiche"
+          label: T.t("Fond d'écran Spotify")
+          sub: T.t("Off : le fond normal reste, seul le widget s'affiche")
           Seg {
-            options: [["off", "Off"], ["cover", "Pochette"], ["blur", "Flou"], ["gradient", "Dégradé"]]
+            options: [["off", "Off"], ["cover", T.t("Pochette")], ["blur", T.t("Flou")], ["gradient", T.t("Dégradé")]]
             value: String(root.val("spotify.wallpaper", "off"))
             onPicked: function(v) { root.set("spotify.wallpaper", v) }
           }
         }
       }
-      SectionTitle { text: "Fonds d'écran" }
+      SectionTitle { text: T.t("Fonds d'écran") }
       // Filtre par catégorie (pastilles, avec le nombre de fonds).
       Flow {
         width: parent.width
@@ -1351,24 +1352,24 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Ne pas déranger"
-          sub: "Les notifications sont silencieuses"
+          label: T.t("Ne pas déranger")
+          sub: T.t("Les notifications sont silencieuses")
           icon: 0xF0594; iconColor: "#5e5ce6"
           Switch_ { checked: root.dnd; onToggled: function(v) { root.dnd = v; root.run(["omarchy-shell", "notifications", "setDnd", v ? "on" : "off"]) } }
         }
       }
-      SectionTitle { text: "Écran verrouillé" }
+      SectionTitle { text: T.t("Écran verrouillé") }
       Group {
         Row_ {
-          label: "Aperçu des notifications"
+          label: T.t("Aperçu des notifications")
           Seg {
-            options: [["full", "Complet"], ["summary", "Résumé"], ["count", "Nombre"], ["off", "Aucun"]]
+            options: [["full", T.t("Complet")], ["summary", T.t("Résumé")], ["count", T.t("Nombre")], ["off", T.t("Aucun")]]
             value: String(root.val("lock.notifications", "summary"))
             onPicked: function(v) { root.set("lock.notifications", v) }
           }
         }
       }
-      Btn { text: "Historique des notifications"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "notifications", "showHistory"]) } }
+      Btn { text: T.t("Historique des notifications"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "notifications", "showHistory"]) } }
     }
   }
 
@@ -1378,7 +1379,7 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Volume de sortie"
+          label: T.t("Volume de sortie")
           icon: 0xF057E; iconColor: "#ff2d55"
           LiveSlider {
             value: root.sink && root.sink.audio ? Math.min(1, root.sink.audio.volume) : 0
@@ -1386,11 +1387,11 @@ Item {
           }
         }
         Row_ {
-          label: "Muet"
+          label: T.t("Muet")
           Switch_ { checked: !!(root.sink && root.sink.audio && root.sink.audio.muted); onToggled: function(v) { if (root.sink && root.sink.audio) root.sink.audio.muted = v } }
         }
       }
-      SectionTitle { text: "Sortie" }
+      SectionTitle { text: T.t("Sortie") }
       Group {
         Repeater {
           model: root.sinks
@@ -1399,7 +1400,7 @@ Item {
             label: modelData.description || modelData.nickname || modelData.name
             icon: 0xF04C3; iconColor: modelData === root.sink ? "#ff2d55" : "#8e8e93"
             Dot { visible: modelData === root.sink; on: true }
-            Btn { visible: modelData !== root.sink; text: "Utiliser"; secondary: true; onClicked: Pipewire.preferredDefaultAudioSink = modelData }
+            Btn { visible: modelData !== root.sink; text: T.t("Utiliser"); secondary: true; onClicked: Pipewire.preferredDefaultAudioSink = modelData }
           }
         }
       }
@@ -1410,11 +1411,11 @@ Item {
     id: pFocus
     Column {
       spacing: Style.space(14)
-      Hint { text: "Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift." }
+      Hint { text: T.t("Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift.") }
       Group {
         Repeater {
-          model: [["dnd", "Ne pas déranger", 0xF0594, "#5e5ce6"], ["work", "Travail", 0xF0D6B, "#30b0c7"],
-                  ["personal", "Personnel", 0xF0004, "#bf5af2"], ["sleep", "Sommeil", 0xF04B2, "#64d2ff"]]
+          model: [["dnd", T.t("Ne pas déranger"), 0xF0594, "#5e5ce6"], ["work", T.t("Travail"), 0xF0D6B, "#30b0c7"],
+                  ["personal", T.t("Personnel"), 0xF0004, "#bf5af2"], ["sleep", T.t("Sommeil"), 0xF04B2, "#64d2ff"]]
           delegate: Row_ {
             required property var modelData
             label: modelData[1]
@@ -1434,22 +1435,22 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        ToggleRow { label: "Couleurs de la pochette"; key: "spotify.dynamic_colors"; def: true; sub: "Accent, bordures, barre, dock et terminal"; icon: 0xF03D8; iconColor: "#ff9f0a" }
-        SliderRow { label: "Retour au fond après pause"; key: "spotify.restore_after_minutes"; from: 0; to: 30; step: 1; def: 5; fmt: function(v) { return v === 0 ? "Jamais" : v + " min" } }
+        ToggleRow { label: T.t("Couleurs de la pochette"); key: "spotify.dynamic_colors"; def: true; sub: T.t("Accent, bordures, barre, dock et terminal"); icon: 0xF03D8; iconColor: "#ff9f0a" }
+        SliderRow { label: T.t("Retour au fond après pause"); key: "spotify.restore_after_minutes"; from: 0; to: 30; step: 1; def: 5; fmt: function(v) { return v === 0 ? "Jamais" : v + " min" } }
       }
-      SectionTitle { text: "Paroles" }
+      SectionTitle { text: T.t("Paroles") }
       Group {
-        ToggleRow { label: "Sur le bureau, en grand"; key: "lyrics.desktop"; def: false; sub: "Derrière les fenêtres" }
-        ToggleRow { label: "Widget flottant"; key: "lyrics.widget"; def: false; sub: "Carte déplaçable ; double-clic pour le karaoké" }
-        ToggleRow { label: "Dans la barre"; key: "lyrics.bar"; def: true }
-        Row_ { label: "Karaoké plein écran"; Btn { text: "Ouvrir  ⌘⌥M"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } } }
+        ToggleRow { label: T.t("Sur le bureau, en grand"); key: "lyrics.desktop"; def: false; sub: T.t("Derrière les fenêtres") }
+        ToggleRow { label: T.t("Widget flottant"); key: "lyrics.widget"; def: false; sub: "Carte déplaçable ; double-clic pour le karaoké" }
+        ToggleRow { label: T.t("Dans la barre"); key: "lyrics.bar"; def: true }
+        Row_ { label: T.t("Karaoké plein écran"); Btn { text: T.t("Ouvrir  ⌘⌥M"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } } }
       }
-      SectionTitle { text: "Visualiseur" }
+      SectionTitle { text: T.t("Visualiseur") }
       Group {
-        ToggleRow { label: "Visualiseur audio"; key: "visualizer.enabled"; def: false; sub: "cava en bas du fond d'écran pendant la lecture" }
-        SliderRow { label: "Nombre de barres"; key: "visualizer.bars"; from: 16; to: 128; step: 8; def: 64 }
+        ToggleRow { label: T.t("Visualiseur audio"); key: "visualizer.enabled"; def: false; sub: T.t("cava en bas du fond d'écran pendant la lecture") }
+        SliderRow { label: T.t("Nombre de barres"); key: "visualizer.bars"; from: 16; to: 128; step: 8; def: 64 }
       }
-      Hint { text: "Paroles synchronisées fournies par LRCLIB (gratuit, sans compte), mises en cache dans ~/.cache/liquid-glass." }
+      Hint { text: T.t("Paroles synchronisées fournies par LRCLIB (gratuit, sans compte), mises en cache dans ~/.cache/liquid-glass.") }
     }
   }
 
@@ -1459,34 +1460,34 @@ Item {
       spacing: Style.space(14)
       Group {
         Row_ {
-          label: "Lecture en cours"
+          label: T.t("Lecture en cours")
           sub: "Position ; se déplace aussi au doigt"
           Seg {
-            options: [["clock", "Sous l'horloge"], ["password", "Au-dessus du mot de passe"]]
+            options: [["clock", T.t("Sous l'horloge")], ["password", T.t("Au-dessus du mot de passe")]]
             value: String(root.val("lock.music_position", "password"))
             onPicked: function(v) { root.set("lock.music_position", v); root.set("lock.music_x", -1); root.set("lock.music_y", -1) }
           }
         }
-        ToggleRow { label: "Widget musique"; key: "lock.music_card"; def: true; sub: "La bulle l'agrandit" }
-        ToggleRow { label: "Garder le dernier morceau"; key: "lock.music_last"; def: true; sub: "Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)" }
+        ToggleRow { label: T.t("Widget musique"); key: "lock.music_card"; def: true; sub: T.t("La bulle l'agrandit") }
+        ToggleRow { label: T.t("Garder le dernier morceau"); key: "lock.music_last"; def: true; sub: T.t("Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)") }
         Row_ {
-          label: "Fond quand la pochette est agrandie"
+          label: T.t("Fond quand la pochette est agrandie")
           Seg {
-            options: [["art", "Pochette floue"], ["off", "Fond normal"]]
+            options: [["art", T.t("Pochette floue")], ["off", T.t("Fond normal")]]
             value: String(root.val("lock.music_background", "art")) === "off" ? "off" : "art"
             onPicked: function(v) { root.set("lock.music_background", v) }
           }
         }
-        ToggleRow { label: "Paroles synchronisées"; key: "lock.lyrics"; def: true; sub: "À côté du widget agrandi" }
-        ToggleRow { label: "Horloge 24 heures"; key: "lock.clock_24h"; def: true }
-        ToggleRow { label: "Fond d'écran flouté"; key: "lock.wallpaper_blur"; def: false }
-        ToggleRow { label: "Batterie en haut à droite"; key: "lock.status"; def: true }
+        ToggleRow { label: T.t("Paroles synchronisées"); key: "lock.lyrics"; def: true; sub: T.t("À côté du widget agrandi") }
+        ToggleRow { label: T.t("Horloge 24 heures"); key: "lock.clock_24h"; def: true }
+        ToggleRow { label: T.t("Fond d'écran flouté"); key: "lock.wallpaper_blur"; def: false }
+        ToggleRow { label: T.t("Batterie en haut à droite"); key: "lock.status"; def: true }
       }
-      SectionTitle { text: "Horloge" }
+      SectionTitle { text: T.t("Horloge") }
       Row {
         spacing: Style.space(10)
         Repeater {
-          model: [["glass", "Verre"], ["bold", "Classique"], ["serif", "Serif"], ["liquid", "Liquide"], ["light", "Fine"]]
+          model: [["glass", T.t("Verre")], ["bold", T.t("Classique")], ["serif", "Serif"], ["liquid", T.t("Liquide")], ["light", T.t("Fine")]]
           delegate: Column {
             id: cs
             required property var modelData
@@ -1518,15 +1519,15 @@ Item {
         }
       }
       Group {
-        FontRow { label: "Police de l'horloge"; key: "lock.clock_font"; def: ""; allowDefault: true }
+        FontRow { label: T.t("Police de l'horloge"); key: "lock.clock_font"; def: ""; allowDefault: true }
         SliderRow {
-          label: "Graisse"; key: "lock.clock_weight"; from: 100; to: 900; step: 100
+          label: T.t("Graisse"); key: "lock.clock_weight"; from: 100; to: 900; step: 100
           def: ({ light: 100, serif: 500, bold: 700 })[String(root.val("lock.clock_style", "glass"))] || 600
           fmt: function(v) { return ({ 100: "Fine", 200: "Très légère", 300: "Légère", 400: "Normale", 500: "Moyenne", 600: "Demi-grasse", 700: "Grasse", 800: "Très grasse", 900: "Épaisse" })[v] || String(v) }
         }
-        SliderRow { label: "Luminosité"; key: "lock.clock_brightness"; from: 0.4; to: 1; step: 0.05; def: 1; fmt: function(v) { return v <= 0.55 ? "Discrète" : (v >= 0.95 ? "Vive" : Math.round(v * 100) + " %") } }
+        SliderRow { label: T.t("Luminosité"); key: "lock.clock_brightness"; from: 0.4; to: 1; step: 0.05; def: 1; fmt: function(v) { return v <= 0.55 ? "Discrète" : (v >= 0.95 ? "Vive" : Math.round(v * 100) + " %") } }
         Row_ {
-          label: "Couleur"
+          label: T.t("Couleur")
           Row {
             spacing: Style.space(7)
             Repeater {
@@ -1546,13 +1547,13 @@ Item {
             }
           }
         }
-        ToggleRow { label: "Chiffres hauts"; key: "lock.clock_tall"; def: false; sub: "Étire les chiffres pour remplir l'espace, comme iOS 26" }
+        ToggleRow { label: T.t("Chiffres hauts"); key: "lock.clock_tall"; def: false; sub: T.t("Étire les chiffres pour remplir l'espace, comme iOS 26") }
         Row_ {
           label: "Date"
           Seg {
             readonly property date now: new Date()
-            options: [["long", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale("fr_FR").toString(now, "dddd d MMMM"))],
-                      ["short", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale("fr_FR").toString(now, "ddd d MMM"))]]
+            options: [["long", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale(T.loc).toString(now, "dddd d MMMM"))],
+                      ["short", (function(t) { return t.charAt(0).toUpperCase() + t.slice(1) })(Qt.locale(T.loc).toString(now, "ddd d MMM"))]]
             value: String(root.val("lock.date_format", "long"))
             onPicked: function(v) { root.set("lock.date_format", v) }
           }
@@ -1560,9 +1561,9 @@ Item {
       }
       Row {
         spacing: Style.space(8)
-        Btn { text: "Aperçu"; secondary: true; onClicked: { root.dismiss(); root.launch(["sh", "-c", "omarchy-shell lock preview; sleep 8; omarchy-shell lock hidePreview"]) } }
-        Btn { text: "Verrouiller maintenant"; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "lock", "lock"]) } }
-        Btn { text: "Replacer le widget"; secondary: true; onClicked: { root.set("lock.music_x", -1); root.set("lock.music_y", -1) } }
+        Btn { text: T.t("Aperçu"); secondary: true; onClicked: { root.dismiss(); root.launch(["sh", "-c", "omarchy-shell lock preview; sleep 8; omarchy-shell lock hidePreview"]) } }
+        Btn { text: T.t("Verrouiller maintenant"); onClicked: { root.dismiss(); root.launch(["omarchy-shell", "lock", "lock"]) } }
+        Btn { text: T.t("Replacer le widget"); secondary: true; onClicked: { root.set("lock.music_x", -1); root.set("lock.music_y", -1) } }
       }
     }
   }
@@ -1581,14 +1582,14 @@ Item {
         }
       }
       Group {
-        Row_ { label: "Nom complet"; Label_ { text: root.fullName || "—" } }
-        Row_ { label: "Nom du compte"; Label_ { text: root.userName } }
-        Row_ { label: "Dossier de départ"; Label_ { text: root.home } }
+        Row_ { label: T.t("Nom complet"); Label_ { text: root.fullName || "—" } }
+        Row_ { label: T.t("Nom du compte"); Label_ { text: root.userName } }
+        Row_ { label: T.t("Dossier de départ"); Label_ { text: root.home } }
         Row_ {
           label: "Photo"
-          sub: "Affichée sur l'écran verrouillé (~/.face)"
+          sub: T.t("Affichée sur l'écran verrouillé (~/.face)")
           Btn {
-            text: "Changer…"; secondary: true
+            text: T.t("Changer…"); secondary: true
             onClicked: root.run(["sh", "-c", "f=$(zenity --file-selection --title='Photo du compte' --file-filter='Images | *.png *.jpg *.jpeg *.webp') && magick \"$f\" -resize 256x256^ -gravity center -extent 256x256 \"$HOME/.face.png\" && mv \"$HOME/.face.png\" \"$HOME/.face\""])
           }
         }
@@ -1610,16 +1611,16 @@ Item {
       function pick(arg, key, v) { if (lp.active) root.launch(["liquid-glass", "profile", arg]); else root.set(key, v) }
       Group {
         Row_ {
-          label: lp.active ? "Bureau Linux actif" : "Bureau Mac actif"
-          sub: "⌘⇧Espace ouvre le sélecteur : Mac, Omarchy d'origine, Windows, Mono, Forêt, Blanc, Sombre, Jouet, Violet, Expressive. ⌃⌘T change la teinte."
-          Btn { text: "Choisir un bureau  ⌘⇧␣"; onClicked: { root.dismiss(); root.launch(["liquid-glass", "profile", "pick"]) } }
+          label: lp.active ? T.t("Bureau Linux actif") : T.t("Bureau Mac actif")
+          sub: T.t("⌘⇧Espace ouvre le sélecteur : Mac, Omarchy d'origine, Windows, Mono, Forêt, Blanc, Sombre, Jouet, Violet, Expressive. ⌃⌘T change la teinte.")
+          Btn { text: T.t("Choisir un bureau  ⌘⇧␣"); onClicked: { root.dismiss(); root.launch(["liquid-glass", "profile", "pick"]) } }
         }
       }
       SectionTitle { text: "Style" }
       Group {
         Row_ {
-          label: "Allure"
-          sub: ({ blanc: "Tout en blanc, police mono, horloge pixel, lecteur vinyle",
+          label: T.t("Allure")
+          sub: ({ blanc: T.t("Tout en blanc, police mono, horloge pixel, lecteur vinyle"),
                   sombre: "Noir profond, blanc cassé, jour en kanji",
                   jouet: "Bonbon : contours épais, ombres dures, arc-en-ciel",
                   violet: "Montagnes dans la brume, grosse horloge « bonbon » empilée",
@@ -1628,23 +1629,23 @@ Item {
                   mono: "Cadre noir façon caelestia, barre latérale, tableau de bord",
                   foret: "Puces flottantes, météo en orbite, spectre musical (rice c01)" })[lp.st] || ""
           Seg {
-            options: [["blanc", "Blanc"], ["sombre", "Sombre"], ["jouet", "Jouet"], ["violet", "Violet"], ["expressive", "Expr."]]
+            options: [["blanc", T.t("Blanc")], ["sombre", T.t("Sombre")], ["jouet", T.t("Jouet")], ["violet", "Violet"], ["expressive", "Expr."]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }
         }
         Row_ {
-          label: "Bureaux complets"
-          sub: "Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)"
+          label: T.t("Bureaux complets")
+          sub: T.t("Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)")
           Seg {
-            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", "Forêt"], ["ruban", "Rubans"], ["espace", "Espace"], ["cosmos", "Cosmos"], ["gouts", "Mes goûts"]]
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["gouts", T.t("Mes goûts")]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }
         }
         Row_ {
           label: "Distributions"
-          sub: "Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma"
+          sub: T.t("Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma")
           Seg {
             options: [["debian", "Debian"], ["fedora", "Fedora"], ["mint", "Mint"], ["kali", "Kali"], ["arch", "Arch"]]
             value: lp.st
@@ -1652,174 +1653,183 @@ Item {
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "violet"
-          sub: "Nuit (violet profond), aube (lilas clair) ou rose pastel"
+          sub: T.t("Nuit (violet profond), aube (lilas clair) ou rose pastel")
           Seg {
-            options: [["nuit", "Nuit"], ["aube", "Aube"], ["rose", "Rose"]]
+            options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"]]
             value: root.val("linux.violet_tone", "nuit")
             onPicked: function(v) { lp.pick("violet:" + v, "linux.violet_tone", v) }
           }
         }
         Row_ {
-          label: "Blanc"
+          label: T.t("Blanc")
           visible: lp.st === "blanc"
-          sub: "Pur (gris neutres) ou crème (papier chaud)"
+          sub: T.t("Pur (gris neutres) ou crème (papier chaud)")
           Seg {
-            options: [["pur", "Pur"], ["creme", "Crème"]]
+            options: [["pur", T.t("Pur")], ["creme", T.t("Crème")]]
             value: root.val("linux.blanc_tone", "pur")
             onPicked: function(v) { lp.pick("blanc:" + v, "linux.blanc_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "sombre"
-          sub: "Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)"
+          sub: T.t("Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)")
           Seg {
-            options: [["encre", "Encre"], ["ambre", "Ambre"], ["glace", "Glace"], ["sang", "Sang"], ["indigo", "Indigo"]]
+            options: [["encre", T.t("Encre")], ["ambre", T.t("Ambre")], ["glace", T.t("Glace")], ["sang", T.t("Sang")], ["indigo", "Indigo"]]
             value: root.val("linux.sombre_tone", "encre")
             onPicked: function(v) { lp.pick("sombre:" + v, "linux.sombre_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "jouet"
-          sub: "Bonbon (rose), menthe (vert d'eau) ou pêche (orange)"
+          sub: T.t("Bonbon (rose), menthe (vert d'eau) ou pêche (orange)")
           Seg {
-            options: [["bonbon", "Bonbon"], ["menthe", "Menthe"], ["peche", "Pêche"]]
+            options: [["bonbon", T.t("Bonbon")], ["menthe", T.t("Menthe")], ["peche", T.t("Pêche")]]
             value: root.val("linux.jouet_tone", "bonbon")
             onPicked: function(v) { lp.pick("jouet:" + v, "linux.jouet_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "mono"
-          sub: "Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)"
+          sub: T.t("Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)")
           Seg {
-            options: [["noir", "Noir"], ["papier", "Papier"], ["sakura", "Sakura"]]
+            options: [["noir", T.t("Noir")], ["papier", T.t("Papier")], ["sakura", "Sakura"]]
             value: root.val("linux.mono_tone", "noir")
             onPicked: function(v) { lp.pick("mono:" + v, "linux.mono_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "ruban"
-          sub: "Bleu, rouge ou or"
+          sub: T.t("Bleu, rouge ou or")
           Seg {
-            options: [["bleu", "Bleu"], ["rouge", "Rouge"], ["or", "Or"]]
+            options: [["bleu", T.t("Bleu")], ["rouge", T.t("Rouge")], ["or", T.t("Or")]]
             value: root.val("linux.ruban_tone", "bleu")
             onPicked: function(v) { lp.pick("ruban:" + v, "linux.ruban_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "cosmos"
-          sub: "Orbite, mousse ou corail"
+          sub: T.t("Orbite, mousse ou corail")
           Seg {
-            options: [["orbite", "Orbite"], ["mousse", "Mousse"], ["corail", "Corail"]]
+            options: [["orbite", T.t("Orbite")], ["mousse", T.t("Mousse")], ["corail", T.t("Corail")]]
             value: root.val("linux.cosmos_tone", "orbite")
             onPicked: function(v) { lp.pick("cosmos:" + v, "linux.cosmos_tone", v) }
           }
         }
         Row_ {
-          label: "Fond vivant"
-          sub: "Anime le fond sans vidéo, en pause quand une fenêtre est ouverte"
+          label: T.t("Langue")
+          sub: T.t("Français ou anglais")
           Seg {
-            options: [["off", "Fixe"], ["tourbillon", "Tourbillon"], ["vague", "Vague"], ["respire", "Respire"]]
+            options: [["fr", T.t("Français")], ["en", "English"]]
+            value: root.val("linux.lang", "fr")
+            onPicked: function(v) { root.launch(["liquid-glass", "lang", v]) }
+          }
+        }
+        Row_ {
+          label: T.t("Fond vivant")
+          sub: T.t("Anime le fond sans vidéo, en pause quand une fenêtre est ouverte")
+          Seg {
+            options: [["off", T.t("Fixe")], ["tourbillon", T.t("Tourbillon")], ["vague", T.t("Vague")], ["respire", T.t("Respire")]]
             value: root.val("linux.live_wall", "off")
             onPicked: function(v) { root.set("linux.live_wall", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "espace"
-          sub: "Bleu glacé, Mars ou nébuleuse"
+          sub: T.t("Bleu glacé, Mars ou nébuleuse")
           Seg {
-            options: [["bleu", "Bleu"], ["mars", "Mars"], ["nebuleuse", "Nébuleuse"]]
+            options: [["bleu", T.t("Bleu")], ["mars", "Mars"], ["nebuleuse", T.t("Nébuleuse")]]
             value: root.val("linux.espace_tone", "bleu")
             onPicked: function(v) { lp.pick("espace:" + v, "linux.espace_tone", v) }
           }
         }
-        ToggleRow { visible: lp.st === "sombre"; label: "Mur de tuiles"; key: "linux.sombre_wall"; def: true }
+        ToggleRow { visible: lp.st === "sombre"; label: T.t("Mur de tuiles"); key: "linux.sombre_wall"; def: true }
         Row_ {
-          label: "Couleurs"
+          label: T.t("Couleurs")
           visible: true
-          sub: "Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)"
+          sub: T.t("Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)")
           Seg {
-            options: [["theme", "Du style"], ["fond", "Du fond"], ["perso", "Perso"]]
+            options: [["theme", T.t("Du style")], ["fond", T.t("Du fond")], ["perso", T.t("Perso")]]
             value: root.val("linux." + lp.st + "_colors", lp.st === "expressive" ? "fond" : "theme")
             onPicked: function(v) { root.set("linux." + lp.st + "_colors", v); if (v === "perso" && root.val("linux." + lp.st + "_accent", "") === "") root.set("linux." + lp.st + "_accent", "#4c9aff") }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "windows"
-          sub: "Clair ou sombre, comme dans Windows"
+          sub: T.t("Clair ou sombre, comme dans Windows")
           Seg {
-            options: [["clair", "Clair"], ["sombre", "Sombre"]]
+            options: [["clair", T.t("Clair")], ["sombre", T.t("Sombre")]]
             value: root.val("linux.windows_tone", "clair")
             onPicked: function(v) { lp.pick("windows:" + v, "linux.windows_tone", v) }
           }
         }
         Row_ {
-          label: "Teinte"
+          label: T.t("Teinte")
           visible: lp.st === "foret"
-          sub: "Mousse (vert tilleul) ou cendre (rose poudré)"
+          sub: T.t("Mousse (vert tilleul) ou cendre (rose poudré)")
           Seg {
-            options: [["mousse", "Mousse"], ["cendre", "Cendre"]]
+            options: [["mousse", T.t("Mousse")], ["cendre", T.t("Cendre")]]
             value: root.val("linux.foret_tone", "mousse")
             onPicked: function(v) { lp.pick("foret:" + v, "linux.foret_tone", v) }
           }
         }
         Row_ {
           label: "Palette Material You"
-          sub: "Variante matugen calculée depuis le fond d'écran (ou la pochette)"
+          sub: T.t("Variante matugen calculée depuis le fond d'écran (ou la pochette)")
           visible: lp.st === "expressive"
           Seg {
-            options: [["tonal-spot", "Douce"], ["expressive", "Expressive"], ["vibrant", "Vive"], ["fruit-salad", "Fruitée"], ["monochrome", "Mono"]]
+            options: [["tonal-spot", T.t("Douce")], ["expressive", "Expressive"], ["vibrant", T.t("Vive")], ["fruit-salad", T.t("Fruitée")], ["monochrome", "Mono"]]
             value: root.val("linux.scheme", "tonal-spot")
             onPicked: function(v) { root.set("linux.scheme", v) }
           }
         }
-        SliderRow { label: "Arrondi des cartes"; key: "linux.radius"; from: 0; to: 32; step: 1
+        SliderRow { label: T.t("Arrondi des cartes"); key: "linux.radius"; from: 0; to: 32; step: 1
                     def: ({ blanc: 0, sombre: 8, jouet: 20, violet: 20, expressive: 24, windows: 8, mono: 18, foret: 16 })[lp.st] || 14
                     fmt: function(v) { return Math.round(v) + " px" } }
       }
 
-      SectionTitle { text: "Musique" }
+      SectionTitle { text: T.t("Musique") }
       Group {
         Row_ {
-          label: "Visualiseur"
-          sub: "Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture"
+          label: T.t("Visualiseur")
+          sub: T.t("Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture")
           Seg {
-            options: [["bars", "Barres"], ["wave", "Vague"], ["mirror", "Miroir"], ["blocks", "Blocs"], ["line", "Ligne"], ["radial", "Anneau"], ["off", "Aucun"]]
+            options: [["bars", T.t("Barres")], ["wave", T.t("Vague")], ["mirror", T.t("Miroir")], ["blocks", T.t("Blocs")], ["line", T.t("Ligne")], ["radial", T.t("Anneau")], ["off", T.t("Aucun")]]
             value: root.val("linux.viz", lp.sdef({ jouet: "blocks", violet: "wave", expressive: "wave", "*": "bars" }))
             onPicked: function(v) { root.set("linux.viz", v) }
           }
         }
         Row_ {
-          label: "Couleur"
+          label: T.t("Couleur")
           Seg {
-            options: [["auto", "Thème"], ["cover", "Pochette"], ["rainbow", "Arc-en-ciel"], ["ink", "Encre"]]
+            options: [["auto", T.t("Thème")], ["cover", T.t("Pochette")], ["rainbow", T.t("Arc-en-ciel")], ["ink", T.t("Encre")]]
             value: root.val("linux.viz_color", lp.sdef({ jouet: "rainbow", "*": "auto" }))
             onPicked: function(v) { root.set("linux.viz_color", v) }
           }
         }
-        SliderRow { label: "Hauteur"; key: "linux.viz_height"; from: 40; to: 400; step: 10; def: lp.sdef({ jouet: 130, sombre: 170, "*": 140 }); fmt: function(v) { return Math.round(v) + " px" } }
-        SliderRow { label: "Sensibilité"; key: "linux.viz_gain"; from: 0.3; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
-        SliderRow { label: "Opacité"; key: "linux.viz_opacity"; from: 0.1; to: 1; step: 0.05; def: lp.sdef({ blanc: 0.85, "*": 0.9 }); fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: "Nombre de barres"; key: "linux.cava_bars"; from: 24; to: 160; step: 4; def: 110; fmt: function(v) { return Math.round(v) } }
-        ToggleRow { label: "Halo sur les basses"; key: "linux.pulse"; def: true; sub: "Une lueur qui respire en bas de l'écran au rythme des basses" }
-        ToggleRow { label: "Rebond"; key: "linux.bump"; def: true; sub: "Horloges, lecteur et paroles sautent un peu sur chaque basse" }
-        ToggleRow { label: "Couleur de la pochette"; key: "linux.cover_tint"; def: false; sub: "Accents du visualiseur à la couleur de l'album en cours" }
+        SliderRow { label: T.t("Hauteur"); key: "linux.viz_height"; from: 40; to: 400; step: 10; def: lp.sdef({ jouet: 130, sombre: 170, "*": 140 }); fmt: function(v) { return Math.round(v) + " px" } }
+        SliderRow { label: T.t("Sensibilité"); key: "linux.viz_gain"; from: 0.3; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        SliderRow { label: T.t("Opacité"); key: "linux.viz_opacity"; from: 0.1; to: 1; step: 0.05; def: lp.sdef({ blanc: 0.85, "*": 0.9 }); fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Nombre de barres"); key: "linux.cava_bars"; from: 24; to: 160; step: 4; def: 110; fmt: function(v) { return Math.round(v) } }
+        ToggleRow { label: T.t("Halo sur les basses"); key: "linux.pulse"; def: true; sub: T.t("Une lueur qui respire en bas de l'écran au rythme des basses") }
+        ToggleRow { label: T.t("Rebond"); key: "linux.bump"; def: true; sub: T.t("Horloges, lecteur et paroles sautent un peu sur chaque basse") }
+        ToggleRow { label: T.t("Couleur de la pochette"); key: "linux.cover_tint"; def: false; sub: T.t("Accents du visualiseur à la couleur de l'album en cours") }
       }
       Group {
-        ToggleRow { label: "Paroles"; key: "linux.lyrics"; def: true; sub: "Paroles synchronisées (LRCLIB)" }
+        ToggleRow { label: T.t("Paroles"); key: "linux.lyrics"; def: true; sub: T.t("Paroles synchronisées (LRCLIB)") }
         Row_ {
-          label: "Affichage des paroles"
-          sub: "Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien"
+          label: T.t("Affichage des paroles")
+          sub: T.t("Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien")
           Seg {
-            options: [["word", "Mot géant"], ["line", "Ligne"], ["card", "Carte"], ["off", "Aucune"]]
+            options: [["word", T.t("Mot géant")], ["line", T.t("Ligne")], ["card", T.t("Carte")], ["off", T.t("Aucune")]]
             value: root.val("linux.lyrics_mode", lp.sdef({ expressive: "card", violet: "line", "*": "word" }))
             onPicked: function(v) { root.set("linux.lyrics_mode", v) }
           }
@@ -1827,38 +1837,38 @@ Item {
         Row_ {
           label: "Position"
           Seg {
-            options: [["center", "Centre"], ["left", "Gauche"], ["top", "Haut"]]
+            options: [["center", T.t("Centre")], ["left", T.t("Gauche")], ["top", T.t("Haut")]]
             value: root.val("linux.lyrics_pos", "center")
             onPicked: function(v) { root.set("linux.lyrics_pos", v) }
           }
         }
-        SliderRow { label: "Taille des paroles"; key: "linux.lyrics_size"; from: 0.4; to: 2.5; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        SliderRow { label: T.t("Taille des paroles"); key: "linux.lyrics_size"; from: 0.4; to: 2.5; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
       }
 
-      SectionTitle { text: "Bureau" }
+      SectionTitle { text: T.t("Bureau") }
       Group {
         ToggleRow { label: "Widgets"; key: "linux.widgets"; def: true; sub: "Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)" }
-        ToggleRow { visible: lp.st === "violet"; label: "Horloge bonbon"; key: "linux.w_stack"; def: true }
-        SliderRow { visible: lp.st === "violet"; label: "Taille de l'horloge"; key: "linux.stack_size"; from: 80; to: 220; step: 4; def: 132; fmt: function(v) { return Math.round(v) + " px" } }
-        ToggleRow { visible: lp.st === "violet"; label: "Anneau batterie"; key: "linux.w_ring"; def: true; sub: "Ou la charge du processeur sur un ordinateur fixe" }
-        ToggleRow { visible: ["blanc", "sombre", "jouet"].indexOf(lp.st) >= 0; label: "Horloge pixel"; key: "linux.w_pixclock"; def: true }
-        ToggleRow { visible: lp.st === "blanc" || lp.st === "sombre"; label: "Jour en grand"; key: "linux.w_day"; def: true }
-        ToggleRow { visible: lp.st === "sombre"; label: "Jour en kanji"; key: "linux.day_kanji"; def: true }
-        ToggleRow { visible: lp.st === "expressive"; label: "Horloge cookie"; key: "linux.w_clock"; def: true }
-        ToggleRow { visible: lp.st !== "lain"; label: "Lecteur"; key: "linux.w_music"; def: true }
-        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: "Météo"; key: "linux.w_weather"; def: true }
-        ToggleRow { visible: lp.st !== "lain"; label: "Système"; key: "linux.w_system"; def: true }
-        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: "À faire"; key: "linux.w_todo"; def: true }
-        ToggleRow { visible: lp.st === "lain"; label: "Horloge pixel"; key: "linux.clock"; def: true; sub: "Grands chiffres en blocs façon tty-clock, à droite" }
-        ToggleRow { label: "Visualiseur cava"; key: "linux.cava"; def: true; sub: "Arrête complètement le visualiseur (et cava) si désactivé" }
-        SliderRow { label: "Espaces de travail"; key: "linux.workspaces"; from: 4; to: 10; step: 1; def: 7; fmt: function(v) { return Math.round(v) } }
+        ToggleRow { visible: lp.st === "violet"; label: T.t("Horloge bonbon"); key: "linux.w_stack"; def: true }
+        SliderRow { visible: lp.st === "violet"; label: T.t("Taille de l'horloge"); key: "linux.stack_size"; from: 80; to: 220; step: 4; def: 132; fmt: function(v) { return Math.round(v) + " px" } }
+        ToggleRow { visible: lp.st === "violet"; label: T.t("Anneau batterie"); key: "linux.w_ring"; def: true; sub: T.t("Ou la charge du processeur sur un ordinateur fixe") }
+        ToggleRow { visible: ["blanc", "sombre", "jouet"].indexOf(lp.st) >= 0; label: T.t("Horloge pixel"); key: "linux.w_pixclock"; def: true }
+        ToggleRow { visible: lp.st === "blanc" || lp.st === "sombre"; label: T.t("Jour en grand"); key: "linux.w_day"; def: true }
+        ToggleRow { visible: lp.st === "sombre"; label: T.t("Jour en kanji"); key: "linux.day_kanji"; def: true }
+        ToggleRow { visible: lp.st === "expressive"; label: T.t("Horloge cookie"); key: "linux.w_clock"; def: true }
+        ToggleRow { visible: lp.st !== "lain"; label: T.t("Lecteur"); key: "linux.w_music"; def: true }
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("Météo"); key: "linux.w_weather"; def: true }
+        ToggleRow { visible: lp.st !== "lain"; label: T.t("Système"); key: "linux.w_system"; def: true }
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("À faire"); key: "linux.w_todo"; def: true }
+        ToggleRow { visible: lp.st === "lain"; label: T.t("Horloge pixel"); key: "linux.clock"; def: true; sub: T.t("Grands chiffres en blocs façon tty-clock, à droite") }
+        ToggleRow { label: T.t("Visualiseur cava"); key: "linux.cava"; def: true; sub: T.t("Arrête complètement le visualiseur (et cava) si désactivé") }
+        SliderRow { label: T.t("Espaces de travail"); key: "linux.workspaces"; from: 4; to: 10; step: 1; def: 7; fmt: function(v) { return Math.round(v) } }
         Row_ {
-          label: "Disposition des widgets"
-          sub: "Remet chaque widget à sa place d'origine"
-          Btn { text: "Réinitialiser"; onClicked: root.launch(["omarchy-shell", "liquid-glass.linux", "resetLayout"]) }
+          label: T.t("Disposition des widgets")
+          sub: T.t("Remet chaque widget à sa place d'origine")
+          Btn { text: T.t("Réinitialiser"); onClicked: root.launch(["omarchy-shell", "liquid-glass.linux", "resetLayout"]) }
         }
       }
-      Hint { text: "Réglages appliqués à chaud. ⌘⇧Espace : bureaux. ⌃⌘Espace : carrousel de fonds. En ligne de commande : liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac." }
+      Hint { text: T.t("Réglages appliqués à chaud. ⌘⇧Espace : bureaux. ⌃⌘Espace : carrousel de fonds. En ligne de commande : liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac.") }
     }
   }
 
@@ -1867,8 +1877,8 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        ToggleRow { label: "Raccourcis façon macOS"; key: "keys.macos_shortcuts"; def: true; sub: "⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5… Désactivé : raccourcis Omarchy d'origine" }
-        Row_ { label: "Aide-mémoire des raccourcis"; Btn { text: "Afficher  ⌘K"; secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.cheatsheet", "toggle"]) } } }
+        ToggleRow { label: T.t("Raccourcis façon macOS"); key: "keys.macos_shortcuts"; def: true; sub: T.t("⌘Espace, ⌘Q, ⌘Tab, ⌘↑, ⌘⇧3/4/5… Désactivé : raccourcis Omarchy d'origine") }
+        Row_ { label: T.t("Aide-mémoire des raccourcis"); Btn { text: T.t("Afficher  ⌘K"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.cheatsheet", "toggle"]) } } }
       }
     }
   }
@@ -1878,11 +1888,11 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        SliderRow { label: "Vitesse du pointeur"; key: "input.sensitivity"; from: -1; to: 1; step: 0.05; def: 0; fmt: function(v) { return v <= -0.6 ? "Lente" : (v >= 0.6 ? "Rapide" : (v > 0 ? "+" : "") + v.toFixed(2)) } }
-        SliderRow { label: "Vitesse de défilement"; key: "input.mouse_scroll"; from: 0.2; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
-        ToggleRow { label: "Défilement naturel"; key: "input.mouse_natural_scroll"; def: false; sub: "Le contenu suit le mouvement de la molette" }
+        SliderRow { label: T.t("Vitesse du pointeur"); key: "input.sensitivity"; from: -1; to: 1; step: 0.05; def: 0; fmt: function(v) { return v <= -0.6 ? "Lente" : (v >= 0.6 ? "Rapide" : (v > 0 ? "+" : "") + v.toFixed(2)) } }
+        SliderRow { label: T.t("Vitesse de défilement"); key: "input.mouse_scroll"; from: 0.2; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        ToggleRow { label: T.t("Défilement naturel"); key: "input.mouse_natural_scroll"; def: false; sub: T.t("Le contenu suit le mouvement de la molette") }
       }
-      Hint { text: "Appliqué tout de suite à Hyprland (souris et TrackPoint). Le trackpad a sa propre page." }
+      Hint { text: T.t("Appliqué tout de suite à Hyprland (souris et TrackPoint). Le trackpad a sa propre page.") }
     }
   }
 
@@ -1891,17 +1901,17 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        ToggleRow { label: "Toucher pour cliquer"; key: "input.tap_to_click"; def: true; sub: "Touchez avec un doigt pour cliquer" }
-        ToggleRow { label: "Clic secondaire à deux doigts"; key: "input.clickfinger"; def: true; sub: "Cliquez avec deux doigts : clic droit ; trois : clic du milieu" }
-        ToggleRow { label: "Défilement naturel"; key: "input.natural_scroll"; def: true; sub: "Le contenu suit le mouvement des doigts" }
-        SliderRow { label: "Vitesse de défilement"; key: "input.trackpad_scroll"; from: 0.1; to: 2; step: 0.05; def: 0.4; fmt: function(v) { return "×" + v.toFixed(2) } }
-        ToggleRow { label: "Ignorer en tapant au clavier"; key: "input.disable_while_typing"; def: true }
+        ToggleRow { label: T.t("Toucher pour cliquer"); key: "input.tap_to_click"; def: true; sub: T.t("Touchez avec un doigt pour cliquer") }
+        ToggleRow { label: T.t("Clic secondaire à deux doigts"); key: "input.clickfinger"; def: true; sub: "Cliquez avec deux doigts : clic droit ; trois : clic du milieu" }
+        ToggleRow { label: T.t("Défilement naturel"); key: "input.natural_scroll"; def: true; sub: T.t("Le contenu suit le mouvement des doigts") }
+        SliderRow { label: T.t("Vitesse de défilement"); key: "input.trackpad_scroll"; from: 0.1; to: 2; step: 0.05; def: 0.4; fmt: function(v) { return "×" + v.toFixed(2) } }
+        ToggleRow { label: T.t("Ignorer en tapant au clavier"); key: "input.disable_while_typing"; def: true }
       }
-      SectionTitle { text: "Gestes" }
+      SectionTitle { text: T.t("Gestes") }
       Group {
-        Row_ { label: "Mission Control"; sub: "Balayer vers le haut avec quatre doigts"; Label_ { text: "4 doigts ↑" } }
-        Row_ { label: "Fermer Mission Control"; sub: "Balayer vers le bas avec quatre doigts"; Label_ { text: "4 doigts ↓" } }
-        Row_ { label: "Changer de bureau"; sub: "Balayer à gauche ou à droite avec trois doigts"; Label_ { text: "3 doigts ← →" } }
+        Row_ { label: "Mission Control"; sub: T.t("Balayer vers le haut avec quatre doigts"); Label_ { text: T.t("4 doigts ↑") } }
+        Row_ { label: T.t("Fermer Mission Control"); sub: T.t("Balayer vers le bas avec quatre doigts"); Label_ { text: T.t("4 doigts ↓") } }
+        Row_ { label: T.t("Changer de bureau"); sub: T.t("Balayer à gauche ou à droite avec trois doigts"); Label_ { text: T.t("3 doigts ← →") } }
       }
     }
   }
@@ -1911,12 +1921,12 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        CornerRow { label: "En haut à gauche"; key: "hotcorners.top_left" }
-        CornerRow { label: "En haut à droite"; key: "hotcorners.top_right" }
-        CornerRow { label: "En bas à gauche"; key: "hotcorners.bottom_left" }
-        CornerRow { label: "En bas à droite"; key: "hotcorners.bottom_right" }
+        CornerRow { label: T.t("En haut à gauche"); key: "hotcorners.top_left" }
+        CornerRow { label: T.t("En haut à droite"); key: "hotcorners.top_right" }
+        CornerRow { label: T.t("En bas à gauche"); key: "hotcorners.bottom_left" }
+        CornerRow { label: T.t("En bas à droite"); key: "hotcorners.bottom_right" }
       }
-      Hint { text: "Pointez dans un coin de l'écran pour déclencher l'action (pas en plein écran). ⌘F3 affiche aussi le bureau." }
+      Hint { text: T.t("Pointez dans un coin de l'écran pour déclencher l'action (pas en plein écran). ⌘F3 affiche aussi le bureau.") }
     }
   }
 
@@ -1940,11 +1950,11 @@ Item {
         }
       }
       Group {
-        Row_ { label: "Configuration"; sub: "~/.config/liquid-glass"; Btn { text: "Ouvrir"; secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass"]) } } }
-        Row_ { label: "Thème actif"; Label_ { text: root.dark ? "Liquid Glass Dark" : "Liquid Glass" } }
-        Row_ { label: "Réappliquer tout"; sub: "Régénère thème, Hyprland, dock et shell"; Btn { text: "Appliquer"; secondary: true; onClicked: root.launch(["liquid-glass", "apply"]) } }
+        Row_ { label: "Configuration"; sub: "~/.config/liquid-glass"; Btn { text: T.t("Ouvrir"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass"]) } } }
+        Row_ { label: T.t("Thème actif"); Label_ { text: root.dark ? "Liquid Glass Dark" : "Liquid Glass" } }
+        Row_ { label: T.t("Réappliquer tout"); sub: T.t("Régénère thème, Hyprland, dock et shell"); Btn { text: T.t("Appliquer"); secondary: true; onClicked: root.launch(["liquid-glass", "apply"]) } }
       }
-      Hint { text: "Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation." }
+      Hint { text: T.t("Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation.") }
     }
   }
 
@@ -1952,8 +1962,8 @@ Item {
   component CornerRow: Row_ {
     id: cr
     property string key: ""
-    readonly property var actions: [["", "—"], ["mission", "Mission Control"], ["desktop", "Afficher le bureau"], ["spotlight", "Spotlight"],
-                                    ["control", "Centre de contrôle"], ["karaoke", "Paroles karaoké"], ["lock", "Verrouiller l'écran"], ["settings", "Réglages"]]
+    readonly property var actions: [["", "—"], ["mission", "Mission Control"], ["desktop", T.t("Afficher le bureau")], ["spotlight", "Spotlight"],
+                                    ["control", T.t("Centre de contrôle")], ["karaoke", T.t("Paroles karaoké")], ["lock", T.t("Verrouiller l'écran")], ["settings", T.t("Réglages")]]
     readonly property string current: String(root.val(key, ""))
     function idx() { for (var i = 0; i < actions.length; i++) if (actions[i][0] === current) return i; return 0 }
     Btn {
@@ -2070,7 +2080,7 @@ Item {
   }
 
   // Contrôle segmenté : la pastille blanche glisse vers l'option choisie.
-  readonly property var widgetSizes: [["small", "Petit"], ["medium", "Moyen"], ["large", "Grand"], ["xl", "Très grand"]]
+  readonly property var widgetSizes: [["small", T.t("Petit")], ["medium", T.t("Moyen")], ["large", T.t("Grand")], ["xl", T.t("Très grand")]]
   function widgetSize(key) {
     var v = String(root.val("widgets." + key + "_size", key === "weather" ? "medium" : "small"))
     return v === "wide" ? "medium" : v
@@ -2394,7 +2404,7 @@ Item {
       label: fr.label
       Btn {
         secondary: true
-        text: (fr.current || "Police de l'interface") + "  ⌄"
+        text: (fr.current || T.t("Police de l'interface")) + "  ⌄"
         onClicked: { fr.expanded = !fr.expanded; if (fr.expanded && root.fonts.length === 0) fontProc.running = true }
       }
     }
@@ -2424,7 +2434,7 @@ Item {
           Text {
             x: Style.space(10); anchors.verticalCenter: parent.verticalCenter
             textFormat: Text.PlainText
-            text: fi.modelData === "" ? "Police de l'interface" : fi.modelData
+            text: fi.modelData === "" ? T.t("Police de l'interface") : fi.modelData
             font.family: fi.modelData === "" ? root.uiFont : fi.modelData
             font.pixelSize: Style.space(13)
             color: root.fg

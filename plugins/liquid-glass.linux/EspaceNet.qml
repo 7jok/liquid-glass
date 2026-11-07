@@ -1,4 +1,5 @@
 import QtQuick
+import "T.js" as T
 
 // Réseau en système solaire : le réseau connecté est l'astre, les autres tournent
 // autour, d'autant plus près que le signal est fort. Un clic s'y connecte.
@@ -17,10 +18,10 @@ EspacePanel {
   }
   Component.onCompleted: s.scanWifi()
 
-  Text { x: 22; y: 18; text: "Réseau"; font.family: p.font; font.pixelSize: 15; font.weight: Font.Bold; color: p.ink }
+  Text { x: 22; y: 18; text: T.t("Réseau"); font.family: p.font; font.pixelSize: 15; font.weight: Font.Bold; color: p.ink }
   Text {
     x: 22; y: 39
-    text: p.s.wifiBusy ? "Recherche…" : p.others.length + (p.others.length > 1 ? " réseaux autour de toi" : " réseau autour de toi")
+    text: p.s.wifiBusy ? T.t("Recherche…") : p.others.length + (p.others.length > 1 ? T.t(" réseaux autour de toi") : T.t(" réseau autour de toi"))
     font.family: p.font; font.pixelSize: 11; color: p.sub
   }
   Rectangle {
@@ -28,7 +29,7 @@ EspacePanel {
     width: 92; height: 30; radius: 9
     color: p.s.wifiOn ? p.s.primary : p.s.alpha(p.ink, 0.1)
     Text {
-      anchors.centerIn: parent; text: p.s.wifiOn ? "Wi-Fi activé" : "Wi-Fi coupé"
+      anchors.centerIn: parent; text: p.s.wifiOn ? T.t("Wi-Fi activé") : T.t("Wi-Fi coupé")
       font.family: p.font; font.pixelSize: 11; font.weight: Font.Bold
       color: p.s.wifiOn ? p.s.colOnPrimary : p.ink
     }
@@ -92,7 +93,7 @@ EspacePanel {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           width: 78; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-          text: p.current ? p.current.ssid : (p.s.netDev === "" ? "Hors ligne" : (p.s.netWifi ? "Wi-Fi" : "Ethernet"))
+          text: p.current ? p.current.ssid : (p.s.netDev === "" ? T.t("Hors ligne") : (p.s.netWifi ? "Wi-Fi" : "Ethernet"))
           font.family: p.font; font.pixelSize: 11; font.weight: Font.Bold; color: p.s.colOnPrimary
         }
         Text {

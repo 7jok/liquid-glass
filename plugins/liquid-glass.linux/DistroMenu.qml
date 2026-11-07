@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Menu principal des bureaux de distributions.
 //   gnome    : vue d'ensemble plein écran, recherche et grille d'applications, dash en bas
@@ -35,15 +36,15 @@ PanelWindow {
 
   // Catégories XDG → rubrique du menu.
   readonly property var cats: [
-    ["all", "Toutes les applications", "apps", []],
+    ["all", T.t("Toutes les applications"), "apps", []],
     ["net", "Internet", "language", ["Network", "WebBrowser", "Email", "Chat"]],
-    ["office", "Bureautique", "description", ["Office"]],
-    ["dev", "Développement", "code", ["Development"]],
-    ["media", "Son et vidéo", "movie", ["AudioVideo", "Audio", "Video"]],
-    ["gfx", "Graphisme", "palette", ["Graphics"]],
-    ["game", "Jeux", "sports_esports", ["Game"]],
-    ["sys", "Système", "settings", ["System", "Settings"]],
-    ["util", "Accessoires", "handyman", ["Utility"]]
+    ["office", T.t("Bureautique"), "description", ["Office"]],
+    ["dev", T.t("Développement"), "code", ["Development"]],
+    ["media", T.t("Son et vidéo"), "movie", ["AudioVideo", "Audio", "Video"]],
+    ["gfx", T.t("Graphisme"), "palette", ["Graphics"]],
+    ["game", T.t("Jeux"), "sports_esports", ["Game"]],
+    ["sys", T.t("Système"), "settings", ["System", "Settings"]],
+    ["util", T.t("Accessoires"), "handyman", ["Utility"]]
   ]
   // Outils de Kali, rangés comme son menu. [nom, paquet Arch, commande]
   readonly property var toolDefs: ({ kali: kaliTools, debian: debianTools, fedora: fedoraTools, mint: mintTools, arch: archTools })
@@ -186,7 +187,7 @@ PanelWindow {
         Keys.onReturnPressed: win.openFirst()
         Text {
           visible: input.text === ""; anchors.verticalCenter: parent.verticalCenter
-          text: win.gnome ? "Rechercher des applications" : "Rechercher…"
+          text: win.gnome ? T.t("Rechercher des applications") : T.t("Rechercher…")
           font.family: win.font; font.pixelSize: 14; color: win.sub
         }
       }
@@ -304,7 +305,7 @@ PanelWindow {
           Text {
             visible: !tool.ok
             anchors.right: parent.right; anchors.rightMargin: 8; anchors.verticalCenter: parent.verticalCenter
-            text: "à installer"; font.family: win.font; font.pixelSize: 11; color: win.s.primary
+            text: T.t("à installer"); font.family: win.font; font.pixelSize: 11; color: win.s.primary
           }
           MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; onClicked: win.runTool(tool.modelData) }
         }
@@ -314,7 +315,7 @@ PanelWindow {
         width: parent.width; height: 34; radius: 4
         color: iam.containsMouse ? win.s.primary : win.s.alpha(win.s.primary, 0.2)
         Text {
-          anchors.centerIn: parent; text: "Installer tous les outils"
+          anchors.centerIn: parent; text: T.t("Installer tous les outils")
           font.family: win.font; font.pixelSize: 12; font.weight: Font.DemiBold; color: iam.containsMouse ? "white" : win.ink
         }
         MouseArea { id: iam; anchors.fill: parent; hoverEnabled: true; onClicked: win.installAll() }
@@ -328,7 +329,7 @@ PanelWindow {
       anchors.bottom: parent.bottom; anchors.bottomMargin: 10
       spacing: 4
       Repeater {
-        model: [["suspend", "bedtime", "Veille"], ["reboot", "restart_alt", "Redémarrer"], ["poweroff", "power_settings_new", "Éteindre"]]
+        model: [["suspend", "bedtime", "Veille"], ["reboot", "restart_alt", T.t("Redémarrer")], ["poweroff", "power_settings_new", "Éteindre"]]
         delegate: Rectangle {
           required property var modelData
           width: ft.implicitWidth + 16; height: 30; radius: 4

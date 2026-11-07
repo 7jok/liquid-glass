@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Style « windows » : icônes du bureau en colonne à gauche (Ce PC, Corbeille,
 // Documents, navigateur, Paramètres). Double-clic pour ouvrir, comme sous Windows.
@@ -22,10 +23,10 @@ PanelWindow {
   readonly property string home: Quickshell.env("HOME")
   readonly property var browser: s.pinned(1)[0]
   readonly property var icons: [
-    { name: "Ce PC", sym: "computer", tint: "#4aa3df", run: ["sh", "-c", "xdg-open \"$HOME\""] },
-    { name: "Corbeille", sym: "delete", tint: "#9aa7b4", run: ["sh", "-c", "mkdir -p \"$HOME/.local/share/Trash/files\"; xdg-open \"$HOME/.local/share/Trash/files\""] },
+    { name: T.t("Ce PC"), sym: "computer", tint: "#4aa3df", run: ["sh", "-c", "xdg-open \"$HOME\""] },
+    { name: T.t("Corbeille"), sym: "delete", tint: "#9aa7b4", run: ["sh", "-c", "mkdir -p \"$HOME/.local/share/Trash/files\"; xdg-open \"$HOME/.local/share/Trash/files\""] },
     { name: "Documents", sym: "folder", tint: "#f2c14e", run: ["sh", "-c", "xdg-open \"$(xdg-user-dir DOCUMENTS 2>/dev/null || echo $HOME)\""] },
-    { name: "Paramètres", sym: "settings", tint: "#7a8a9a", menu: true }
+    { name: T.t("Paramètres"), sym: "settings", tint: "#7a8a9a", menu: true }
   ]
   property int sel: -1
 

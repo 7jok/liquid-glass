@@ -5,6 +5,7 @@ import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Panneau des bureaux de distributions, avec la disposition de chaque environnement :
 //   gnome    (Debian, Fedora) : barre noire en haut, Activités, heure au centre, état à droite
@@ -42,7 +43,7 @@ PanelWindow {
   readonly property bool muted: !sink || !sink.audio || sink.audio.muted
   property date now: new Date()
   Timer { interval: 1000; repeat: true; running: true; onTriggered: win.now = new Date() }
-  function fr(fmt) { return win.now.toLocaleDateString(Qt.locale("fr_FR"), fmt) }
+  function fr(fmt) { return win.now.toLocaleDateString(Qt.locale(T.loc), fmt) }
   function ws(n) { Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + n + "\" })"]) }
   function term(cmd) { Quickshell.execDetached(["sh", "-c", cmd]) }
 

@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "T.js" as T
 
 // ⌃⌘M : rice. Une page = un bureau de 1 à 13 terminaux. On choisit la scène de chaque
 // terminal, le temps entre deux scènes, le minuteur, la police et l'opacité.
@@ -43,7 +44,7 @@ EspacePanel {
   }
   function setScene(k) { page.panes[sel] = k; touch() }
   function addPage() {
-    d.pages.push({ name: "Page " + (d.pages.length + 1), panes: d.recommended.slice(0, 4), cycle: 0 })
+    d.pages.push({ name: T.t("Page ") + (d.pages.length + 1), panes: d.recommended.slice(0, 4), cycle: 0 })
     d.page = d.pages.length - 1; sel = 0; touch()
   }
   function dropPage() {
@@ -61,7 +62,7 @@ EspacePanel {
   Column {
     x: 22; y: 16; spacing: 1
     Text { text: "Rice · " + (p.d ? p.d.label : ""); font.family: p.font; font.pixelSize: 17; font.weight: Font.Bold; color: p.ink }
-    Text { text: "Une page = un bureau de terminaux, à ton goût"; font.family: p.font; font.pixelSize: 11; color: p.sub }
+    Text { text: T.t("Une page = un bureau de terminaux, à ton goût"); font.family: p.font; font.pixelSize: 11; color: p.sub }
   }
 
   // Pages
@@ -119,7 +120,7 @@ EspacePanel {
   }
   Row {
     x: 22; y: 350; spacing: 8
-    Text { anchors.verticalCenter: parent.verticalCenter; text: "Terminaux"; font.family: p.font; font.pixelSize: 12; color: p.sub }
+    Text { anchors.verticalCenter: parent.verticalCenter; text: T.t("Terminaux"); font.family: p.font; font.pixelSize: 12; color: p.sub }
     Tool { icon: "remove"; onClicked: p.setCount(p.page.panes.length - 1) }
     Text {
       anchors.verticalCenter: parent.verticalCenter; width: 26; horizontalAlignment: Text.AlignHCenter
@@ -146,7 +147,7 @@ EspacePanel {
     Column {
       id: scenes
       width: parent.width; spacing: 7
-      Text { text: "Pour ce thème"; font.family: p.font; font.pixelSize: 12; font.weight: Font.Bold; color: p.sub }
+      Text { text: T.t("Pour ce thème"); font.family: p.font; font.pixelSize: 12; font.weight: Font.Bold; color: p.sub }
       Flow {
         width: parent.width; spacing: 6
         Repeater {
@@ -159,7 +160,7 @@ EspacePanel {
           }
         }
       }
-      Text { text: "Toutes les autres"; font.family: p.font; font.pixelSize: 12; font.weight: Font.Bold; color: p.sub }
+      Text { text: T.t("Toutes les autres"); font.family: p.font; font.pixelSize: 12; font.weight: Font.Bold; color: p.sub }
       Flow {
         width: parent.width; spacing: 6
         Repeater {
@@ -182,7 +183,7 @@ EspacePanel {
     x: 22; y: 402; width: parent.width - 44; spacing: 8
     Row {
       spacing: 8
-      Label_ { text: "Scène suivante" }
+      Label_ { text: T.t("Scène suivante") }
       Repeater {
         model: [[0, "Jamais"], [15, "15 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [300, "5 min"]]
         delegate: Chip {
@@ -195,7 +196,7 @@ EspacePanel {
     }
     Row {
       spacing: 8
-      Label_ { text: "Minuteur" }
+      Label_ { text: T.t("Minuteur") }
       Tool { icon: "remove"; onClicked: { p.d.minutes = Math.max(1, p.d.minutes - (p.d.minutes > 5 ? 5 : 1)); p.touch() } }
       Text {
         anchors.verticalCenter: parent.verticalCenter; width: 56; horizontalAlignment: Text.AlignHCenter
@@ -204,7 +205,7 @@ EspacePanel {
       }
       Tool { icon: "add"; onClicked: { p.d.minutes = Math.min(180, p.d.minutes + (p.d.minutes >= 5 ? 5 : 1)); p.touch() } }
       Item { width: 26; height: 1 }
-      Text { anchors.verticalCenter: parent.verticalCenter; text: "Opacité"; font.family: p.font; font.pixelSize: 12; color: p.sub }
+      Text { anchors.verticalCenter: parent.verticalCenter; text: T.t("Opacité"); font.family: p.font; font.pixelSize: 12; color: p.sub }
       Repeater {
         model: [[1, "100"], [0.9, "90"], [0.8, "80"], [0.7, "70"], [0.55, "55"]]
         delegate: Chip {
@@ -217,7 +218,7 @@ EspacePanel {
     }
     Row {
       spacing: 8
-      Label_ { text: "Police" }
+      Label_ { text: T.t("Police") }
       Flow {
         width: p.card.width - 44 - 118; spacing: 6
         Repeater {
@@ -238,11 +239,11 @@ EspacePanel {
     anchors.right: parent.right; anchors.rightMargin: 22
     anchors.bottom: parent.bottom; anchors.bottomMargin: 14
     spacing: 8
-    Chip { label: "Par défaut"; onClicked: { Quickshell.execDetached(["sh", "-c", "liquid-glass rice reset"]); reload.restart() } }
-    Chip { label: "Fermer les terminaux"; onClicked: Quickshell.execDetached(["liquid-glass", "rice", "stop"]) }
+    Chip { label: T.t("Par défaut"); onClicked: { Quickshell.execDetached(["sh", "-c", "liquid-glass rice reset"]); reload.restart() } }
+    Chip { label: T.t("Fermer les terminaux"); onClicked: Quickshell.execDetached(["liquid-glass", "rice", "stop"]) }
     Rectangle {
       width: 150; height: 32; radius: p.rad; color: lma.containsMouse ? p.s.alpha(p.s.primary, 0.85) : p.s.primary
-      Text { anchors.centerIn: parent; text: "Lancer la page"; font.family: p.font; font.pixelSize: 13; font.weight: Font.Bold; color: p.s.colOnPrimary }
+      Text { anchors.centerIn: parent; text: T.t("Lancer la page"); font.family: p.font; font.pixelSize: 13; font.weight: Font.Bold; color: p.s.colOnPrimary }
       MouseArea { id: lma; anchors.fill: parent; hoverEnabled: true; onClicked: p.launch() }
     }
   }

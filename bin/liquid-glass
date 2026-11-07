@@ -36,6 +36,8 @@ Commandes :
   liquid-glass profile [mac|linux|omarchy|toggle|pick|status|tone [nom]|blanc|sombre|jouet|violet[:nuit|aube|rose]|expressive|windows|mono|foret]
                                      Bureau Mac ou Linux, et style du bureau Linux
                                      (pick = sélecteur en cartes, ⌘⇧Espace)
+  liquid-glass export                Réglages et applications dans state/ (./install.sh --restore)
+  liquid-glass lang fr|en            Langue des bureaux et des Réglages
   liquid-glass rice [launch [n]|next|stop [n]|reset]
                                      Pages de 1 à 13 terminaux animés (menu : ⌃⌘M)
   liquid-glass keys on|off|test|status|import <pack Mechvibes>
@@ -1888,6 +1890,48 @@ def cmd_wall_colors(args: list[str]) -> None:
     print(f"{len(known)} fonds classés.")
 
 
+def cmd_export(args: list[str]) -> None:
+    """Copie tes réglages et ta liste d'applications dans state/, pour ./install.sh --restore."""
+    out = REPO / "state"
+    out.mkdir(exist_ok=True)
+    for f in ("config.toml", "rice.json", "linux-layout.json"):
+        if (CONF_DIR / f).exists():
+            shutil.copy2(CONF_DIR / f, out / f)
+    (out / "packages.txt").write_text(run("pacman", "-Qqen").stdout)
+    (out / "aur.txt").write_text(run("pacman", "-Qqem").stdout)
+    print(f"Réglages et applications enregistrés dans {out}")
+
+
+I18N_PLUGINS = ("liquid-glass.linux", "liquid-glass.profiles", "liquid-glass.settings")
+
+
+def write_lang(lang: str, roots: list[Path]) -> None:
+    """Écrit T.js dans chaque plugin. Omarchy recharge un plugin dont un fichier change,
+    le changement de langue est donc immédiat."""
+    if lang == "en":
+        rows = [ln.split("\t", 1) for ln in (REPO / "shared/lang/en.tsv").read_text().splitlines() if "\t" in ln]
+        body = (f'var loc = "en_US"\nvar d = {json.dumps(dict(rows), ensure_ascii=False)}\n'
+                "function t(s) { return d[s] !== undefined ? d[s] : s }\n")
+    else:
+        body = 'var loc = "fr_FR"\nfunction t(s) { return s }\n'
+    for root in roots:
+        for name in I18N_PLUGINS:
+            if (root / name).is_dir():
+                (root / name / "T.js").write_text(".pragma library\n" + body)
+
+
+def cmd_lang(args: list[str]) -> None:
+    """liquid-glass lang [fr|en] : langue des bureaux, du sélecteur et des Réglages."""
+    if not args:
+        print(load().get("linux", {}).get("lang", "fr"))
+        return
+    if args[0] not in ("fr", "en"):
+        sys.exit("usage : liquid-glass lang fr|en")
+    set_key("linux.lang", args[0])
+    write_lang(args[0], [CONF_DIR.parent / "omarchy/plugins"])
+    print("Langue : " + args[0])
+
+
 KEYS_UNIT = "liquid-glass-keys.service"
 
 
@@ -1924,6 +1968,8 @@ def cmd_keys(args: list[str]) -> None:
 COMMANDS = {
     "keys": cmd_keys,
     "rice": cmd_rice,
+    "export": cmd_export,
+    "lang": cmd_lang,
     "wall-colors": cmd_wall_colors,
     "profile": cmd_profile,
     "login-item": cmd_login_item,

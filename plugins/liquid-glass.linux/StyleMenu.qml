@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import "T.js" as T
 
 // Centre de réglages (⌘⌥Espace, bouton d'alimentation de la barre) de chaque
 // bureau Linux, à la place du menu « Go… » d'Omarchy :
@@ -116,11 +117,11 @@ PanelWindow {
           Column {
             x: 56; anchors.verticalCenter: parent.verticalCenter
             Text { text: term ? s.user + "@" + (s.info.host || "linux") : s.user.charAt(0).toUpperCase() + s.user.slice(1); font.family: win.font; font.pixelSize: 15; font.weight: Font.Bold; color: win.ink }
-            Text { text: "Bureau " + win.styleName.charAt(0).toUpperCase() + win.styleName.slice(1) + " · up " + s.uptimeText; font.family: win.font; font.pixelSize: 11; color: win.sub }
+            Text { text: T.t("Bureau ") + win.styleName.charAt(0).toUpperCase() + win.styleName.slice(1) + " · up " + s.uptimeText; font.family: win.font; font.pixelSize: 11; color: win.sub }
           }
           Btn {
             anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-            icon: "dashboard_customize"; label: "Bureaux"
+            icon: "dashboard_customize"; label: T.t("Bureaux")
             onClicked: win.act("liquid-glass profile pick")
           }
         }
@@ -131,9 +132,9 @@ PanelWindow {
           width: parent.width
           Toggle { icon: s.wifiOn ? "wifi" : "wifi_off"; label: "Wi-Fi"; on: s.wifiOn; onClicked: s.setWifi(!s.wifiOn) }
           Toggle { icon: "bluetooth"; label: "Bluetooth"; on: !!win.bt && win.bt.enabled; onClicked: if (win.bt) win.bt.enabled = !win.bt.enabled }
-          Toggle { icon: "nightlight"; label: "Nuit"; on: win.nightOn; onClicked: { win.nightOn = !win.nightOn; Quickshell.execDetached(["omarchy-toggle-nightlight"]) } }
-          Toggle { icon: "do_not_disturb_on"; label: "Silence"; on: win.dndOn; onClicked: { win.dndOn = !win.dndOn; Quickshell.execDetached(["omarchy-toggle-notification-silencing"]) } }
-          Toggle { icon: win.sink && win.sink.audio && win.sink.audio.muted ? "volume_off" : "volume_up"; label: "Son"; on: !!win.sink && !!win.sink.audio && !win.sink.audio.muted
+          Toggle { icon: "nightlight"; label: T.t("Nuit"); on: win.nightOn; onClicked: { win.nightOn = !win.nightOn; Quickshell.execDetached(["omarchy-toggle-nightlight"]) } }
+          Toggle { icon: "do_not_disturb_on"; label: T.t("Silence"); on: win.dndOn; onClicked: { win.dndOn = !win.dndOn; Quickshell.execDetached(["omarchy-toggle-notification-silencing"]) } }
+          Toggle { icon: win.sink && win.sink.audio && win.sink.audio.muted ? "volume_off" : "volume_up"; label: T.t("Son"); on: !!win.sink && !!win.sink.audio && !win.sink.audio.muted
                    onClicked: if (win.sink && win.sink.audio) win.sink.audio.muted = !win.sink.audio.muted }
         }
 
@@ -145,7 +146,7 @@ PanelWindow {
         Column {
           visible: !!win.tones
           width: parent.width; spacing: 8
-          Text { text: term ? "# teinte" : "Teinte du bureau"; font.family: win.font; font.pixelSize: 12; font.weight: Font.Bold; color: win.sub }
+          Text { text: term ? T.t("# teinte") : T.t("Teinte du bureau"); font.family: win.font; font.pixelSize: 12; font.weight: Font.Bold; color: win.sub }
           Flow {
             width: parent.width
             spacing: 8
@@ -178,11 +179,11 @@ PanelWindow {
         Column {
           visible: !monoStyle
           width: parent.width; spacing: 8
-          Text { text: term ? "# couleurs" : "Couleurs"; font.family: win.font; font.pixelSize: 12; font.weight: Font.Bold; color: win.sub }
+          Text { text: term ? T.t("# couleurs") : T.t("Couleurs"); font.family: win.font; font.pixelSize: 12; font.weight: Font.Bold; color: win.sub }
           Row {
             spacing: 6
             Repeater {
-              model: [["theme", "palette", "Du style"], ["fond", "wallpaper", "Du fond"], ["perso", "colorize", "Perso"]]
+              model: [["theme", "palette", T.t("Du style")], ["fond", "wallpaper", T.t("Du fond")], ["perso", "colorize", T.t("Perso")]]
               delegate: Rectangle {
                 required property var modelData
                 readonly property bool cur: s.colorMode === modelData[0]
@@ -264,14 +265,14 @@ PanelWindow {
           width: parent.width
           Repeater {
             model: [
-              ["screenshot_region", "Capture", "omarchy-capture-screenshot"],
-              ["videocam", "Vidéo", "omarchy-capture-screenrecording"],
-              ["wallpaper", "Fonds", "@walls"],
-              ["colorize", "Pipette", "hyprpicker -a"],
-              ["terminal", "Terminal", "uwsm-app -- xdg-terminal-exec"],
-              ["folder", "Fichiers", "uwsm-app -- nautilus --new-window"],
-              ["system_update_alt", "Mises à jour", "omarchy-launch-floating-terminal-with-presentation omarchy-update"],
-              ["tune", "Réglages", "omarchy-shell shell toggle liquid-glass.settings"]
+              ["screenshot_region", T.t("Capture"), "omarchy-capture-screenshot"],
+              ["videocam", T.t("Vidéo"), "omarchy-capture-screenrecording"],
+              ["wallpaper", T.t("Fonds"), "@walls"],
+              ["colorize", T.t("Pipette"), "hyprpicker -a"],
+              ["terminal", T.t("Terminal"), "uwsm-app -- xdg-terminal-exec"],
+              ["folder", T.t("Fichiers"), "uwsm-app -- nautilus --new-window"],
+              ["system_update_alt", T.t("Mises à jour"), "omarchy-launch-floating-terminal-with-presentation omarchy-update"],
+              ["tune", T.t("Réglages"), "omarchy-shell shell toggle liquid-glass.settings"]
             ]
             delegate: Rectangle {
               required property var modelData
@@ -297,7 +298,7 @@ PanelWindow {
           spacing: 8
           anchors.horizontalCenter: parent.horizontalCenter
           Repeater {
-            model: [["lock", "lock", "Verrouiller"], ["suspend", "bedtime", "Veille"], ["logout", "logout", "Quitter"], ["reboot", "restart_alt", "Redémarrer"], ["poweroff", "power_settings_new", "Éteindre"]]
+            model: [["lock", "lock", T.t("Verrouiller")], ["suspend", "bedtime", "Veille"], ["logout", "logout", "Quitter"], ["reboot", "restart_alt", T.t("Redémarrer")], ["poweroff", "power_settings_new", "Éteindre"]]
             delegate: Rectangle {
               required property var modelData
               required property int index

@@ -7,6 +7,7 @@ import Quickshell.Wayland
 import Quickshell.Widgets
 import Quickshell.Bluetooth
 import Quickshell.Services.Pipewire
+import "T.js" as T
 
 // Style « foret » : les volets qui tombent de la barre en puces.
 //   music   : pochette ronde + anneau de progression, contrôles, spectre en curseurs
@@ -62,7 +63,7 @@ PanelWindow {
     Ring { x: 12; y: 12; width: 100; height: 100; value: s.progress; thickness: 3; color: win.acc; track: s.alpha(win.ink, 0.12) }
     Column {
       x: 124; y: 22; width: parent.width - 140; spacing: 3
-      Text { width: parent.width; elide: Text.ElideRight; text: s.trackTitle || "Rien en lecture"; font.family: win.font; font.pixelSize: 13; font.weight: Font.Bold; color: win.ink }
+      Text { width: parent.width; elide: Text.ElideRight; text: s.trackTitle || T.t("Rien en lecture"); font.family: win.font; font.pixelSize: 13; font.weight: Font.Bold; color: win.ink }
       Text { width: parent.width; elide: Text.ElideRight; text: s.trackArtist ? "par " + s.trackArtist : ""; font.family: win.font; font.pixelSize: 10; color: win.sub }
       Item { width: 1; height: 8 }
       Item {
@@ -83,7 +84,7 @@ PanelWindow {
         Ctl { icon: "skip_next"; onClicked: if (s.player) s.player.next() }
       }
     }
-    Text { x: 16; y: 132; text: "Spectre"; font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.acc }
+    Text { x: 16; y: 132; text: T.t("Spectre"); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.acc }
     Text { anchors.right: parent.right; anchors.rightMargin: 16; y: 132; text: Math.round((win.sink && win.sink.audio ? win.sink.audio.volume : 0) * 100) + " %"; font.family: win.font; font.pixelSize: 10; color: win.sub }
     // Spectre en curseurs (comme un égaliseur) : la position suit cava en direct.
     Row {
@@ -131,13 +132,13 @@ PanelWindow {
       Row {
         anchors.horizontalCenter: parent.horizontalCenter; spacing: 16
         Text { text: "‹"; font.family: win.font; font.pixelSize: 14; color: win.sub; MouseArea { anchors.fill: parent; onClicked: cal.month = new Date(cal.month.getFullYear(), cal.month.getMonth() - 1, 1) } }
-        Text { width: 120; horizontalAlignment: Text.AlignHCenter; text: cal.month.toLocaleDateString(Qt.locale("fr_FR"), "MMMM yyyy").toUpperCase(); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
+        Text { width: 120; horizontalAlignment: Text.AlignHCenter; text: cal.month.toLocaleDateString(Qt.locale(T.loc), "MMMM yyyy").toUpperCase(); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
         Text { text: "›"; font.family: win.font; font.pixelSize: 14; color: win.sub; MouseArea { anchors.fill: parent; onClicked: cal.month = new Date(cal.month.getFullYear(), cal.month.getMonth() + 1, 1) } }
       }
       Grid {
         y: 26; columns: 7
         Repeater {
-          model: ["Lu", "Ma", "Me", "Je", "Ve", "Sa", "Di"]
+          model: ["Lu", T.t("Ma"), "Me", "Je", "Ve", "Sa", "Di"]
           delegate: Text { required property string modelData; width: 220 / 7; height: 22; horizontalAlignment: Text.AlignHCenter; text: modelData; font.family: win.font; font.pixelSize: 10; color: win.ink }
         }
         Repeater {
@@ -179,7 +180,7 @@ PanelWindow {
           Text { text: Qt.formatTime(win.now, "HH:mm"); font.family: win.font; font.pixelSize: 54; font.weight: Font.Bold; color: win.ink }
           Text { anchors.baseline: parent.children[0].baseline; text: ":" + Qt.formatTime(win.now, "ss"); font.family: win.font; font.pixelSize: 20; font.weight: Font.Bold; color: win.acc }
         }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMMM")); font.family: win.font; font.pixelSize: 11; color: win.sub }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM")); font.family: win.font; font.pixelSize: 11; color: win.sub }
       }
       // heures à venir, posées sur l'ellipse (la première est l'heure courante, en avant)
       Repeater {
@@ -207,7 +208,7 @@ PanelWindow {
     // météo du jour
     Column {
       x: dash.width - 240; y: 30; width: 214; spacing: 6
-      Text { anchors.right: parent.right; text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd")).toUpperCase(); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
+      Text { anchors.right: parent.right; text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd")).toUpperCase(); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
       Text { anchors.right: parent.right; text: s.weather ? s.weather.temp + "°" : "--"; font.family: win.font; font.pixelSize: 56; font.weight: Font.Bold; color: s.tertiary }
       Text { anchors.right: parent.right; text: win.cap(s.weatherDesc); font.family: win.font; font.pixelSize: 11; color: win.sub }
       Item { width: 1; height: 16 }
@@ -236,7 +237,7 @@ PanelWindow {
     Row {
       x: 26; y: 310; spacing: 10
       MIcon { icon: "calendar_month"; size: 15; color: win.sub }
-      Text { text: win.cap(win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd d MMM")) + "  (aujourd'hui)"; font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
+      Text { text: win.cap(win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMM")) + T.t("  (aujourd'hui)"); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.ink }
     }
     Row {
       x: 26; y: 346; width: dash.width - 52; height: 100
@@ -284,7 +285,7 @@ PanelWindow {
         Row { anchors.horizontalCenter: parent.horizontalCenter; spacing: 4
           MIcon { anchors.verticalCenter: parent.verticalCenter; icon: s.charging ? "bolt" : "battery_full"; size: 22; fill: 1; color: win.ink }
           Text { text: (s.batteryPct >= 0 ? s.batteryPct : 100) + "%"; font.family: win.font; font.pixelSize: 34; font.weight: Font.Bold; color: win.ink } }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; text: s.charging ? "EN CHARGE" : "SUR BATTERIE"; font.family: win.font; font.pixelSize: 9; color: win.sub }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: s.charging ? T.t("EN CHARGE") : T.t("SUR BATTERIE"); font.family: win.font; font.pixelSize: 9; color: win.sub }
       }
     }
     Column {
@@ -313,7 +314,7 @@ PanelWindow {
         anchors.horizontalCenter: parent.horizontalCenter; spacing: 6
         visible: win.profile !== ""
         Repeater {
-          model: [["power-saver", "Économie", "eco"], ["balanced", "Équilibré", "balance"], ["performance", "Perf.", "bolt"]]
+          model: [["power-saver", T.t("Économie"), "eco"], ["balanced", T.t("Équilibré"), "balance"], ["performance", "Perf.", "bolt"]]
           delegate: Rectangle {
             required property var modelData
             readonly property bool cur: win.profile === modelData[0]
@@ -349,7 +350,7 @@ PanelWindow {
           anchors.centerIn: parent; spacing: 2
           MIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: s.wifiOn ? "wifi" : "wifi_off"; size: 26; color: s.wifiOn ? win.accInk : win.ink }
           Text { anchors.horizontalCenter: parent.horizontalCenter; width: 90; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideRight
-            text: s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : (s.wifiOn ? "Wi-Fi" : "Désactivé"); font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold; color: s.wifiOn ? win.accInk : win.ink }
+            text: s.wifiList.length && s.wifiList[0].active ? s.wifiList[0].ssid : (s.wifiOn ? "Wi-Fi" : T.t("Désactivé")); font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold; color: s.wifiOn ? win.accInk : win.ink }
         }
         MouseArea { anchors.fill: parent; onClicked: s.setWifi(!s.wifiOn) }
       }

@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Wayland
 import Quickshell.Widgets
+import "T.js" as T
 
 // Bureau du style Rubans : date géante en filigrane, jour de la semaine, bandes
 // obliques (musique, météo) et bloc de batterie dont le niveau ondule.
@@ -40,7 +41,7 @@ PanelWindow {
     Text {
       id: dayT
       anchors.centerIn: parent
-      text: win.now.toLocaleDateString(Qt.locale("fr_FR"), "dddd").toUpperCase()
+      text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd").toUpperCase()
       font.family: win.font; font.pixelSize: 26; font.weight: Font.Black; font.italic: true; color: win.s.colOnPrimary
     }
   }

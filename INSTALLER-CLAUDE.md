@@ -6,7 +6,7 @@ Linux avec ses 18 styles), thèmes, fonds d'écran, écrans de verrouillage, rac
 réglages, fond actuel et photo du compte. Il n'installe **pas** toutes les applications
 de l'ancien PC, seulement ce dont Liquid Glass a besoin.
 
-Dépôt (privé) : https://github.com/OWNER/liquid-glass
+Dépôt (privé) : https://github.com/7jok/liquid-glass
 
 ---
 
@@ -26,7 +26,7 @@ Parle en français à l'utilisateur, avec des messages courts.
 3. **Récupérer le dépôt** au même endroit que sur le PC d'origine :
    ```bash
    mkdir -p ~/Work
-   gh repo clone OWNER/liquid-glass ~/Work/liquid-glass
+   gh repo clone 7jok/liquid-glass ~/Work/liquid-glass
    ```
    S'il existe déjà : `cd ~/Work/liquid-glass && git pull`.
 

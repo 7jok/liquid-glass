@@ -5,6 +5,7 @@ import Quickshell.Services.Mpris
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — widgets du bureau façon macOS (Sonoma/Tahoe).
 //
@@ -169,7 +170,7 @@ Item {
           var r = JSON.parse(text).results[0]
           svc.coords = { lat: Number(r.latitude).toFixed(3), lon: Number(r.longitude).toFixed(3), name: String(r.name) }
           svc.refreshWeather()
-        } catch (e) { svc.weatherError = "Ville introuvable" }
+        } catch (e) { svc.weatherError = T.t("Ville introuvable") }
       }
     }
   }
@@ -191,7 +192,7 @@ Item {
             city: svc.coords ? svc.coords.name : svc.city
           }
           svc.weatherError = ""
-        } catch (e) { svc.weatherError = "Météo indisponible" }
+        } catch (e) { svc.weatherError = T.t("Météo indisponible") }
       }
     }
   }

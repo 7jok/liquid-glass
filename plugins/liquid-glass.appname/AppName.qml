@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — nom de l'application active (« Firefox », « Fichiers »…),
 // en gras comme sur macOS. Clic milieu / droit : fermer la fenêtre.
@@ -15,7 +16,7 @@ BarWidget {
   readonly property string appId: toplevel ? (toplevel.appId || "") : ""
   readonly property var entry: appId !== "" ? DesktopEntries.heuristicLookup(appId) : null
   readonly property string name: {
-    if (!toplevel) return "Bureau"
+    if (!toplevel) return T.t("Bureau")
     if (entry && entry.name) return entry.name
     if (appId === "") return toplevel.title || ""
     // org.gnome.Nautilus → Nautilus, foot → Foot

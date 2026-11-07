@@ -4,6 +4,7 @@ import Quickshell
 import Quickshell.Services.Mpris
 import Quickshell.Widgets
 import qs.Commons
+import "T.js" as T
 
 // Lecture en cours façon macOS, teintée par la couleur de la pochette.
 //   small  (1×1) : pochette, titre, lecture
@@ -306,7 +307,7 @@ Tile {
     color: Qt.rgba(0, 0, 0, 0.55)
     opacity: 0
     visible: opacity > 0.01
-    Text { id: nlText; anchors.centerIn: parent; textFormat: Text.PlainText; text: "Pas de paroles pour ce titre"; font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: "white" }
+    Text { id: nlText; anchors.centerIn: parent; textFormat: Text.PlainText; text: T.t("Pas de paroles pour ce titre"); font.family: w.font; font.pixelSize: 11; font.weight: Font.DemiBold; color: "white" }
     SequentialAnimation {
       id: noLyrics
       NumberAnimation { target: noLyricsTip; property: "opacity"; to: 1; duration: 160 }

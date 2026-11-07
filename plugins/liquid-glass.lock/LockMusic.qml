@@ -3,6 +3,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import qs.Commons
+import "T.js" as T
 
 // Widget musique de l'écran de verrouillage, comme dans macOS Tahoe :
 //   • compact : petite carte de verre (pochette, titre, artiste, progression,
@@ -329,7 +330,7 @@ Item {
       horizontalAlignment: Text.AlignHCenter
       verticalAlignment: Text.AlignVCenter
       textFormat: Text.PlainText
-      text: m.view && m.view.resuming ? "Ouverture de Spotify…" : "Dernière écoute · ▶ pour reprendre"
+      text: m.view && m.view.resuming ? T.t("Ouverture de Spotify…") : T.t("Dernière écoute · ▶ pour reprendre")
       font.family: m.view ? m.view.uiFont : "Inter"; font.pixelSize: 10
       color: "white"; opacity: 0.6
     }

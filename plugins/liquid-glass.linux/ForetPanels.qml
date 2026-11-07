@@ -138,7 +138,7 @@ PanelWindow {
       Grid {
         y: 26; columns: 7
         Repeater {
-          model: ["Lu", T.t("Ma"), "Me", "Je", "Ve", "Sa", "Di"]
+          model: [T.t("Lu"), T.t("Ma"), T.t("Me"), T.t("Je"), T.t("Ve"), T.t("Sa"), T.t("Di")]
           delegate: Text { required property string modelData; width: 220 / 7; height: 22; horizontalAlignment: Text.AlignHCenter; text: modelData; font.family: win.font; font.pixelSize: 10; color: win.ink }
         }
         Repeater {
@@ -215,7 +215,7 @@ PanelWindow {
       Row {
         anchors.right: parent.right; spacing: 10
         Repeater {
-          model: s.weather ? [[s.weather.wind + "km", "air", "VENT", Math.min(1, s.weather.wind / 60)], [s.weather.humidity + "%", "humidity_percentage", "HUMID.", s.weather.humidity / 100],
+          model: s.weather ? [[s.weather.wind + "km", "air", "VENT", Math.min(1, s.weather.wind / 60)], [s.weather.humidity + "%", "humidity_percentage", T.t("HUMID."), s.weather.humidity / 100],
                               [s.weather.rain + "%", "rainy", "PLUIE", s.weather.rain / 100], [s.weather.feels + "°", "thermostat", "RESS.", Math.min(1, Math.max(0, (s.weather.feels + 10) / 50))]] : []
           delegate: Column {
             required property var modelData
@@ -244,9 +244,9 @@ PanelWindow {
       Repeater {
         model: {
           var out = []
-          if (s.weather) { out.push(["Lever du soleil", "wb_twilight", s.weather.sunrise, s.weather.city]); out.push(["Coucher du soleil", "wb_sunny", s.weather.sunset, "↑ " + s.weather.max + "°  ↓ " + s.weather.min + "°"]) }
+          if (s.weather) { out.push([T.t("Lever du soleil"), "wb_twilight", s.weather.sunrise, s.weather.city]); out.push([T.t("Coucher du soleil"), "wb_sunny", s.weather.sunset, "↑ " + s.weather.max + "°  ↓ " + s.weather.min + "°"]) }
           var t = s.todos.filter(function(x) { return !x.done })
-          out.push(["À faire", "checklist", t.length ? t[0].text : "Rien de prévu", t.length > 1 ? "+ " + (t.length - 1) + " autres" : ""])
+          out.push([T.t("À faire"), "checklist", t.length ? t[0].text : T.t("Rien de prévu"), t.length > 1 ? "+ " + (t.length - 1) + " autres" : ""])
           return out
         }
         delegate: Item {

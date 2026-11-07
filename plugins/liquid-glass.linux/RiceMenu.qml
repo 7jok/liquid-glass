@@ -185,7 +185,7 @@ EspacePanel {
       spacing: 8
       Label_ { text: T.t("Scène suivante") }
       Repeater {
-        model: [[0, "Jamais"], [15, "15 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [300, "5 min"]]
+        model: [[0, T.t("Jamais")], [15, "15 s"], [30, "30 s"], [60, "1 min"], [120, "2 min"], [300, "5 min"]]
         delegate: Chip {
           required property var modelData
           label: modelData[1]

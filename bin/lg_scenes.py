@@ -1143,7 +1143,416 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 out.append("".join(parts))
             return out
 
-    return {"ascii": AsciiImage, "banner": Banner, "globe": Globe, "moonball": MoonBall, "asciivid": AsciiVideo,
+    class Grid(Base):
+        """Soleil rayé au-dessus d'une grille qui défile, à l'horizon d'un coucher de soleil."""
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            hz = int(h * 0.55)
+            r = min(hz - 1, w // 4)
+            cx = w // 2
+            for y in range(hz):
+                dy = (y - hz + 1) / max(1, r)
+                if dy < -1:
+                    continue
+                if y > hz - r * 0.75 and int(y + t * 2) % 3 == 0:
+                    continue
+                half = int(math.sqrt(max(0, 1 - dy * dy)) * r * 2)
+                col = mix(a.alt, a.acc, (y - (hz - r)) / max(1, r))
+                c.text(cx - half, y, "█" * (half * 2), col)
+            for i in range(30):
+                x, y = (i * 37) % w, (i * 11) % max(1, hz - 1)
+                if abs(x - cx) > r * 2 + 2 and (i + int(t * 2)) % 7:
+                    c.put(x, y, "·", a.dim)
+            for y in range(hz, h):
+                p = (y - hz + 1) / max(1, h - hz)
+                col = mix(a.alt, a.acc, p)
+                if int((1 / p + t * 3) * 2) % 3 == 0:
+                    c.text(0, y, "─" * w, mix(a.dim, col, p))
+                for k in range(-14, 15):
+                    c.put(cx + k * (3 + p * w / 9), y, "/" if k < 0 else "\\" if k > 0 else "│", col)
+            return c.lines()
+
+    class Cube(Base):
+        """Solides en fil de fer qui tournent : cube, octaèdre, icosaèdre."""
+        SOLIDS = [
+            [(x, y, z) for x in (-1, 1) for y in (-1, 1) for z in (-1, 1)],
+            [(1.5, 0, 0), (-1.5, 0, 0), (0, 1.5, 0), (0, -1.5, 0), (0, 0, 1.5), (0, 0, -1.5)],
+            [(0, s, u * 1.618) for s in (-1, 1) for u in (-1, 1)] + [(s, u * 1.618, 0) for s in (-1, 1) for u in (-1, 1)]
+            + [(u * 1.618, 0, s) for s in (-1, 1) for u in (-1, 1)],
+        ]
+
+        def __init__(self, app):
+            super().__init__(app)
+            self.edges = []
+            for v in self.SOLIDS:
+                ds = sorted(math.dist(p, q) for i, p in enumerate(v) for q in v[i + 1:])
+                self.edges.append([(i, j) for i, p in enumerate(v) for j, q in enumerate(v) if i < j and math.dist(p, q) < ds[0] + .01])
+
+        def frame(self, t, w, h):
+            a, c, d = self.app, self.canvas(w, h), Dots(w, h)
+            k = int(t / 12) % 3
+            ax, ay = t * .7, t * .5
+            size = min(w * 2, h * 4) * .26 * (1 + .12 * a.audio.bass)
+            pts = []
+            for x, y, z in self.SOLIDS[k]:
+                x, z = x * math.cos(ay) + z * math.sin(ay), -x * math.sin(ay) + z * math.cos(ay)
+                y, z = y * math.cos(ax) - z * math.sin(ax), y * math.sin(ax) + z * math.cos(ax)
+                f = size / (1 + z * .16)
+                pts.append((w + x * f, h * 2 + y * f))
+            for i, j in self.edges[k]:
+                d.line(*pts[i], *pts[j])
+            d.draw(c, mix(a.acc, a.alt, .5 + .5 * math.sin(t)))
+            return c.lines()
+
+    class Galaxy(Base):
+        """Spirale d'étoiles vue en biais, le cœur plus clair que les bras."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.s = []
+            for _ in range(900):
+                r = random.random() ** 1.6
+                self.s.append((r, random.randrange(3) * 2.094 + r * 5.2 + random.gauss(0, .24), random.choice("··.:*+")))
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            R = min(w / 2.1, h * 1.05)
+            for r, th, ch in self.s:
+                ang = th + t * (.5 - r * .32)
+                c.put(w / 2 + math.cos(ang) * r * R, h / 2 + math.sin(ang) * r * R * .42, ch, mix(a.fg, mix(a.acc, a.alt, r), min(1, r * 2.2)))
+            c.center(h // 2, "@", a.fg)
+            return c.lines()
+
+    class Aurora(Base):
+        """Voiles d'aurore boréale au-dessus d'une crête."""
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            ramp = " .:|!I"
+            ground = [h - 2 - int(2 + 1.6 * math.sin(x * .09) + math.sin(x * .23 + 1)) for x in range(w)]
+            for x in range(w):
+                top = h * (.18 + .1 * math.sin(x * .05 + t * .4) + .06 * math.sin(x * .13 - t * .7))
+                for y in range(int(top), ground[x]):
+                    p = (y - top) / max(1, h * .6)
+                    v = (1 - p) * (.55 + .45 * math.sin(x * .21 + t * 1.2 + math.sin(x * .05 + t)))
+                    if v > .08:
+                        c.put(x, y, ramp[min(5, int(v * 6))], mix(a.acc, a.alt, p * 1.4))
+                for y in range(ground[x], h):
+                    c.put(x, y, "█", a.dim)
+            return c.lines()
+
+    class City(Base):
+        """Ville de nuit en deux plans, fenêtres qui s'allument et lune."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.rows = [self.skyline(.55), self.skyline(.85)]
+
+        @staticmethod
+        def skyline(top):
+            out, x = [], 0
+            while x < 600:
+                bw = random.randint(5, 13)
+                out.append((x, bw, random.uniform(.3, 1) * top, random.randrange(999)))
+                x += bw + random.randint(0, 2)
+            return out
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            for i in range(26):
+                c.put((i * 41) % w, (i * 7) % max(1, h // 2), "·", a.dim)
+            mx, my = int(w * .78), max(3, h // 6)
+            for dy in range(-2, 3):
+                half = int(math.sqrt(max(0, 7 - dy * dy)) * 2)
+                c.text(mx - half, my + dy, "█" * (half * 2), mix(a.fg, a.alt, .3))
+            for plane, (row, speed) in enumerate(zip(self.rows, (1.0, 2.2))):
+                off = t * speed
+                for x0, bw, hh, seed in row:
+                    x = (x0 - off) % 600 - 12
+                    if x > w:
+                        continue
+                    top = h - int(hh * h)
+                    wall = mix((14, 14, 22), a.dim, .4 + .3 * plane)
+                    for y in range(top, h):
+                        for k in range(bw):
+                            lit = plane and y > top and k % 2 and y % 2 and (seed + k * 7 + y * 13 + int(t / 3)) % 5 == 0
+                            c.put(x + k, y, "▪" if lit else "█", mix(a.acc, a.alt, (k + y) % 3 / 2) if lit else wall)
+            return c.lines()
+
+    class Tree(Base):
+        """Arbre qui pousse branche après branche, perd ses feuilles et repousse."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.seed, self.born = random.random(), None
+
+        def frame(self, t, w, h):
+            a, c, d = self.app, self.canvas(w, h), Dots(w, h)
+            if self.born is None or t - self.born > 16:
+                self.born, self.seed = t, random.random()
+            age = min(1, (t - self.born) / 8)
+            rnd = random.Random(self.seed)
+            leaves = []
+
+            def grow(x, y, ang, ln, depth):
+                sway = math.sin(t * .8 + depth) * .012 * (9 - depth)
+                if depth > 8 * age + 1:
+                    return
+                nx, ny = x + math.cos(ang + sway) * ln, y + math.sin(ang + sway) * ln
+                d.line(x, y, nx, ny)
+                if depth >= 8:
+                    leaves.append((nx, ny))
+                    return
+                for _ in range(2 if depth < 2 or rnd.random() > .15 else 3):
+                    grow(nx, ny, ang + rnd.uniform(-.65, .65), ln * rnd.uniform(.68, .82), depth + 1)
+
+            grow(w, h * 4 - 2, -math.pi / 2, h * .8, 1)
+            d.draw(c, a.dim if age >= 1 else a.fg)
+            for x, y in leaves:
+                c.put(x / 2 + rnd.randint(-1, 1), y / 4, rnd.choice("❀*•·"), mix(a.acc, a.alt, rnd.random()))
+            return c.lines()
+
+    class Boids(Base):
+        """Nuée d'oiseaux qui se suivent sans chef."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.b = [[random.random(), random.random(), random.uniform(-1, 1), random.uniform(-1, 1)] for _ in range(70)]
+
+        def frame(self, t, w, h):
+            dt, a, c = self.step(t), self.app, self.canvas(w, h)
+            for b in self.b:
+                cx = cy = vx = vy = sx = sy = n = 0
+                for o in self.b:
+                    dx, dy = o[0] - b[0], o[1] - b[1]
+                    dist = dx * dx + dy * dy
+                    if o is b or dist > .03:
+                        continue
+                    n += 1
+                    cx += dx; cy += dy; vx += o[2]; vy += o[3]
+                    if dist < .002:
+                        sx -= dx; sy -= dy
+                if n:
+                    b[2] += (cx / n * 1.6 + (vx / n - b[2]) * .1 + sx * 10) * dt * 8
+                    b[3] += (cy / n * 1.6 + (vy / n - b[3]) * .1 + sy * 10) * dt * 8
+                sp = math.hypot(b[2], b[3]) or 1
+                k = min(1, .38 / sp) if sp > .38 else .2 / sp if sp < .2 else 1
+                b[2] *= k; b[3] *= k
+                b[0] = (b[0] + b[2] * dt) % 1
+                b[1] = (b[1] + b[3] * dt) % 1
+                ch = "→↘↓↙←↖↑↗"[int((math.atan2(b[3], b[2]) + math.pi / 8) % (2 * math.pi) / (math.pi / 4)) % 8]
+                c.put(b[0] * w, b[1] * h, ch, mix(a.acc, a.alt, b[0]))
+            return c.lines()
+
+    class Typing(Base):
+        """Le code de ce programme, tapé à toute vitesse avec ses couleurs."""
+        WORDS = re.compile(r"\b(class|def|return|for|in|if|else|elif|import|while|self|lambda|not|and|or)\b")
+
+        def __init__(self, app):
+            super().__init__(app)
+            with open(__file__, encoding="utf-8") as f:
+                self.src = f.read().splitlines()
+            self.at = random.randrange(len(self.src))
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            n = int(t * 34)
+            line, part = self.at + n // 34, n % 34 / 34
+            for y in range(h):
+                i = line - (h - 1 - y)
+                s = self.src[i % len(self.src)].replace("\t", "    ")[:w - 7]
+                if y == h - 1:
+                    s = s[:int(len(s) * part)] + "▌"
+                c.text(0, y, f"{i % len(self.src) + 1:>5} ", a.dim)
+                c.text(6, y, s, a.fg)
+                for m in self.WORDS.finditer(s):
+                    c.text(6 + m.start(), y, m.group(), a.acc)
+                if "#" in s or '"""' in s:
+                    k = s.find("#") if "#" in s else s.find('"""')
+                    c.text(6 + k, y, s[k:], a.alt)
+            return c.lines()
+
+    class Analog(Base):
+        """Grande horloge à aiguilles, trotteuse fluide."""
+        def frame(self, t, w, h):
+            a, c, d = self.app, self.canvas(w, h), Dots(w, h)
+            now = time.localtime()
+            cx, cy, R = w, h * 2, min(w, h * 2) * .9
+            for i in range(240):
+                ang = i / 240 * 2 * math.pi
+                d.dot(cx + math.cos(ang) * R, cy + math.sin(ang) * R)
+            for i in range(60):
+                ang = i / 60 * 2 * math.pi - math.pi / 2
+                r = R * (.86 if i % 5 == 0 else .94)
+                d.line(cx + math.cos(ang) * r, cy + math.sin(ang) * r, cx + math.cos(ang) * R, cy + math.sin(ang) * R)
+            d.draw(c, a.dim)
+            frac = time.time() % 1
+            sec = now.tm_sec + frac
+            hands = Dots(w, h)
+            for v, ln in (((now.tm_hour % 12 + now.tm_min / 60) / 12, .5), ((now.tm_min + sec / 60) / 60, .76)):
+                ang = v * 2 * math.pi - math.pi / 2
+                for o in (-1, 0, 1):
+                    hands.line(cx + o, cy, cx + o + math.cos(ang) * R * ln, cy + math.sin(ang) * R * ln)
+            hands.draw(c, a.fg)
+            thin = Dots(w, h)
+            ang = sec / 60 * 2 * math.pi - math.pi / 2
+            thin.line(cx - math.cos(ang) * R * .12, cy - math.sin(ang) * R * .12, cx + math.cos(ang) * R * .9, cy + math.sin(ang) * R * .9)
+            thin.draw(c, a.acc)
+            return c.lines()
+
+    class Maze(Base):
+        """Labyrinthe creusé case par case, puis résolu."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.size = None
+
+        def reset(self, w, h):
+            self.size = (w, h)
+            self.cw, self.ch = max(2, (w - 1) // 4), max(2, (h - 1) // 2)
+            self.open = set()
+            self.seen = {(0, 0)}
+            self.stack = [(0, 0)]
+            self.parent = {}
+            self.path = []
+            self.wait = 0
+
+        def carve(self):
+            while self.stack:
+                x, y = self.stack[-1]
+                free = [(x + dx, y + dy) for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))
+                        if 0 <= x + dx < self.cw and 0 <= y + dy < self.ch and (x + dx, y + dy) not in self.seen]
+                if not free:
+                    self.stack.pop()
+                    continue
+                n = random.choice(free)
+                self.seen.add(n)
+                self.open.add(frozenset(((x, y), n)))
+                self.parent[n] = (x, y)
+                self.stack.append(n)
+                return
+            if not self.path:
+                p, end = [], (self.cw - 1, self.ch - 1)
+                while end != (0, 0):
+                    p.append(end)
+                    end = self.parent[end]
+                self.path = p + [(0, 0)]
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            if self.size != (w, h) or self.wait > 180:
+                self.reset(w, h)
+            for _ in range(8):
+                self.carve()
+            if self.path:
+                self.wait += 1
+            for x, y in self.seen:
+                px, py = x * 4 + 1, y * 2 + 1
+                c.text(px, py, "   ", a.fg)
+                for dx, dy, s in ((1, 0, "▒"), (0, 1, "▒")):
+                    if frozenset(((x, y), (x + dx, y + dy))) in self.open:
+                        if dx:
+                            c.text(px, py, "▒▒▒▒▒", a.dim)
+                        else:
+                            c.text(px, py + 1, "▒▒▒", a.dim)
+                c.text(px, py, "▒▒▒", a.dim)
+            if self.stack:
+                x, y = self.stack[-1]
+                c.text(x * 4 + 1, y * 2 + 1, "███", a.acc)
+            shown = min(len(self.path), self.wait * 2)
+            for i, (x, y) in enumerate(self.path[len(self.path) - shown:]):
+                c.text(x * 4 + 1, y * 2 + 1, "███", mix(a.alt, a.acc, i / max(1, shown)))
+            return c.lines()
+
+    class Dna(Base):
+        """Double hélice qui tourne."""
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            amp = min(w * .32, 26)
+            for y in range(h):
+                ang = y * .34 + t * 1.4
+                x1, x2 = w / 2 + math.sin(ang) * amp, w / 2 - math.sin(ang) * amp
+                front = math.cos(ang) > 0
+                if y % 2 == 0:
+                    lo, hi = sorted((x1, x2))
+                    for x in range(int(lo) + 2, int(hi) - 1):
+                        c.put(x, y, "─", mix(a.dim, a.acc if x < w / 2 else a.alt, .5))
+                c.text(x1 - 1, y, "●●", a.acc if front else mix(a.acc, a.dim, .6))
+                c.text(x2 - 1, y, "●●", mix(a.alt, a.dim, .6) if front else a.alt)
+            return c.lines()
+
+    class Harmono(Base):
+        """Harmonographe : le tracé d'un pendule double, qui se referme lentement."""
+        def frame(self, t, w, h):
+            a, c, d = self.app, self.canvas(w, h), Dots(w, h)
+            f1, f2 = 2 + int(t / 14) % 4, 3 + int(t / 9) % 3
+            ph = t * .35
+            R = min(w, h * 2) * .92
+            px = py = None
+            for i in range(900):
+                s = i / 900 * 2 * math.pi * 7
+                damp = math.exp(-s * .018)
+                x = w + R * damp * math.sin(f1 * s + ph)
+                y = h * 2 + R * damp * math.sin(f2 * s)
+                if px is not None:
+                    d.line(px, py, x, y)
+                px, py = x, y
+            d.draw(c, mix(a.acc, a.alt, .5 + .5 * math.sin(t * .3)))
+            return c.lines()
+
+    class Julia(Base):
+        """Ensemble de Julia qui se déforme."""
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            cr, ci = .7885 * math.cos(t * .17), .7885 * math.sin(t * .17)
+            ramp = " .:-=+*#%@"
+            for y in range(h):
+                zi0 = (y / h - .5) * 2.4
+                for x in range(w):
+                    zr, zi, n = (x / w - .5) * 2.4 * w / (h * 2), zi0, 0
+                    while n < 14 and zr * zr + zi * zi < 4:
+                        zr, zi = zr * zr - zi * zi + cr, 2 * zr * zi + ci
+                        n += 1
+                    if 1 < n:
+                        c.put(x, y, ramp[min(9, n * 10 // 15)], mix(a.alt, a.acc, n / 14))
+            return c.lines()
+
+    class Terrain(Base):
+        """Survol d'un relief en fil de fer."""
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            d = Dots(w, h)
+            W, H = w * 2, h * 4
+            off = t * 1.6
+            hor = H * .28
+            hide = [H] * (W + 1)
+            for row in range(1, 40):
+                z = 1 + row * .28
+                wz = z + off - (off % .28)
+                py = None
+                for i in range(-30, 31):
+                    wx = i * .4
+                    e = (math.sin(wx * .7 + wz * .5) + .6 * math.sin(wx * 1.5 - wz * .9) + .3 * math.sin(wx * 3 + wz * 1.7)) * 1.1
+                    x = W / 2 + wx * W * .32 / z
+                    y = hor + (H * .78 - e * H * .13) / z
+                    if py is not None:
+                        d.line(px, py, x, y)
+                    px, py = x, y
+            for i in range(-30, 31, 3):
+                prev = None
+                for row in range(1, 40):
+                    z = 1 + row * .28
+                    wz = z + off - (off % .28)
+                    wx = i * .4
+                    e = (math.sin(wx * .7 + wz * .5) + .6 * math.sin(wx * 1.5 - wz * .9) + .3 * math.sin(wx * 3 + wz * 1.7)) * 1.1
+                    p = (W / 2 + wx * W * .32 / z, hor + (H * .78 - e * H * .13) / z)
+                    if prev:
+                        d.line(*prev, *p)
+                    prev = p
+            d.draw(c, a.acc)
+            for y in range(h):
+                for x in range(w):
+                    if c.c[y][x]:
+                        c.c[y][x] = mix(a.alt, a.acc, y / h)
+            return c.lines()
+
+    return {"grid": Grid, "cube": Cube, "galaxy": Galaxy, "aurora": Aurora, "city": City, "tree": Tree, "boids": Boids,
+            "typing": Typing, "analog": Analog, "maze": Maze, "dna": Dna, "harmono": Harmono, "julia": Julia, "terrain": Terrain,
+            "ascii": AsciiImage, "banner": Banner, "globe": Globe, "moonball": MoonBall, "asciivid": AsciiVideo,
             "hud": Hud, "wallfetch": WallFetch, "video": Video, "stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
             "petals": Petals, "snow": Snow, "plasma": Plasma, "snake": Snake, "life": Life, "pipes": Pipes,
             "tunnel": Tunnel, "waves": Waves, "fire": Fire, "bounce": Bounce, "radar": Radar, "hex": Hex,

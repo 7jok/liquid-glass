@@ -1,3 +1,4 @@
+import "T.js" as T
 import QtQuick
 import Quickshell
 import Quickshell.Io
@@ -31,7 +32,7 @@ BarWidget {
     var t = (h24 ? "HH:mm" : "h:mm") + (showSeconds ? ":ss" : "") + (h24 ? "" : " AP")
     return showDate ? "ddd d MMM  " + t : t
   }
-  readonly property var locale: Qt.locale(setting("locale", "fr_FR"))
+  readonly property var locale: Qt.locale(setting("locale", T.loc))
 
   SystemClock { id: clock; precision: root.showSeconds ? SystemClock.Seconds : SystemClock.Minutes }
 

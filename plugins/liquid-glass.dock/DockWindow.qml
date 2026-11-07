@@ -666,7 +666,7 @@ PanelWindow {
       Text {
         id: armedText
         anchors.centerIn: parent
-        text: "Clic droit à nouveau pour vider"
+        text: T.t("Clic droit à nouveau pour vider")
         font.pixelSize: Style.font.body
         color: Commons.Color.popups.text
       }
@@ -856,7 +856,7 @@ PanelWindow {
         id: openText
         anchors.centerIn: parent
         textFormat: Text.PlainText
-        text: stackFan.count > 0 ? "Ouvrir dans Fichiers  ›" : "Aucun élément · Ouvrir  ›"
+        text: stackFan.count > 0 ? T.t("Ouvrir dans Fichiers  ›") : T.t("Aucun élément · Ouvrir  ›")
         color: "white"
         font.family: "Inter"
         font.pixelSize: 12
@@ -1174,13 +1174,13 @@ PanelWindow {
   readonly property var menuRows: {
     var rows = []
     if (window.settingsMenu) {
-      var pos = [["top", "En haut"], ["bottom", "En bas"], ["left", T.t("À gauche")], ["right", T.t("À droite")]]
-      rows.push({ kind: "header", text: "Position à l'écran" })
+      var pos = [["top", T.t("En haut")], ["bottom", T.t("En bas")], ["left", T.t("À gauche")], ["right", T.t("À droite")]]
+      rows.push({ kind: "header", text: T.t("Position à l'écran") })
       for (var p = 0; p < pos.length; p++)
         rows.push({ text: pos[p][1], checked: window.position === pos[p][0], indent: true, act: "pos:" + pos[p][0] })
       rows.push({ kind: "sep" })
-      rows.push({ text: "Masquer automatiquement le Dock", checked: window.autohide, act: "autohide", shortcut: "⌥⌘D" })
-      rows.push({ text: "Réglages du Dock…", act: "dock-settings" })
+      rows.push({ text: T.t("Masquer automatiquement le Dock"), checked: window.autohide, act: "autohide", shortcut: "⌥⌘D" })
+      rows.push({ text: T.t("Réglages du Dock…"), act: "dock-settings" })
       return rows
     }
     var item = window.menuItem
@@ -1193,21 +1193,21 @@ PanelWindow {
                   diamond: wins[i].minimized, act: "win:" + i })
     }
     if (wins.length > 0) rows.push({ kind: "sep" })
-    if (hasEntry && wins.length > 0) rows.push({ text: "Nouvelle fenêtre", act: "new" })
+    if (hasEntry && wins.length > 0) rows.push({ text: T.t("Nouvelle fenêtre"), act: "new" })
     if (hasEntry) {
       rows.push({ text: "Options", chevron: true, open: window.optionsOpen, act: "options", keep: true })
       if (window.optionsOpen) {
-        rows.push({ text: "Garder dans le Dock", checked: !!item.pinned, indent: true, act: "pin" })
-        rows.push({ text: "Ouvrir à la connexion", checked: window.loginItem, indent: true, act: "login" })
-        rows.push({ text: "Afficher dans le Finder", indent: true, act: "finder" })
+        rows.push({ text: T.t("Garder dans le Dock"), checked: !!item.pinned, indent: true, act: "pin" })
+        rows.push({ text: T.t("Ouvrir à la connexion"), checked: window.loginItem, indent: true, act: "login" })
+        rows.push({ text: T.t("Afficher dans le Finder"), indent: true, act: "finder" })
       }
       rows.push({ kind: "sep" })
     }
     if (wins.length > 0) {
-      rows.push({ text: "Afficher toutes les fenêtres", act: "expose" })
-      rows.push({ text: "Masquer", act: "hide", shortcut: "⌘H" })
-      rows.push(window.altHeld ? { text: "Forcer à quitter", act: "force", danger: true, shortcut: "⌥⌘⎋" }
-                               : { text: "Quitter", act: "quit", shortcut: "⌘Q" })
+      rows.push({ text: T.t("Afficher toutes les fenêtres"), act: "expose" })
+      rows.push({ text: T.t("Masquer"), act: "hide", shortcut: "⌘H" })
+      rows.push(window.altHeld ? { text: T.t("Forcer à quitter"), act: "force", danger: true, shortcut: "⌥⌘⎋" }
+                               : { text: T.t("Quitter"), act: "quit", shortcut: "⌘Q" })
     } else if (hasEntry) {
       rows.push({ text: T.t("Ouvrir"), act: "open" })
     }

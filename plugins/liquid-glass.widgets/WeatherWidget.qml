@@ -1,5 +1,6 @@
 import QtQuick
 import qs.Commons
+import "T.js" as T
 
 // Météo façon macOS : ciel en dégradé selon le temps et l'heure, ville, température,
 // condition et min/max ; en large, les prochaines heures à droite.
@@ -15,16 +16,16 @@ Tile {
   // [libellé, glyphe Nerd Font (Material Design), famille de ciel]
   function describe(c, dayFlag) {
     var day = dayFlag === undefined ? w.day : dayFlag
-    if (c === 0) return ["Dégagé", day ? 0xF0599 : 0xF0594, "clear"]
-    if (c === 1 || c === 2) return [c === 1 ? "Plutôt dégagé" : "Partiellement nuageux", day ? 0xF0595 : 0xF0F31, "partly"]
-    if (c === 3) return ["Couvert", 0xF0590, "cloudy"]
-    if (c === 45 || c === 48) return ["Brouillard", 0xF0591, "cloudy"]
-    if (c >= 51 && c <= 57) return ["Bruine", 0xF0597, "rain"]
-    if (c >= 61 && c <= 67) return [c >= 65 ? "Forte pluie" : "Pluie", c >= 65 ? 0xF0596 : 0xF0597, "rain"]
-    if (c >= 71 && c <= 77) return ["Neige", 0xF0598, "snow"]
-    if (c >= 80 && c <= 82) return ["Averses", 0xF0596, "rain"]
-    if (c === 85 || c === 86) return ["Averses de neige", 0xF0598, "snow"]
-    if (c >= 95) return ["Orage", 0xF0593, "rain"]
+    if (c === 0) return [T.t("Dégagé"), day ? 0xF0599 : 0xF0594, "clear"]
+    if (c === 1 || c === 2) return [c === 1 ? T.t("Plutôt dégagé") : T.t("Partiellement nuageux"), day ? 0xF0595 : 0xF0F31, "partly"]
+    if (c === 3) return [T.t("Couvert"), 0xF0590, "cloudy"]
+    if (c === 45 || c === 48) return [T.t("Brouillard"), 0xF0591, "cloudy"]
+    if (c >= 51 && c <= 57) return [T.t("Bruine"), 0xF0597, "rain"]
+    if (c >= 61 && c <= 67) return [c >= 65 ? T.t("Forte pluie") : T.t("Pluie"), c >= 65 ? 0xF0596 : 0xF0597, "rain"]
+    if (c >= 71 && c <= 77) return [T.t("Neige"), 0xF0598, "snow"]
+    if (c >= 80 && c <= 82) return [T.t("Averses"), 0xF0596, "rain"]
+    if (c === 85 || c === 86) return [T.t("Averses de neige"), 0xF0598, "snow"]
+    if (c >= 95) return [T.t("Orage"), 0xF0593, "rain"]
     return ["—", 0xF0590, "cloudy"]
   }
   readonly property var d: describe(code)
@@ -88,7 +89,7 @@ Tile {
       color: "white"
     }
     Text {
-      text: w.wx ? "Max. " + w.wx.max + "°  Min. " + w.wx.min + "°" : ""
+      text: w.wx ? T.t("Max. ") + w.wx.max + "°  Min. " + w.wx.min + "°" : ""
       font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.Medium
       color: Qt.rgba(1, 1, 1, 0.85)
     }
@@ -114,7 +115,7 @@ Tile {
         required property int index
         width: (w.width - w.leftW - 18 * w.k) / Math.max(1, hours.count)
         spacing: 6 * w.k
-        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.h < 0 ? "Maint." : modelData.h + " h"; font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.DemiBold; color: Qt.rgba(1, 1, 1, 0.85) }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.h < 0 ? T.t("Maint.") : modelData.h + " h"; font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.DemiBold; color: Qt.rgba(1, 1, 1, 0.85) }
         Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: String.fromCodePoint(w.describe(modelData.code, modelData.isDay)[1]); font.family: Style.font.family; font.pixelSize: Math.round(18 * w.k); color: "white" }
         Text { anchors.horizontalCenter: parent.horizontalCenter; textFormat: Text.PlainText; text: modelData.temp + "°"; font.family: w.font; font.pixelSize: Math.round(14 * w.k); font.weight: Font.DemiBold; color: "white" }
       }

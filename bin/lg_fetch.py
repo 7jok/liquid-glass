@@ -251,13 +251,15 @@ def banner_logo(text: str, width: int, tint: str) -> dict | None:
             "padding": {"top": 1, "left": 1, "right": 1}}
 
 
-def pool(style: str) -> list[Path]:
-    """Tes images, les fonds du bureau, puis les images du dépôt."""
+def pool(style: str, mode: str = "image") -> list[Path]:
+    """Tes images, les fonds du bureau, puis les images du dépôt. Les points ont besoin d'un
+    sujet net : ils laissent de côté les fonds d'écran, trop sombres ou trop chargés."""
     _, _, art, _ = STYLES.get(style, STYLES["gouts"])
     own = lg_art.gallery(own_only=True)
-    walls = lg_art.style_backgrounds(style)
     mine = [p for p in (art_path(n) for n in art) if p]
-    return own * 4 + walls + mine * 3 or lg_art.gallery()
+    if mode != "image":
+        return own + mine or lg_art.gallery()
+    return own * 4 + lg_art.style_backgrounds(style) + mine * 3 or lg_art.gallery()
 
 
 def choose(style: str, cols: int, rows: int, mode: str = "") -> tuple[dict, str]:
@@ -273,9 +275,12 @@ def choose(style: str, cols: int, rows: int, mode: str = "") -> tuple[dict, str]
         logo = banner_logo(word, cols - 4, color)
         if logo:
             return logo, "short" if rows >= 34 else "mini"
-        mode = "image"
+    if mode == "image" and not cw:
+        mode = "dots"
+    if mode not in ("image", "dots", "color"):
+        mode = "dots"
     ratio = (ch / cw) if cw else 2.05
-    src = random.choice(pool(style))
+    src = random.choice(pool(style, mode))
     h = max(8, min(rows - 2, 34))
     w = min(room, int(h * ratio))
     if w >= 24:
@@ -291,31 +296,34 @@ def choose(style: str, cols: int, rows: int, mode: str = "") -> tuple[dict, str]
 
 
 def raw_logo(src: Path, mode: str, w: int, h: int, tint: str, cw: int, ch: int) -> dict:
-    """Fichier de logo. La vraie image finit en revenant à son point de départ et en passant
-    h lignes : fastfetch compte les lignes pour remonter à droite du logo."""
+    """Fichier de logo. Une vraie image laisse sa place vide : foot l'efface si du texte
+    s'écrit après elle sur les mêmes lignes, liquid-glass-fetch la pose donc à la fin."""
     f = lg_art.CACHE / f"logo-{os.getpid()}.txt"
     f.parent.mkdir(parents=True, exist_ok=True)
-    f.write_bytes(logo_bytes(src, mode, w, h, tint, cw, ch))
-    return {"type": "file-raw", "source": str(f), "width": w, "height": h, "padding": {"top": 1, "left": 1, "right": 3}}
+    logo = {"type": "file-raw", "source": str(f), "width": w, "height": h, "padding": {"top": 1, "left": 1, "right": 3}}
+    data = lg_art.sixel(src, w, h, cw, ch) if mode == "image" else b""
+    if data:
+        logo["sixel"] = data
+        f.write_bytes(b" \n" * h)
+    else:
+        f.write_bytes(text_logo(src, mode, w, h, tint))
+    return logo
 
 
-def logo_bytes(src: Path, mode: str, w: int, h: int, tint: str, cw: int, ch: int) -> bytes:
-    if mode == "image" and cw:
-        data = lg_art.sixel(src, w, h, cw, ch)
-        if data:
-            return b"\x1b7" + data + b"\x1b8" + b"\n" * h
-    if mode == "color" and w >= 40:
+def text_logo(src: Path, mode: str, w: int, h: int, tint: str) -> bytes:
+    if mode == "color" and w >= 30:
         return ("\n".join(lg_art.render(src, w, h, color=True)) + "\n").encode()
-    return ("\n".join(lg_art.braille(src, w, h, ansi_of(tint) or "37")) + "\n").encode()
+    ansi = ansi_of(tint) or "37"
+    # Couleur vive : un point est fin. Le blanc d'un thème clair est sombre, on prend alors le texte du terminal.
+    ansi = "39" if ansi.endswith(("7", "9")) else "9" + ansi[-1]
+    return ("\n".join(lg_art.braille(src, w, h, ansi)) + "\n").encode()
 
 
 def print_logo(style: str, w: int, h: int) -> None:
-    """Logo du `fastfetch` tapé à la main : fastfetch lance cette commande à chaque fois,
-    l'image change donc à chaque terminal ouvert."""
+    """Logo du `fastfetch` tapé à la main : fastfetch lance cette commande à chaque fois, le
+    dessin change donc à chaque terminal. Pas d'image ici : fastfetch écrit par-dessus."""
     _, color, _, _ = STYLES.get(style, STYLES["gouts"])
-    cw, ch = cell_size()
-    mode = random.choice(["image"] * 7 + ["dots"] * 3)
-    sys.stdout.buffer.write(logo_bytes(random.choice(pool(style)), mode, w, h, color, cw, ch))
+    sys.stdout.buffer.write(text_logo(random.choice(pool(style, "dots")), "dots", w, h, color))
 
 
 def write_default(style: str, dest: Path, lang: str = "fr") -> None:

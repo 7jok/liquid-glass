@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — menus de la barre façon macOS : nom de l'app active (gras),
 // Fichier, Édition, Présentation, Fenêtre, Aide. Les commandes sont envoyées à
@@ -37,73 +38,73 @@ Panel {
   // [titre, [[libellé, commande (argv) | null = grisé, raccourci], "" = séparateur]]
   readonly property var menus: [
     [appName, [
-      ["Réglages…", lg(["window", "settings"]), "⌘,"],
+      [T.t("Réglages…"), lg(["window", "settings"]), "⌘,"],
       "",
-      ["Masquer " + appName, lg(["window", "hide"]), "⌘H"],
-      ["Masquer les autres", lg(["window", "hide-others"]), "⌥⌘H"],
-      ["Tout afficher", lg(["window", "show-all"]), ""],
+      [T.t("Masquer ") + appName, lg(["window", "hide"]), "⌘H"],
+      [T.t("Masquer les autres"), lg(["window", "hide-others"]), "⌥⌘H"],
+      [T.t("Tout afficher"), lg(["window", "show-all"]), ""],
       "",
-      ["Quitter " + appName, lg(["window", "quit"]), "⌘Q"]
+      [T.t("Quitter ") + appName, lg(["window", "quit"]), "⌘Q"]
     ]],
-    ["Fichier", [
-      ["Nouvelle fenêtre", lg(["key", "new"]), "⌘N"],
-      ["Ouvrir…", lg(["key", "open"]), "⌘O"],
+    [T.t("Fichier"), [
+      [T.t("Nouvelle fenêtre"), lg(["key", "new"]), "⌘N"],
+      [T.t("Ouvrir…"), lg(["key", "open"]), "⌘O"],
       "",
-      ["Fermer la fenêtre", ["hyprctl", "dispatch", "hl.dsp.window.close()"], "⌘W"],
-      ["Enregistrer", lg(["key", "save"]), "⌘S"],
-      ["Enregistrer sous…", lg(["key", "saveas"]), "⇧⌘S"],
+      [T.t("Fermer la fenêtre"), ["hyprctl", "dispatch", "hl.dsp.window.close()"], "⌘W"],
+      [T.t("Enregistrer"), lg(["key", "save"]), "⌘S"],
+      [T.t("Enregistrer sous…"), lg(["key", "saveas"]), "⇧⌘S"],
       "",
-      ["Imprimer…", lg(["key", "print"]), "⌘P"]
+      [T.t("Imprimer…"), lg(["key", "print"]), "⌘P"]
     ]],
-    ["Édition", [
-      ["Annuler", lg(["key", "undo"]), "⌘Z"],
-      ["Rétablir", lg(["key", "redo"]), "⇧⌘Z"],
+    [T.t("Édition"), [
+      [T.t("Annuler"), lg(["key", "undo"]), "⌘Z"],
+      [T.t("Rétablir"), lg(["key", "redo"]), "⇧⌘Z"],
       "",
-      ["Couper", lg(["key", "cut"]), "⌘X"],
-      ["Copier", lg(["key", "copy"]), "⌘C"],
-      ["Coller", lg(["key", "paste"]), "⌘V"],
-      ["Tout sélectionner", lg(["key", "selectall"]), "⌘A"],
+      [T.t("Couper"), lg(["key", "cut"]), "⌘X"],
+      [T.t("Copier"), lg(["key", "copy"]), "⌘C"],
+      [T.t("Coller"), lg(["key", "paste"]), "⌘V"],
+      [T.t("Tout sélectionner"), lg(["key", "selectall"]), "⌘A"],
       "",
-      ["Rechercher…", lg(["key", "find"]), "⌘F"],
+      [T.t("Rechercher…"), lg(["key", "find"]), "⌘F"],
       "",
-      ["Presse-papiers…", ["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"mode\":\"clipboard\"}"], ""],
-      ["Émojis et symboles", sh("omarchy.emojis"), "🌐E"]
+      [T.t("Presse-papiers…"), ["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"mode\":\"clipboard\"}"], ""],
+      [T.t("Émojis et symboles"), sh("omarchy.emojis"), "🌐E"]
     ]],
-    ["Présentation", [
-      ["Zoom avant", lg(["key", "zoomin"]), "⌘+"],
-      ["Zoom arrière", lg(["key", "zoomout"]), "⌘−"],
-      ["Taille réelle", lg(["key", "zoomreset"]), "⌘0"],
+    [T.t("Présentation"), [
+      [T.t("Zoom avant"), lg(["key", "zoomin"]), "⌘+"],
+      [T.t("Zoom arrière"), lg(["key", "zoomout"]), "⌘−"],
+      [T.t("Taille réelle"), lg(["key", "zoomreset"]), "⌘0"],
       "",
       ["Mission Control", sh("liquid-glass.mission"), "⌘↑"],
-      ["Afficher le bureau", lg(["show-desktop"]), "⌘F3"],
+      [T.t("Afficher le bureau"), lg(["show-desktop"]), "⌘F3"],
       "",
-      ["Passer en plein écran", lg(["window", "fullscreen"]), "⌃⌘F"]
+      [T.t("Passer en plein écran"), lg(["window", "fullscreen"]), "⌃⌘F"]
     ]],
-    ["Fenêtre", [
-      ["Réduire", lg(["window", "minimize"]), "⌘M"],
+    [T.t("Fenêtre"), [
+      [T.t("Réduire"), lg(["window", "minimize"]), "⌘M"],
       ["Zoom", lg(["window", "zoom"]), ""],
-      ["Remplir", lg(["window", "fill"]), "⌃⌥F"],
-      ["Centrer", lg(["window", "center"]), "⌃⌥C"],
+      [T.t("Remplir"), lg(["window", "fill"]), "⌃⌥F"],
+      [T.t("Centrer"), lg(["window", "center"]), "⌃⌥C"],
       "",
-      ["Placer à gauche de l'écran", lg(["window", "left"]), "⌃⌥←"],
-      ["Placer à droite de l'écran", lg(["window", "right"]), "⌃⌥→"],
-      ["Placer en haut de l'écran", lg(["window", "top"]), "⌃⌥↑"],
-      ["Placer en bas de l'écran", lg(["window", "bottom"]), "⌃⌥↓"],
+      [T.t("Placer à gauche de l'écran"), lg(["window", "left"]), "⌃⌥←"],
+      [T.t("Placer à droite de l'écran"), lg(["window", "right"]), "⌃⌥→"],
+      [T.t("Placer en haut de l'écran"), lg(["window", "top"]), "⌃⌥↑"],
+      [T.t("Placer en bas de l'écran"), lg(["window", "bottom"]), "⌃⌥↓"],
       "",
-      ["Flottante / mosaïque", lg(["window", "float"]), "⌘T"],
-      ["Toujours au premier plan", lg(["window", "pin"]), ""],
+      [T.t("Flottante / mosaïque"), lg(["window", "float"]), "⌘T"],
+      [T.t("Toujours au premier plan"), lg(["window", "pin"]), ""],
       "",
-      ["Déplacer vers le bureau suivant", lg(["window", "next-desktop"]), ""],
-      ["Déplacer vers le bureau précédent", lg(["window", "prev-desktop"]), ""],
+      [T.t("Déplacer vers le bureau suivant"), lg(["window", "next-desktop"]), ""],
+      [T.t("Déplacer vers le bureau précédent"), lg(["window", "prev-desktop"]), ""],
       "",
-      ["Tout ramener au premier plan", lg(["window", "show-all"]), ""]
+      [T.t("Tout ramener au premier plan"), lg(["window", "show-all"]), ""]
     ]],
-    ["Aide", [
-      ["Raccourcis clavier Liquid Glass", sh("liquid-glass.cheatsheet"), "⌘K"],
-      ["Tous les raccourcis Omarchy", ["omarchy-menu-keybindings"], "⌘⇧K"],
+    [T.t("Aide"), [
+      [T.t("Raccourcis clavier Liquid Glass"), sh("liquid-glass.cheatsheet"), "⌘K"],
+      [T.t("Tous les raccourcis Omarchy"), ["omarchy-menu-keybindings"], "⌘⇧K"],
       "",
-      ["Réglages Système…", ["omarchy-shell", "liquid-glass.settings", "toggle"], ""],
-      ["Manuel d'Omarchy", ["xdg-open", "https://learn.omacom.io/2/the-omarchy-manual"], ""]
+      [T.t("Réglages Système…"), ["omarchy-shell", "liquid-glass.settings", "toggle"], ""],
+      [T.t("Manuel d'Omarchy"), ["xdg-open", "https://learn.omacom.io/2/the-omarchy-manual"], ""]
     ]]
   ]
 

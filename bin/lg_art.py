@@ -108,7 +108,7 @@ def braille(path, w: int, h: int, ansi: str = "", invert: bool | None = None) ->
     pw, ph = w * 2, h * 4
     cmd = ["magick", str(path) + "[0]", "-auto-orient", "-background", "black", "-alpha", "remove",
            "-resize", f"{pw}x{ph}^", "-gravity", "center", "-extent", f"{pw}x{ph}",
-           "-colorspace", "Gray", "-normalize", "-sigmoidal-contrast", "5x50%", "-depth", "8", "gray:-"]
+           "-colorspace", "Gray", "-normalize", "-gamma", "1.35", "-sigmoidal-contrast", "4x45%", "-depth", "8", "gray:-"]
     px = subprocess.run(cmd, capture_output=True, timeout=30).stdout
     if len(px) != pw * ph:
         return []
@@ -122,7 +122,7 @@ def braille(path, w: int, h: int, ansi: str = "", invert: bool | None = None) ->
                 xx, yy = x * 2 + dx, y * 4 + dy
                 g = px[yy * pw + xx]
                 g = 255 - g if invert else g
-                if g > (BAYER[(yy & 3) * 4 + (xx & 3)] + 0.5) * 16:
+                if g > 92 + BAYER[(yy & 3) * 4 + (xx & 3)] * 5:     # trame serrée : aplats nets, pas de brouillard
                     v |= bit
             row.append(chr(0x2800 + v) if v else " ")
         line = "".join(row).rstrip()

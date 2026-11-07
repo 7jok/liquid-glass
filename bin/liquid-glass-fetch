@@ -52,6 +52,7 @@ def main() -> None:
         time.sleep(0.25)       # le gestionnaire de fenêtres vient de donner sa taille au terminal
     cols, rows = lg_art.terminal_size()
     logo, density = lg_fetch.choose(style, cols, rows, mode)
+    image = logo.pop("sixel", b"")
     conf = lg_fetch.config(style, density, lang, logo)
     # fastfetch regarde ses parents : ici, il verrait python au lieu du shell et du terminal.
     named = {"shell": pathlib.Path(os.environ.get("SHELL", "bash")).name, "terminal": os.environ.get("TERM_PROGRAM", "foot")}
@@ -62,6 +63,12 @@ def main() -> None:
     sys.stdout.write("\x1b[H\x1b[2J")
     sys.stdout.flush()
     subprocess.run(["fastfetch", "-c", f.name])
+    if image:
+        sys.stdout.write("\x1b7\x1b[2;2H")
+        sys.stdout.flush()
+        sys.stdout.buffer.write(image)
+        sys.stdout.buffer.write(b"\x1b8")
+        sys.stdout.flush()
     if logo.get("source", "").endswith(f"logo-{os.getpid()}.txt"):
         os.unlink(logo["source"])
     os.unlink(f.name)

@@ -106,10 +106,10 @@ Panel {
   readonly property var btAdapter: Bluetooth.defaultAdapter
   readonly property bool btOn: btAdapter ? btAdapter.enabled : false
   readonly property string btLabel: {
-    if (!btAdapter || !btOn) return "Désactivé"
+    if (!btAdapter || !btOn) return T.t("Désactivé")
     var devs = btAdapter.devices ? btAdapter.devices.values : []
     for (var i = 0; i < devs.length; i++) if (devs[i].connected) return devs[i].name
-    return "Activé"
+    return T.t("Activé")
   }
 
   readonly property var sink: Pipewire.defaultAudioSink
@@ -272,9 +272,9 @@ Panel {
     case "nightshift": return { label: "Night Shift", glyph: 0xF06E8, on: nightlight, act: function() { root.run(["omarchy-shell", "nightlight", "toggle"]) } }
     case "awake": return { label: T.t("Rester éveillé"), glyph: 0xF0176, on: awake, act: function() { root.run(["omarchy", "toggle", "idle", "toggle"]) } }
     case "screenshot": return { label: T.t("Capture"), glyph: 0xF0100, on: false, act: function() { root.launch(["omarchy", "capture", "screenshot", "region"]) } }
-    case "record": return { label: recording ? T.t("Arrêter") : "Enregistrer", glyph: recording ? 0xF04DB : 0xF044A, on: recording,
+    case "record": return { label: recording ? T.t("Arrêter") : T.t("Enregistrer"), glyph: recording ? 0xF04DB : 0xF044A, on: recording,
                             act: function() { root.launch(recording ? ["omarchy", "capture", "screenrecording", "--stop-recording"] : ["omarchy", "capture", "screenrecording"]) } }
-    case "glass": return { label: glassStyle === "clear" ? "Verre clair" : (glassStyle === "tinted" ? "Verre teinté" : T.t("Verre")), glyph: 0xF0F5A, on: glassStyle !== "standard",
+    case "glass": return { label: glassStyle === "clear" ? T.t("Verre clair") : (glassStyle === "tinted" ? T.t("Verre teinté") : T.t("Verre")), glyph: 0xF0F5A, on: glassStyle !== "standard",
                            act: function() { var n = { standard: "clear", clear: "tinted", tinted: "standard" }[glassStyle] || "standard"; root.run(["liquid-glass", "set", "glass.style", n]) } }
     case "lyrics": return { label: T.t("Paroles"), glyph: 0xF0387, on: !(cfg.lyrics && cfg.lyrics.desktop === false), act: function() { root.run(["omarchy-shell", "liquid-glass.spotify", "desktop"]) } }
     case "karaoke": return { label: T.t("Karaoké"), glyph: 0xF0E54, on: false, act: function() { root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } }
@@ -302,7 +302,7 @@ Panel {
     case "airplane": return { icon: 0xF001D, title: T.t("Mode avion"), subtitle: airplane ? T.t("Activé") : T.t("Désactivé"), on: airplane, color: "#ff9f0a",
                               act: function() { var off = !root.airplane; if (root.btAdapter) root.btAdapter.enabled = !off; root.run(["nmcli", "radio", "all", off ? "off" : "on"]) },
                               secondary: null }
-    case "record": return { icon: recording ? 0xF04DB : 0xF044A, title: recording ? T.t("Arrêter") : "Enregistrer", subtitle: recording ? "Enregistrement…" : T.t("Écran"), on: true, color: "#ff3b30",
+    case "record": return { icon: recording ? 0xF04DB : 0xF044A, title: recording ? T.t("Arrêter") : T.t("Enregistrer"), subtitle: recording ? T.t("Enregistrement…") : T.t("Écran"), on: true, color: "#ff3b30",
                             act: function() { root.launch(recording ? ["omarchy", "capture", "screenrecording", "--stop-recording"] : ["omarchy", "capture", "screenrecording"]) },
                             secondary: null }
     case "gamemode": return { icon: 0xF0297, title: T.t("Mode Jeu"), subtitle: gameMode ? T.t("Activé") : "Auto", on: gameMode, color: "#30d158",
@@ -405,15 +405,15 @@ Panel {
               visible: root.micUsers > 0
               width: parent.width
               dot: "#ff9f0a"; glyph: 0xF036C
-              title: "Micro"
-              subtitle: root.micUsers > 1 ? root.micUsers + " applications" : "Utilisé par une application"
+              title: T.t("Micro")
+              subtitle: root.micUsers > 1 ? root.micUsers + " applications" : T.t("Utilisé par une application")
             }
             PrivacyLine {
               visible: root.recording
               width: parent.width
               dot: "#bf5af2"; glyph: 0xF0A1C
               title: T.t("Enregistrement de l'écran")
-              subtitle: "En cours"
+              subtitle: T.t("En cours")
               stop: true
             }
           }
@@ -435,7 +435,7 @@ Panel {
                 anchors.leftMargin: Style.space(9); anchors.rightMargin: Style.space(24)
                 icon: root.g(0xF0594)
                 title: T.t("Concentration")
-                subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? T.t("Ne pas déranger") : "Désactivée")
+                subtitle: root.focusMode !== "off" ? root.focusLabel : (root.dnd ? T.t("Ne pas déranger") : T.t("Désactivée"))
                 active: root.focusMode !== "off" || root.dnd
                 activeColor: "#5e5ce6"
                 onClicked: root.run(["liquid-glass", "focus", "toggle"])
@@ -517,7 +517,7 @@ Panel {
                   anchors.horizontalCenter: parent.horizontalCenter
                   width: openLbl.implicitWidth + Style.space(16); height: Style.space(22); radius: height / 2
                   color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, openMouse.containsMouse ? 0.16 : 0.09)
-                  Label { id: openLbl; anchors.centerIn: parent; text: "Ouvrir Spotify"; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
+                  Label { id: openLbl; anchors.centerIn: parent; text: T.t("Ouvrir Spotify"); font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
                   MouseArea { id: openMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.launch(["omarchy-launch-or-focus", "spotify", "spotify"]) }
                 }
               }
@@ -643,7 +643,7 @@ Panel {
             x: Style.space(11); y: Style.space(9)
             width: parent.width - Style.space(22)
             spacing: Style.space(7)
-            Label { text: "Ajouter des commandes"; font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
+            Label { text: T.t("Ajouter des commandes"); font.weight: Font.DemiBold; font.pixelSize: Style.font.bodySmall }
             Flow {
               width: parent.width
               spacing: Style.space(8)
@@ -754,7 +754,7 @@ Panel {
             width: editLbl.implicitWidth + Style.space(24); height: Style.space(28)
             radius: height / 2
             active: root.editing
-            Label { id: editLbl; anchors.centerIn: parent; text: root.editing ? "Terminé" : "Modifier les commandes…"; color: root.editing ? "white" : root.fg; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
+            Label { id: editLbl; anchors.centerIn: parent; text: root.editing ? T.t("Terminé") : T.t("Modifier les commandes…"); color: root.editing ? "white" : root.fg; font.pixelSize: Style.font.caption; font.weight: Font.DemiBold }
             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor
               onClicked: root.editing = !root.editing
               // Clic droit : réglages détaillés.

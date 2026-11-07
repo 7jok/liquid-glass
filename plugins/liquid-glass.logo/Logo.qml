@@ -6,6 +6,7 @@ import Quickshell.Io
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — logo de la barre et menu système façon macOS.
 // Logo choisi par [appearance] logo dans config.toml (Réglages → Apparence) :
@@ -50,19 +51,19 @@ Panel {
   readonly property string userName: Quickshell.env("USER") || "moi"
   // [libellé, commande, raccourci affiché] — "" = séparateur. Ordre du menu Pomme de macOS.
   readonly property var entries: [
-    ["À propos de ce Mac", "omarchy-shell shell toggle liquid-glass.about", ""],
+    [T.t("À propos de ce Mac"), "omarchy-shell shell toggle liquid-glass.about", ""],
     "",
-    ["Réglages Système…", "omarchy-shell liquid-glass.settings toggle", ""],
+    [T.t("Réglages Système…"), "omarchy-shell liquid-glass.settings toggle", ""],
     ["App Store…", "omarchy-launch-floating-terminal-with-presentation omarchy-pkg-install", ""],
     "",
-    ["Forcer à quitter…", "omarchy-shell shell toggle liquid-glass.forcequit", "⌥⌘⎋"],
+    [T.t("Forcer à quitter…"), "omarchy-shell shell toggle liquid-glass.forcequit", "⌥⌘⎋"],
     "",
-    ["Suspendre", "systemctl suspend", ""],
-    ["Redémarrer…", "omarchy system reboot", ""],
-    ["Éteindre…", "omarchy system shutdown", ""],
+    [T.t("Suspendre"), "systemctl suspend", ""],
+    [T.t("Redémarrer…"), "omarchy system reboot", ""],
+    [T.t("Éteindre…"), "omarchy system shutdown", ""],
     "",
-    ["Verrouiller l'écran", "omarchy-shell lock lock", "⌃⌘Q"],
-    ["Fermer la session de « " + userName + " »…", "omarchy system logout", "⇧⌘Q"]
+    [T.t("Verrouiller l'écran"), "omarchy-shell lock lock", "⌃⌘Q"],
+    [T.t("Fermer la session de « ") + userName + " »…", "omarchy system logout", "⇧⌘Q"]
   ]
 
   function activate(index) {

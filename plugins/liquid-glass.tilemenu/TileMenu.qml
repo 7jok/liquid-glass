@@ -49,10 +49,10 @@ Item {
 
   // Moitiés puis quarts : [action, libellé, x, y, w, h] en fractions de l'écran.
   readonly property var tiles: [
-    ["left", "Moitié gauche", 0, 0, 0.5, 1], ["right", "Moitié droite", 0.5, 0, 0.5, 1],
-    ["top", "Moitié haute", 0, 0, 1, 0.5], ["bottom", "Moitié basse", 0, 0.5, 1, 0.5],
-    ["top-left", "Quart haut gauche", 0, 0, 0.5, 0.5], ["top-right", "Quart haut droit", 0.5, 0, 0.5, 0.5],
-    ["bottom-left", "Quart bas gauche", 0, 0.5, 0.5, 0.5], ["bottom-right", "Quart bas droit", 0.5, 0.5, 0.5, 0.5]
+    ["left", T.t("Moitié gauche"), 0, 0, 0.5, 1], ["right", T.t("Moitié droite"), 0.5, 0, 0.5, 1],
+    ["top", T.t("Moitié haute"), 0, 0, 1, 0.5], ["bottom", T.t("Moitié basse"), 0, 0.5, 1, 0.5],
+    ["top-left", T.t("Quart haut gauche"), 0, 0, 0.5, 0.5], ["top-right", T.t("Quart haut droit"), 0.5, 0, 0.5, 0.5],
+    ["bottom-left", T.t("Quart bas gauche"), 0, 0.5, 0.5, 0.5], ["bottom-right", T.t("Quart bas droit"), 0.5, 0.5, 0.5, 0.5]
   ]
 
   OverlayWindow {
@@ -90,7 +90,7 @@ Item {
         x: Mac.menu.padV; y: Mac.menu.padV
         width: parent.width - Mac.menu.padV * 2
 
-        MenuItem { label: "Plein écran"; shortcut: "⌃⌘F"; onChosen: root.act("fullscreen") }
+        MenuItem { label: T.t("Plein écran"); shortcut: "⌃⌘F"; onChosen: root.act("fullscreen") }
         MenuItem { label: T.t("Agrandir"); onChosen: root.act("zoom") }
         Sep {}
         Text {
@@ -98,7 +98,7 @@ Item {
           height: Mac.menu.row
           verticalAlignment: Text.AlignVCenter
           textFormat: Text.PlainText
-          text: root.hint !== "" ? root.hint : "Déplacer et redimensionner"
+          text: root.hint !== "" ? root.hint : T.t("Déplacer et redimensionner")
           font.family: "Inter"; font.pixelSize: Mac.font.subheadline; font.weight: Font.DemiBold
           color: root.fg; opacity: root.hint !== "" ? 0.85 : Mac.label.secondary
         }
@@ -142,12 +142,12 @@ Item {
           }
         }
         Sep {}
-        MenuItem { label: "Remplir"; shortcut: "⌃⌥F"; onChosen: root.act("fill") }
-        MenuItem { label: "Centrer"; shortcut: "⌃⌥C"; onChosen: root.act("center") }
-        MenuItem { label: "Toujours au-dessus"; onChosen: root.act("pin") }
+        MenuItem { label: T.t("Remplir"); shortcut: "⌃⌥F"; onChosen: root.act("fill") }
+        MenuItem { label: T.t("Centrer"); shortcut: "⌃⌥C"; onChosen: root.act("center") }
+        MenuItem { label: T.t("Toujours au-dessus"); onChosen: root.act("pin") }
         Sep {}
-        MenuItem { label: "Déplacer vers le bureau suivant"; onChosen: root.act("next-desktop") }
-        MenuItem { label: "Réduire"; shortcut: "⌘M"; onChosen: root.act("minimize") }
+        MenuItem { label: T.t("Déplacer vers le bureau suivant"); onChosen: root.act("next-desktop") }
+        MenuItem { label: T.t("Réduire"); shortcut: "⌘M"; onChosen: root.act("minimize") }
       }
     }
   }

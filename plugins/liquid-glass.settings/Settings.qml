@@ -808,7 +808,7 @@ Item {
       SectionTitle { text: T.t("Pastilles") }
       Group {
         Repeater {
-          model: ["Pastille 2 (sous Concentration)", "Pastille 3", "Sous « Lecture en cours »"]
+          model: [T.t("Pastille 2 (sous Concentration)"), T.t("Pastille 3"), T.t("Sous « Lecture en cours »")]
           delegate: Row_ {
             id: tileRow
             required property var modelData
@@ -890,14 +890,14 @@ Item {
       SectionTitle { text: "Dock" }
       Group {
         SliderRow { label: T.t("Taille"); key: "dock.icon_size"; from: 32; to: 72; step: 2; def: 42; fmt: function(v) { return v + " px" } }
-        SliderRow { label: T.t("Agrandissement"); key: "dock.magnification"; from: 1.0; to: 2.2; step: 0.1; def: 1.6; fmt: function(v) { return v <= 1.0 ? "Désactivé" : "×" + v.toFixed(1) } }
+        SliderRow { label: T.t("Agrandissement"); key: "dock.magnification"; from: 1.0; to: 2.2; step: 0.1; def: 1.6; fmt: function(v) { return v <= 1.0 ? T.t("Désactivé") : "×" + v.toFixed(1) } }
         ToggleRow { label: T.t("Toujours visible"); key: "dock.always_visible"; def: true }
         ToggleRow { label: T.t("Masquer automatiquement"); key: "dock.autohide"; def: false }
       }
       SectionTitle { text: T.t("Fenêtres") }
       Group {
-        ToggleRow { label: T.t("Fenêtres flottantes comme sur Mac"); key: "windows.floating"; def: true; sub: "Ouvertes au centre ; ⌘T remet une fenêtre en mosaïque" }
-        ToggleRow { label: T.t("Barre de titre avec feux tricolores"); key: "glass.titlebars"; def: true; sub: "Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir" }
+        ToggleRow { label: T.t("Fenêtres flottantes comme sur Mac"); key: "windows.floating"; def: true; sub: T.t("Ouvertes au centre ; ⌘T remet une fenêtre en mosaïque") }
+        ToggleRow { label: T.t("Barre de titre avec feux tricolores"); key: "glass.titlebars"; def: true; sub: T.t("Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir") }
         Row_ {
           label: T.t("Bouton vert")
           Seg { options: [["menu", T.t("Menu Mosaïque")], ["zoom", T.t("Agrandir")]]; value: root.val("windows.green_button", "menu"); onPicked: function(v) { root.set("windows.green_button", v) } }
@@ -941,7 +941,7 @@ Item {
         }
         Row_ {
           label: T.t("Ville de la météo")
-          TextBox { value: String(root.val("widgets.weather_city", "")); placeholder: "Automatique"; onCommitted: function(t) { root.set("widgets.weather_city", t) } }
+          TextBox { value: String(root.val("widgets.weather_city", "")); placeholder: T.t("Automatique"); onCommitted: function(t) { root.set("widgets.weather_city", t) } }
         }
       }
       SectionTitle { text: T.t("Widget musique") }
@@ -1007,7 +1007,7 @@ Item {
         }
       }
       Group {
-        ToggleRow { label: T.t("Coins d'écran arrondis"); key: "corners.enabled"; def: true; sub: "Comme la dalle d'un MacBook ; les clics passent au travers" }
+        ToggleRow { label: T.t("Coins d'écran arrondis"); key: "corners.enabled"; def: true; sub: T.t("Comme la dalle d'un MacBook ; les clics passent au travers") }
         SliderRow { visible: root.val("corners.enabled", true) === true; label: T.t("Rayon"); key: "corners.radius"; from: 4; to: 24; step: 1; def: 10; fmt: function(v) { return v + " px" } }
       }
       Btn { text: T.t("Moniteurs…"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "omarchy.monitor", "toggle"]) } }
@@ -1225,7 +1225,7 @@ Item {
       SectionTitle { text: T.t("Ajouter une app") }
       TextBox {
         width: parent.width
-        placeholder: "Rechercher une app installée…"
+        placeholder: T.t("Rechercher une app installée…")
         value: root.appQuery
         onEdited: function(t) { root.appQuery = t }
       }
@@ -1436,12 +1436,12 @@ Item {
       spacing: Style.space(14)
       Group {
         ToggleRow { label: T.t("Couleurs de la pochette"); key: "spotify.dynamic_colors"; def: true; sub: T.t("Accent, bordures, barre, dock et terminal"); icon: 0xF03D8; iconColor: "#ff9f0a" }
-        SliderRow { label: T.t("Retour au fond après pause"); key: "spotify.restore_after_minutes"; from: 0; to: 30; step: 1; def: 5; fmt: function(v) { return v === 0 ? "Jamais" : v + " min" } }
+        SliderRow { label: T.t("Retour au fond après pause"); key: "spotify.restore_after_minutes"; from: 0; to: 30; step: 1; def: 5; fmt: function(v) { return v === 0 ? T.t("Jamais") : v + " min" } }
       }
       SectionTitle { text: T.t("Paroles") }
       Group {
         ToggleRow { label: T.t("Sur le bureau, en grand"); key: "lyrics.desktop"; def: false; sub: T.t("Derrière les fenêtres") }
-        ToggleRow { label: T.t("Widget flottant"); key: "lyrics.widget"; def: false; sub: "Carte déplaçable ; double-clic pour le karaoké" }
+        ToggleRow { label: T.t("Widget flottant"); key: "lyrics.widget"; def: false; sub: T.t("Carte déplaçable ; double-clic pour le karaoké") }
         ToggleRow { label: T.t("Dans la barre"); key: "lyrics.bar"; def: true }
         Row_ { label: T.t("Karaoké plein écran"); Btn { text: T.t("Ouvrir  ⌘⌥M"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-shell", "liquid-glass.spotify", "karaoke"]) } } }
       }
@@ -1461,7 +1461,7 @@ Item {
       Group {
         Row_ {
           label: T.t("Lecture en cours")
-          sub: "Position ; se déplace aussi au doigt"
+          sub: T.t("Position ; se déplace aussi au doigt")
           Seg {
             options: [["clock", T.t("Sous l'horloge")], ["password", T.t("Au-dessus du mot de passe")]]
             value: String(root.val("lock.music_position", "password"))
@@ -1523,9 +1523,9 @@ Item {
         SliderRow {
           label: T.t("Graisse"); key: "lock.clock_weight"; from: 100; to: 900; step: 100
           def: ({ light: 100, serif: 500, bold: 700 })[String(root.val("lock.clock_style", "glass"))] || 600
-          fmt: function(v) { return ({ 100: "Fine", 200: "Très légère", 300: "Légère", 400: "Normale", 500: "Moyenne", 600: "Demi-grasse", 700: "Grasse", 800: "Très grasse", 900: "Épaisse" })[v] || String(v) }
+          fmt: function(v) { return ({ 100: T.t("Fine"), 200: T.t("Très légère"), 300: T.t("Légère"), 400: T.t("Normale"), 500: T.t("Moyenne"), 600: T.t("Demi-grasse"), 700: T.t("Grasse"), 800: T.t("Très grasse"), 900: T.t("Épaisse") })[v] || String(v) }
         }
-        SliderRow { label: T.t("Luminosité"); key: "lock.clock_brightness"; from: 0.4; to: 1; step: 0.05; def: 1; fmt: function(v) { return v <= 0.55 ? "Discrète" : (v >= 0.95 ? "Vive" : Math.round(v * 100) + " %") } }
+        SliderRow { label: T.t("Luminosité"); key: "lock.clock_brightness"; from: 0.4; to: 1; step: 0.05; def: 1; fmt: function(v) { return v <= 0.55 ? T.t("Discrète") : (v >= 0.95 ? T.t("Vive") : Math.round(v * 100) + " %") } }
         Row_ {
           label: T.t("Couleur")
           Row {
@@ -1621,13 +1621,13 @@ Item {
         Row_ {
           label: T.t("Allure")
           sub: ({ blanc: T.t("Tout en blanc, police mono, horloge pixel, lecteur vinyle"),
-                  sombre: "Noir profond, blanc cassé, jour en kanji",
-                  jouet: "Bonbon : contours épais, ombres dures, arc-en-ciel",
-                  violet: "Montagnes dans la brume, grosse horloge « bonbon » empilée",
+                  sombre: T.t("Noir profond, blanc cassé, jour en kanji"),
+                  jouet: T.t("Bonbon : contours épais, ombres dures, arc-en-ciel"),
+                  violet: T.t("Montagnes dans la brume, grosse horloge « bonbon » empilée"),
                   expressive: "Material 3 façon end4-pC / Serpantinum : couleurs tirées du fond",
-                  windows: "Barre des tâches, menu Démarrer, Paramètres, comme Windows 11",
-                  mono: "Cadre noir façon caelestia, barre latérale, tableau de bord",
-                  foret: "Puces flottantes, météo en orbite, spectre musical (rice c01)" })[lp.st] || ""
+                  windows: T.t("Barre des tâches, menu Démarrer, Paramètres, comme Windows 11"),
+                  mono: T.t("Cadre noir façon caelestia, barre latérale, tableau de bord"),
+                  foret: T.t("Puces flottantes, météo en orbite, spectre musical (rice c01)") })[lp.st] || ""
           Seg {
             options: [["blanc", T.t("Blanc")], ["sombre", T.t("Sombre")], ["jouet", T.t("Jouet")], ["violet", "Violet"], ["expressive", "Expr."]]
             value: lp.st
@@ -1847,7 +1847,7 @@ Item {
 
       SectionTitle { text: T.t("Bureau") }
       Group {
-        ToggleRow { label: "Widgets"; key: "linux.widgets"; def: true; sub: "Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)" }
+        ToggleRow { label: "Widgets"; key: "linux.widgets"; def: true; sub: T.t("Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)") }
         ToggleRow { visible: lp.st === "violet"; label: T.t("Horloge bonbon"); key: "linux.w_stack"; def: true }
         SliderRow { visible: lp.st === "violet"; label: T.t("Taille de l'horloge"); key: "linux.stack_size"; from: 80; to: 220; step: 4; def: 132; fmt: function(v) { return Math.round(v) + " px" } }
         ToggleRow { visible: lp.st === "violet"; label: T.t("Anneau batterie"); key: "linux.w_ring"; def: true; sub: T.t("Ou la charge du processeur sur un ordinateur fixe") }
@@ -1888,7 +1888,7 @@ Item {
     Column {
       spacing: Style.space(14)
       Group {
-        SliderRow { label: T.t("Vitesse du pointeur"); key: "input.sensitivity"; from: -1; to: 1; step: 0.05; def: 0; fmt: function(v) { return v <= -0.6 ? "Lente" : (v >= 0.6 ? "Rapide" : (v > 0 ? "+" : "") + v.toFixed(2)) } }
+        SliderRow { label: T.t("Vitesse du pointeur"); key: "input.sensitivity"; from: -1; to: 1; step: 0.05; def: 0; fmt: function(v) { return v <= -0.6 ? T.t("Lente") : (v >= 0.6 ? T.t("Rapide") : (v > 0 ? "+" : "") + v.toFixed(2)) } }
         SliderRow { label: T.t("Vitesse de défilement"); key: "input.mouse_scroll"; from: 0.2; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
         ToggleRow { label: T.t("Défilement naturel"); key: "input.mouse_natural_scroll"; def: false; sub: T.t("Le contenu suit le mouvement de la molette") }
       }
@@ -1902,7 +1902,7 @@ Item {
       spacing: Style.space(14)
       Group {
         ToggleRow { label: T.t("Toucher pour cliquer"); key: "input.tap_to_click"; def: true; sub: T.t("Touchez avec un doigt pour cliquer") }
-        ToggleRow { label: T.t("Clic secondaire à deux doigts"); key: "input.clickfinger"; def: true; sub: "Cliquez avec deux doigts : clic droit ; trois : clic du milieu" }
+        ToggleRow { label: T.t("Clic secondaire à deux doigts"); key: "input.clickfinger"; def: true; sub: T.t("Cliquez avec deux doigts : clic droit ; trois : clic du milieu") }
         ToggleRow { label: T.t("Défilement naturel"); key: "input.natural_scroll"; def: true; sub: T.t("Le contenu suit le mouvement des doigts") }
         SliderRow { label: T.t("Vitesse de défilement"); key: "input.trackpad_scroll"; from: 0.1; to: 2; step: 0.05; def: 0.4; fmt: function(v) { return "×" + v.toFixed(2) } }
         ToggleRow { label: T.t("Ignorer en tapant au clavier"); key: "input.disable_while_typing"; def: true }
@@ -1950,7 +1950,7 @@ Item {
         }
       }
       Group {
-        Row_ { label: "Configuration"; sub: "~/.config/liquid-glass"; Btn { text: T.t("Ouvrir"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass"]) } } }
+        Row_ { label: T.t("Configuration"); sub: "~/.config/liquid-glass"; Btn { text: T.t("Ouvrir"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-open", root.home + "/.config/liquid-glass"]) } } }
         Row_ { label: T.t("Thème actif"); Label_ { text: root.dark ? "Liquid Glass Dark" : "Liquid Glass" } }
         Row_ { label: T.t("Réappliquer tout"); sub: T.t("Régénère thème, Hyprland, dock et shell"); Btn { text: T.t("Appliquer"); secondary: true; onClicked: root.launch(["liquid-glass", "apply"]) } }
       }
@@ -2417,7 +2417,7 @@ Item {
         id: ff
         x: Style.space(14)
         width: parent.width - Style.space(28)
-        placeholder: "Filtrer les polices"
+        placeholder: T.t("Filtrer les polices")
         value: ""
         onCommitted: function(t) { fr.filter = t }
       }

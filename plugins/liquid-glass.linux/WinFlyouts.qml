@@ -550,7 +550,7 @@ PanelWindow {
             x: 16; y: 14; spacing: 10; width: parent.width - 32
             Text { text: T.t("Système"); font.family: win.font; font.pixelSize: 12; color: win.sub }
             Repeater {
-              model: [["Processeur", s.cpu], ["Mémoire", s.memPct], ["Disque", s.diskPct]]
+              model: [[T.t("Processeur"), s.cpu], [T.t("Mémoire"), s.memPct], [T.t("Disque"), s.diskPct]]
               delegate: Column {
                 required property var modelData
                 width: parent.width; spacing: 4

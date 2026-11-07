@@ -358,7 +358,7 @@ Item {
               anchors.horizontalCenter: parent.horizontalCenter
               anchors.bottom: parent.bottom
               textFormat: Text.PlainText
-              text: batt.charging ? (batt.frac >= 0.99 ? "Chargé" : T.t("En charge")) : T.t("Sur batterie")
+              text: batt.charging ? (batt.frac >= 0.99 ? T.t("Chargé") : T.t("En charge")) : T.t("Sur batterie")
               font.family: root.uiFont; font.pixelSize: Math.round(parent.height * 0.065); font.weight: Font.DemiBold
               color: root.inkDim
             }

@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — « Forcer à quitter les applications » (⌥⌘Échap, menu Pomme).
 // Liste des apps ouvertes (fenêtres Hyprland regroupées par classe), une ligne
@@ -149,7 +150,7 @@ Item {
         Text {
           width: parent.width
           textFormat: Text.PlainText
-          text: "Forcer à quitter les applications"
+          text: T.t("Forcer à quitter les applications")
           font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.headline); font.weight: Font.Bold
           color: root.fg
         }
@@ -157,7 +158,7 @@ Item {
           width: parent.width
           wrapMode: Text.WordWrap
           textFormat: Text.PlainText
-          text: "Si une application ne répond plus, sélectionnez-la dans la liste et cliquez sur Forcer à quitter."
+          text: T.t("Si une application ne répond plus, sélectionnez-la dans la liste et cliquez sur Forcer à quitter.")
           font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.subheadline)
           color: root.fg; opacity: Mac.label.secondary + 0.1
         }
@@ -211,7 +212,7 @@ Item {
           Text {
             visible: root.apps.length === 0
             anchors.centerIn: parent
-            textFormat: Text.PlainText; text: "Aucune application ouverte"
+            textFormat: Text.PlainText; text: T.t("Aucune application ouverte")
             font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.body)
             color: root.fg; opacity: Mac.label.tertiary
           }
@@ -220,7 +221,7 @@ Item {
         Text {
           width: parent.width
           textFormat: Text.PlainText
-          text: "Vous pouvez ouvrir cette fenêtre en appuyant sur Option + Commande + Échap."
+          text: T.t("Vous pouvez ouvrir cette fenêtre en appuyant sur Option + Commande + Échap.")
           wrapMode: Text.WordWrap
           font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.footnote)
           color: root.fg; opacity: Mac.label.secondary
@@ -240,22 +241,22 @@ Item {
               width: parent.width
               wrapMode: Text.WordWrap
               textFormat: Text.PlainText
-              text: root.apps[root.selected] ? "Voulez-vous forcer « " + root.apps[root.selected].name + " » à quitter ? Les modifications non enregistrées seront perdues." : ""
+              text: root.apps[root.selected] ? T.t("Voulez-vous forcer « ") + root.apps[root.selected].name + " » à quitter ? Les modifications non enregistrées seront perdues." : ""
               font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.subheadline); font.weight: Font.DemiBold
               color: root.fg
             }
             Row {
               anchors.right: parent.right
               spacing: Style.space(8)
-              PushButton { label: "Annuler"; onClicked: root.confirming = false }
-              PushButton { label: "Forcer à quitter"; primary: true; destructive: true; onClicked: root.forceQuit() }
+              PushButton { label: T.t("Annuler"); onClicked: root.confirming = false }
+              PushButton { label: T.t("Forcer à quitter"); primary: true; destructive: true; onClicked: root.forceQuit() }
             }
           }
 
           PushButton {
             visible: !root.confirming
             anchors.right: parent.right
-            label: "Forcer à quitter"
+            label: T.t("Forcer à quitter")
             primary: true
             enabled: root.apps.length > 0
             onClicked: root.confirming = true

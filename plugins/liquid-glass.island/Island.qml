@@ -158,7 +158,7 @@ Item {
       if (btPrimed && !btSeen[key] && showBluetooth) {
         var b = d.batteryAvailable ? Math.round(d.battery * 100) : -1
         flash({ kind: "bt", icon: 0xF02CB, title: String(d.name || T.t("Appareil")).slice(0, 40),
-                detail: b >= 0 ? b + " %" : "Connecté", color: "#0a84ff", value: b >= 0 ? b / 100 : -1 })
+                detail: b >= 0 ? b + " %" : T.t("Connecté"), color: "#0a84ff", value: b >= 0 ? b / 100 : -1 })
       }
     }
     btSeen = now
@@ -167,7 +167,7 @@ Item {
 
   // Concentration (fichier écrit par `liquid-glass focus`)
   property string focusMode: ""
-  readonly property var focusNames: ({ "off": "Concentration désactivée", "dnd": "Ne pas déranger", "work": "Travail", "personal": "Personnel", "sleep": "Sommeil" })
+  readonly property var focusNames: ({ "off": T.t("Concentration désactivée"), "dnd": T.t("Ne pas déranger"), "work": T.t("Travail"), "personal": T.t("Personnel"), "sleep": T.t("Sommeil") })
   FileView {
     path: Quickshell.env("HOME") + "/.cache/liquid-glass/focus"
     printErrors: false
@@ -177,7 +177,7 @@ Item {
       var m = String(text() || "").trim()
       if (root.focusMode !== "" && m !== root.focusMode && root.showFocus && root.focusNames[m])
         root.flash({ kind: "focus", icon: m === "off" ? 0xF0594 : 0xF0594, title: root.focusNames[m],
-                     detail: m === "off" ? "" : "Activé", color: m === "off" ? "#8e8e93" : "#5e5ce6", value: -1 })
+                     detail: m === "off" ? "" : T.t("Activé"), color: m === "off" ? "#8e8e93" : "#5e5ce6", value: -1 })
       root.focusMode = m
     }
   }

@@ -4,6 +4,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Liquid Glass — aide-mémoire des raccourcis (⌘K). Échap ou clic pour fermer.
 // La liste reflète hypr/liquid-glass-bindings.lua ; ⌘⇧K ouvre la liste complète d'Omarchy.
@@ -19,48 +20,48 @@ Item {
 
   // [groupe, [[touches, action], …]]
   readonly property var groups: [
-    ["Essentiels", [
-      ["⌘ Espace", "Spotlight"],
-      ["⌘ Tab", "Changer d'application"],
-      ["⌘ Q", "Quitter l'application"],
-      ["⌘ W", "Fermer la fenêtre"],
-      ["⌘ C · V · X", "Copier · Coller · Couper"],
-      ["⌘ A", "Tout sélectionner"],
-      ["⌘ ↵", "Terminal"],
-      ["⌘ K", "Cet aide-mémoire"]
+    [T.t("Essentiels"), [
+      [T.t("⌘ Espace"), "Spotlight"],
+      ["⌘ Tab", T.t("Changer d'application")],
+      ["⌘ Q", T.t("Quitter l'application")],
+      ["⌘ W", T.t("Fermer la fenêtre")],
+      ["⌘ C · V · X", T.t("Copier · Coller · Couper")],
+      ["⌘ A", T.t("Tout sélectionner")],
+      ["⌘ ↵", T.t("Terminal")],
+      ["⌘ K", T.t("Cet aide-mémoire")]
     ]],
-    ["Fenêtres & bureaux", [
+    [T.t("Fenêtres & bureaux"), [
       ["⌘ ↑", "Mission Control"],
-      ["4 doigts ↑", "Mission Control (pavé)"],
-      ["⌘ ↓", "App Exposé (fenêtres de l'app)"],
-      ["4 doigts ↓", "App Exposé (pavé)"],
-      ["⌘ ⇧ Espace", "Bureau Linux ⇄ Mac (profil)"],
-      ["⌘ F3", "Afficher le bureau"],
-      ["⌘ ← · →", "Bureau précédent · suivant"],
-      ["⌘ 1…0", "Aller au bureau"],
-      ["⌘ ⌃ ⇧ 1…0", "Envoyer la fenêtre au bureau"],
-      ["⌘ M", "Réduire dans le dock"],
-      ["⌘ F", "Plein écran"],
-      ["⌘ T", "Flottante / en mosaïque"]
+      [T.t("4 doigts ↑"), "Mission Control (pavé)"],
+      ["⌘ ↓", T.t("App Exposé (fenêtres de l'app)")],
+      [T.t("4 doigts ↓"), T.t("App Exposé (pavé)")],
+      [T.t("⌘ ⇧ Espace"), T.t("Bureau Linux ⇄ Mac (profil)")],
+      ["⌘ F3", T.t("Afficher le bureau")],
+      ["⌘ ← · →", T.t("Bureau précédent · suivant")],
+      ["⌘ 1…0", T.t("Aller au bureau")],
+      ["⌘ ⌃ ⇧ 1…0", T.t("Envoyer la fenêtre au bureau")],
+      ["⌘ M", T.t("Réduire dans le dock")],
+      ["⌘ F", T.t("Plein écran")],
+      ["⌘ T", T.t("Flottante / en mosaïque")]
     ]],
-    ["Système", [
-      ["⌘ ⇧ 3", "Capture plein écran"],
-      ["⌘ ⇧ 4", "Capture d'une zone"],
-      ["⌘ ⇧ 5", "Menu de capture"],
-      ["⌃ ⌘ Q", "Verrouiller"],
+    [T.t("Système"), [
+      ["⌘ ⇧ 3", T.t("Capture plein écran")],
+      ["⌘ ⇧ 4", T.t("Capture d'une zone")],
+      ["⌘ ⇧ 5", T.t("Menu de capture")],
+      ["⌃ ⌘ Q", T.t("Verrouiller")],
       ["⌘ ⇧ L", "Clair / sombre"],
-      ["⌘ ⌥ Espace", "Menu Omarchy"],
-      ["⌘ Échap", "Menu système"],
-      ["⌘ ,", "Agir sur la notification"]
+      [T.t("⌘ ⌥ Espace"), T.t("Menu Omarchy")],
+      ["⌘ Échap", T.t("Menu système")],
+      ["⌘ ,", T.t("Agir sur la notification")]
     ]],
-    ["Musique & mosaïque", [
-      ["⌘ ⌥ M", "Paroles en karaoké"],
-      ["⌘ ⇧ M", "Ouvrir Spotify"],
-      ["Clic milieu barre", "Lecture / pause"],
-      ["Molette barre", "Changer de piste"],
-      ["⌘ ⌃ ↑ · ↓", "Focus haut · bas"],
-      ["⌘ ⇧ ← → ↑ ↓", "Échanger les fenêtres"],
-      ["⌘ ⇧ K", "Tous les raccourcis Omarchy"]
+    [T.t("Musique & mosaïque"), [
+      ["⌘ ⌥ M", T.t("Paroles en karaoké")],
+      ["⌘ ⇧ M", T.t("Ouvrir Spotify")],
+      [T.t("Clic milieu barre"), "Lecture / pause"],
+      [T.t("Molette barre"), T.t("Changer de piste")],
+      ["⌘ ⌃ ↑ · ↓", T.t("Focus haut · bas")],
+      ["⌘ ⇧ ← → ↑ ↓", T.t("Échanger les fenêtres")],
+      ["⌘ ⇧ K", T.t("Tous les raccourcis Omarchy")]
     ]]
   ]
 
@@ -106,7 +107,7 @@ Item {
         id: title
         x: Style.space(28); y: Style.space(22)
         textFormat: Text.PlainText
-        text: "Raccourcis clavier"
+        text: T.t("Raccourcis clavier")
         font.family: root.uiFont; font.pixelSize: Style.space(20); font.weight: Font.Bold
         color: root.fg
       }
@@ -114,7 +115,7 @@ Item {
         anchors.right: parent.right; anchors.rightMargin: Style.space(28)
         anchors.verticalCenter: title.verticalCenter
         textFormat: Text.PlainText
-        text: "⌘ = touche Super"
+        text: T.t("⌘ = touche Super")
         font.family: root.uiFont; font.pixelSize: Style.space(12)
         color: root.fg; opacity: 0.5
       }

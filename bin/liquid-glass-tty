@@ -12,7 +12,8 @@ Scènes (Espace / n : suivante, p : précédente, 1–9 : directe, q : quitter) 
   train   une locomotive à vapeur qui traverse l'écran, plus vite sur les basses
 
   stars orbit hole fish lava leaves petals snow plasma snake life pipes tunnel waves
-  fire bounce radar hex cpu scope cal timer     (voir bin/lg_scenes.py)
+  fire bounce radar hex cpu scope cal timer grid cube galaxy aurora city tree
+  boids typing analog maze dna harmono julia terrain     (voir bin/lg_scenes.py)
 
     liquid-glass-tty [scène] [--cycle SECONDES] [--fps N] [--list a,b,c] [--minutes N]
                      [--label TEXTE] [--glyph X] [--audio chemin|off]
@@ -77,6 +78,10 @@ def theme_colors():
     acc = hex_rgb(c.get("accent", "#8ab4f8"))
     alt = hex_rgb(c.get("magenta", c.get("blue", "#c58af9")))
     light = c.get("mode", "dark").strip('"') == "light"
+    pal = os.environ.get("LG_PAL", "")    # rice : couleurs imposées, "accent:second"
+    if ":" in pal:
+        acc, alt = (hex_rgb("#" + x, acc) for x in pal.split(":", 1))
+        return (12, 12, 18), (230, 230, 235), acc, alt, False
     if os.environ.get("LG_DARK"):         # rice : terminal forcé en sombre, quel que soit le thème
         return (12, 12, 18), (230, 230, 235), mix(acc, (255, 255, 255), 0.25), mix(alt, (255, 255, 255), 0.25), False
     return bg, fg, acc, alt, light

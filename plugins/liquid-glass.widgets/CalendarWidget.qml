@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Io
+import "T.js" as T
 
 // Calendrier du mois façon macOS : mois en rouge, semaine du lundi, aujourd'hui cerclé.
 // Clic : ouvre le calendrier d'Omarchy s'il existe, sinon rien.
@@ -37,7 +38,7 @@ Tile {
     spacing: 0
     Text { text: w.weekdays[w.now.getDay()]; font.family: w.font; font.pixelSize: Math.round(11 * w.k); font.weight: Font.Bold; font.letterSpacing: 0.4; color: "#ff3b30" }
     Text { text: w.today; font.family: w.font; font.pixelSize: Math.round(46 * w.k); font.weight: Font.Light; color: w.fg }
-    Text { text: "Aucun événement aujourd'hui"; width: parent.width; wrapMode: Text.WordWrap; font.family: w.font; font.pixelSize: Math.round(10 * w.k); font.weight: Font.Medium; color: w.dim }
+    Text { text: T.t("Aucun événement aujourd'hui"); width: parent.width; wrapMode: Text.WordWrap; font.family: w.font; font.pixelSize: Math.round(10 * w.k); font.weight: Font.Medium; color: w.dim }
   }
 
   Column {

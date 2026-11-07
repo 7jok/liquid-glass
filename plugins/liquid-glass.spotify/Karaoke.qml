@@ -5,6 +5,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Karaoké plein écran : pochette floutée en fond, paroles géantes centrées.
 // SUPER+ALT+K (ou omarchy-shell liquid-glass.spotify karaoke). Échap / clic pour fermer.
@@ -103,8 +104,8 @@ OverlayWindow {
         textFormat: Text.PlainText
         wrapMode: Text.WordWrap
         horizontalAlignment: Text.AlignHCenter
-        text: !win.service ? "" : (win.service.lyricsLoading ? "Recherche des paroles…"
-              : (win.service.lyricsPlain !== "" ? win.service.lyricsPlain : "Aucune parole trouvée pour ce titre."))
+        text: !win.service ? "" : (win.service.lyricsLoading ? T.t("Recherche des paroles…")
+              : (win.service.lyricsPlain !== "" ? win.service.lyricsPlain : T.t("Aucune parole trouvée pour ce titre.")))
         color: "white"
         font.family: "Inter"
         font.pixelSize: 26
@@ -129,7 +130,7 @@ OverlayWindow {
     Text {
       anchors.right: parent.right; anchors.top: parent.top; anchors.margins: 36
       textFormat: Text.PlainText
-      text: "Échap pour fermer"
+      text: T.t("Échap pour fermer")
       color: "white"; opacity: 0.45
       font.family: "Inter"; font.pixelSize: 13
     }

@@ -66,7 +66,7 @@ Tile {
     }
     Text {
       anchors.horizontalCenter: w.wideBat ? undefined : parent.horizontalCenter
-      text: w.charging ? (w.frac >= 0.99 ? "Chargé" : T.t("En charge")) : T.t("Sur batterie")
+      text: w.charging ? (w.frac >= 0.99 ? T.t("Chargé") : T.t("En charge")) : T.t("Sur batterie")
       font.family: w.font; font.pixelSize: Math.round((w.wideBat ? 12 : 10) * w.k); font.weight: Font.Medium
       color: w.dim
     }

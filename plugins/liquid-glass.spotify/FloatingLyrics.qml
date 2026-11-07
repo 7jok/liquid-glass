@@ -6,6 +6,7 @@ import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
 import qs.Ui
+import "T.js" as T
 
 // Widget de paroles flottant : carte de verre déplaçable (glisser n'importe
 // où), au-dessus des fenêtres. Ligne en cours + ligne suivante, pochette.
@@ -50,7 +51,7 @@ PanelWindow {
   readonly property string sub: {
     if (!service) return ""
     if (service.lyricsSynced) return service.nextLine
-    return service.artist + (service.lyricsLoading ? "" : " · paroles indisponibles")
+    return service.artist + (service.lyricsLoading ? "" : T.t(" · paroles indisponibles"))
   }
 
   BorderSurface {

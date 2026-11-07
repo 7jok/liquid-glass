@@ -47,14 +47,14 @@ Rectangle {
   function back() { if (history.length) { page = history[history.length - 1]; history = history.slice(0, -1) } }
   Connections { target: s; function onMenuPageChanged() { if (s.menuPage && s.menuPage !== "home") win.go(s.menuPage) } }
   readonly property string pageTitle: {
-    if (page === "about") return "Informations"
-    if (page === "display") return "Écran"
-    if (page === "sound") return "Son"
-    if (page === "power") return "Alimentation et batterie"
+    if (page === "about") return T.t("Informations")
+    if (page === "display") return T.t("Écran")
+    if (page === "sound") return T.t("Son")
+    if (page === "power") return T.t("Alimentation et batterie")
     for (var i = 0; i < pages.length; i++) if (pages[i][0] === page) return pages[i][1]
     return ""
   }
-  readonly property string crumb: ["about", "display", "sound", "power"].indexOf(page) >= 0 ? "Système" : ""
+  readonly property string crumb: ["about", "display", "sound", "power"].indexOf(page) >= 0 ? T.t("Système") : ""
 
   Component.onCompleted: { s.scanWifi(); s.readBrightness(); tzP.running = true }
   property string tz: ""
@@ -142,7 +142,7 @@ Rectangle {
       delegate: Rectangle {
         id: nav
         required property var modelData
-        readonly property bool cur: win.page === modelData[0] || (modelData[0] === "system" && win.crumb === "Système")
+        readonly property bool cur: win.page === modelData[0] || (modelData[0] === "system" && win.crumb === T.t("Système"))
         width: side.width - 8; height: 38; radius: 4
         color: cur ? (win.dark ? "#2d2d2d" : "#eaeaea") : (nma.containsMouse ? win.hover : "transparent")
         Rectangle { visible: nav.cur; x: 0; anchors.verticalCenter: parent.verticalCenter; width: 3; height: 16; radius: 1.5; color: s.primary }
@@ -284,15 +284,15 @@ Rectangle {
           Expander {
             icon: "computer"; title: T.t("Caractéristiques de l'appareil")
             copyText: "Nom de l'appareil\t" + (win.s.info.host || "") + "\nProcesseur\t" + (win.s.info.cpu || "") + "\nMémoire RAM installée\t" + (win.s.info.ram || "") + " Go\nCarte graphique\t" + (win.s.info.gpu || "") + "\nType du système\tSystème d'exploitation 64 bits, processeur x64"
-            rows: [["Nom de l'appareil", win.s.info.host || ""], ["Processeur", win.s.info.cpu || ""], ["Mémoire RAM installée", (win.s.info.ram || "?") + " Go"],
-                   ["Carte graphique", win.s.info.gpu || ""], ["Stockage", (win.s.info.disk || "") + " utilisés"],
-                   ["Type du système", "Système d'exploitation 64 bits, processeur x64"], ["Stylet et fonctions tactiles", "La fonctionnalité d'entrée tactile ou avec un stylet n'est pas disponible sur cet écran"]]
+            rows: [[T.t("Nom de l'appareil"), win.s.info.host || ""], [T.t("Processeur"), win.s.info.cpu || ""], [T.t("Mémoire RAM installée"), (win.s.info.ram || "?") + " Go"],
+                   [T.t("Carte graphique"), win.s.info.gpu || ""], [T.t("Stockage"), (win.s.info.disk || "") + T.t(" utilisés")],
+                   [T.t("Type du système"), T.t("Système d'exploitation 64 bits, processeur x64")], [T.t("Stylet et fonctions tactiles"), T.t("La fonctionnalité d'entrée tactile ou avec un stylet n'est pas disponible sur cet écran")]]
           }
           Expander {
             icon: "grid_view"; title: T.t("Caractéristiques du système"); logo: true
             copyText: "Édition\t" + (win.s.info.os || "") + "\nVersion\t" + (win.s.info.omarchy || "") + "\nInstallé le\t" + (win.s.info.installed || "") + "\nNoyau\t" + (win.s.info.kernel || "")
-            rows: [["Édition", (win.s.info.os || "Omarchy") + " · Liquid Glass"], ["Version", win.s.info.omarchy || ""], ["Installé le", win.s.info.installed || ""],
-                   ["Noyau", win.s.info.kernel || ""], ["Bureau", "Hyprland + Quickshell"], ["Expérience", T.t("Liquid Glass — style Windows")]]
+            rows: [[T.t("Édition"), (win.s.info.os || "Omarchy") + " · Liquid Glass"], ["Version", win.s.info.omarchy || ""], [T.t("Installé le"), win.s.info.installed || ""],
+                   [T.t("Noyau"), win.s.info.kernel || ""], [T.t("Bureau"), "Hyprland + Quickshell"], [T.t("Expérience"), T.t("Liquid Glass — style Windows")]]
           }
           Section { text: T.t("Paramètres associés") }
           SettingRow { icon: "key"; title: T.t("Clé de produit et activation"); sub: T.t("Logiciel libre, rien à activer"); chevron: false }
@@ -668,7 +668,7 @@ Rectangle {
       anchors.right: parent.right; anchors.rightMargin: 52; y: 14
       width: 80; height: 32; radius: 4; color: cpma.containsMouse ? win.cardHover : (win.dark ? "#373737" : "#fdfdfd"); border.width: 1; border.color: win.line
       Text { id: cpTxt; anchors.centerIn: parent; text: T.t("Copier"); font.family: win.font; font.pixelSize: 12; color: win.ink }
-      MouseArea { id: cpma; anchors.fill: parent; hoverEnabled: true; onClicked: { Quickshell.execDetached(["wl-copy", ex.copyText]); cpTxt.text = "Copié" } }
+      MouseArea { id: cpma; anchors.fill: parent; hoverEnabled: true; onClicked: { Quickshell.execDetached(["wl-copy", ex.copyText]); cpTxt.text = T.t("Copié") } }
     }
     MIcon { anchors.right: parent.right; anchors.rightMargin: 18; y: 20; icon: ex.open ? "keyboard_arrow_up" : "keyboard_arrow_down"; size: 18; color: win.ink }
     Column {

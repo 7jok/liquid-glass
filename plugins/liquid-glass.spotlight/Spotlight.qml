@@ -42,11 +42,11 @@ Item {
   property string mode: ""
   // [id, nom, glyphe, indication du champ]
   readonly property var modes: [
-    ["apps", "Applications", 0xF003B, "Rechercher des applications"],
-    ["files", T.t("Fichiers"), 0xF024B, "Rechercher des fichiers"],
-    ["actions", "Actions", 0xF140B, "Rechercher des actions"],
-    ["clipboard", T.t("Presse-papiers"), 0xF014F, "Rechercher dans le presse-papiers"],
-    ["emoji", T.t("Émojis"), 0xF0785, "Rechercher des émojis"]
+    ["apps", "Applications", 0xF003B, T.t("Rechercher des applications")],
+    ["files", T.t("Fichiers"), 0xF024B, T.t("Rechercher des fichiers")],
+    ["actions", T.t("Actions"), 0xF140B, T.t("Rechercher des actions")],
+    ["clipboard", T.t("Presse-papiers"), 0xF014F, T.t("Rechercher dans le presse-papiers")],
+    ["emoji", T.t("Émojis"), 0xF0785, T.t("Rechercher des émojis")]
   ]
   function modeInfo(id) { for (var i = 0; i < modes.length; i++) if (modes[i][0] === id) return modes[i]; return null }
   function setMode(id) {
@@ -81,47 +81,47 @@ Item {
   // --------------------------------------------------------------- commandes
   // [titre, sous-titre, glyphe, argv, mots-clés]
   readonly property var commands: [
-    ["Verrouiller l'écran", "Système", 0xF033E, ["omarchy-shell", "lock", "lock"], "lock verrou"],
-    ["Basculer clair / sombre", "Apparence", 0xF0594, ["liquid-glass", "mode", "toggle"], "dark light theme thème nuit jour"],
-    ["Réglages Liquid Glass", "Apparence", 0xF0493, ["omarchy-shell", "liquid-glass.settings", "toggle"], "settings préférences config"],
-    ["Raccourcis clavier", "Aide", 0xF030C, ["omarchy-shell", "liquid-glass.cheatsheet", "toggle"], "keybindings shortcuts aide"],
-    ["Centre de contrôle", "Système", 0xF0521, ["omarchy-shell", "liquid-glass.control", "toggle"], "wifi bluetooth volume luminosité"],
-    ["Mission Control", "Fenêtres", 0xF0570, ["omarchy-shell", "shell", "toggle", "liquid-glass.mission"], "expose exposé fenêtres overview"],
-    ["En veille (StandBy)", "Système", 0xF0150, ["omarchy-shell", "liquid-glass.standby", "toggle"], "standby veille horloge nuit chevet"],
-    ["Modifier les widgets", "Bureau", 0xF0570, ["omarchy-shell", "liquid-glass.widgets", "edit"], "widgets éditer taille supprimer"],
-    ["Capture d'écran (zone)", "Capture", 0xF0100, ["omarchy", "capture", "screenshot", "region"], "screenshot capture"],
-    ["Capture d'écran (plein écran)", "Capture", 0xF0100, ["omarchy", "capture", "screenshot", "fullscreen"], "screenshot capture"],
-    ["Enregistrer l'écran", "Capture", 0xF044A, ["omarchy", "capture", "screenrecording"], "record vidéo"],
-    ["Paroles en karaoké", "Musique", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "karaoke"], "lyrics spotify chanson"],
-    ["Paroles sur le bureau", "Musique", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "desktop"], "lyrics spotify"],
-    ["Widget de paroles", "Musique", 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "widget"], "lyrics spotify"],
-    ["Ne pas déranger", "Notifications", 0xF009B, ["omarchy-shell", "notifications", "toggleDnd"], "dnd concentration focus"],
-    ["Lecture / Pause", "Musique", 0xF040A, ["omarchy-shell", "liquid-glass.spotify", "playPause"], "play pause musique spotify lecture"],
-    ["Morceau suivant", "Musique", 0xF04AD, ["omarchy-shell", "liquid-glass.spotify", "next"], "next suivant skip musique"],
-    ["Morceau précédent", "Musique", 0xF04AE, ["omarchy-shell", "liquid-glass.spotify", "previous"], "previous précédent musique"],
-    ["Historique du presse-papiers", "Système", 0xF014F, ["omarchy-shell", "shell", "toggle", "omarchy.clipboard"], "clipboard copier coller presse"],
-    ["Émojis", "Saisie", 0xF0785, ["omarchy-shell", "shell", "toggle", "omarchy.emojis"], "emoji smiley caractères"],
-    ["Night Shift", "Affichage", 0xF0594, ["omarchy-shell", "nightlight", "toggle"], "nightlight lumière nocturne"],
-    ["Changer de thème Omarchy", "Apparence", 0xF03D8, ["omarchy-shell", "shell", "toggle", "omarchy.menu", "{\"menu\":\"theme\"}"], "theme"],
-    ["Moniteur d'activité", "Système", 0xF0128, ["omarchy-launch-or-focus-tui", "btop"], "btop processus cpu ram"],
-    ["Mettre en veille", "Alimentation", 0xF04B2, ["systemctl", "suspend"], "suspend sleep"],
-    ["Redémarrer", "Alimentation", 0xF0709, ["omarchy", "system", "reboot"], "reboot restart"],
-    ["Éteindre", "Alimentation", 0xF0425, ["omarchy", "system", "shutdown"], "shutdown poweroff"],
-    ["Fermer la session", "Alimentation", 0xF0343, ["omarchy", "system", "logout"], "logout déconnexion"]
+    [T.t("Verrouiller l'écran"), T.t("Système"), 0xF033E, ["omarchy-shell", "lock", "lock"], "lock verrou"],
+    [T.t("Basculer clair / sombre"), T.t("Apparence"), 0xF0594, ["liquid-glass", "mode", "toggle"], "dark light theme thème nuit jour"],
+    [T.t("Réglages Liquid Glass"), T.t("Apparence"), 0xF0493, ["omarchy-shell", "liquid-glass.settings", "toggle"], "settings préférences config"],
+    [T.t("Raccourcis clavier"), T.t("Aide"), 0xF030C, ["omarchy-shell", "liquid-glass.cheatsheet", "toggle"], "keybindings shortcuts aide"],
+    [T.t("Centre de contrôle"), T.t("Système"), 0xF0521, ["omarchy-shell", "liquid-glass.control", "toggle"], "wifi bluetooth volume luminosité"],
+    ["Mission Control", T.t("Fenêtres"), 0xF0570, ["omarchy-shell", "shell", "toggle", "liquid-glass.mission"], "expose exposé fenêtres overview"],
+    [T.t("En veille (StandBy)"), T.t("Système"), 0xF0150, ["omarchy-shell", "liquid-glass.standby", "toggle"], "standby veille horloge nuit chevet"],
+    [T.t("Modifier les widgets"), T.t("Bureau"), 0xF0570, ["omarchy-shell", "liquid-glass.widgets", "edit"], "widgets éditer taille supprimer"],
+    [T.t("Capture d'écran (zone)"), T.t("Capture"), 0xF0100, ["omarchy", "capture", "screenshot", "region"], "screenshot capture"],
+    [T.t("Capture d'écran (plein écran)"), T.t("Capture"), 0xF0100, ["omarchy", "capture", "screenshot", "fullscreen"], "screenshot capture"],
+    [T.t("Enregistrer l'écran"), T.t("Capture"), 0xF044A, ["omarchy", "capture", "screenrecording"], "record vidéo"],
+    [T.t("Paroles en karaoké"), T.t("Musique"), 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "karaoke"], "lyrics spotify chanson"],
+    [T.t("Paroles sur le bureau"), T.t("Musique"), 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "desktop"], "lyrics spotify"],
+    ["Widget de paroles", T.t("Musique"), 0xF0387, ["omarchy-shell", "liquid-glass.spotify", "widget"], "lyrics spotify"],
+    [T.t("Ne pas déranger"), "Notifications", 0xF009B, ["omarchy-shell", "notifications", "toggleDnd"], "dnd concentration focus"],
+    ["Lecture / Pause", T.t("Musique"), 0xF040A, ["omarchy-shell", "liquid-glass.spotify", "playPause"], "play pause musique spotify lecture"],
+    [T.t("Morceau suivant"), T.t("Musique"), 0xF04AD, ["omarchy-shell", "liquid-glass.spotify", "next"], "next suivant skip musique"],
+    [T.t("Morceau précédent"), T.t("Musique"), 0xF04AE, ["omarchy-shell", "liquid-glass.spotify", "previous"], "previous précédent musique"],
+    [T.t("Historique du presse-papiers"), T.t("Système"), 0xF014F, ["omarchy-shell", "shell", "toggle", "omarchy.clipboard"], "clipboard copier coller presse"],
+    [T.t("Émojis"), T.t("Saisie"), 0xF0785, ["omarchy-shell", "shell", "toggle", "omarchy.emojis"], "emoji smiley caractères"],
+    ["Night Shift", T.t("Affichage"), 0xF0594, ["omarchy-shell", "nightlight", "toggle"], "nightlight lumière nocturne"],
+    [T.t("Changer de thème Omarchy"), T.t("Apparence"), 0xF03D8, ["omarchy-shell", "shell", "toggle", "omarchy.menu", "{\"menu\":\"theme\"}"], "theme"],
+    [T.t("Moniteur d'activité"), T.t("Système"), 0xF0128, ["omarchy-launch-or-focus-tui", "btop"], "btop processus cpu ram"],
+    [T.t("Mettre en veille"), T.t("Alimentation"), 0xF04B2, ["systemctl", "suspend"], "suspend sleep"],
+    [T.t("Redémarrer"), T.t("Alimentation"), 0xF0709, ["omarchy", "system", "reboot"], "reboot restart"],
+    [T.t("Éteindre"), T.t("Alimentation"), 0xF0425, ["omarchy", "system", "shutdown"], "shutdown poweroff"],
+    [T.t("Fermer la session"), T.t("Alimentation"), 0xF0343, ["omarchy", "system", "logout"], "logout déconnexion"]
   ]
 
   // ------------------------------------------------------------------ sites
   // [mots-clés, nom, adresse (la recherche est ajoutée encodée), glyphe]
   readonly property var sites: [
     [["yt", "youtube"], "YouTube", "https://www.youtube.com/results?search_query=", 0xF05C3],
-    [["wiki", "wp", "wikipedia", "wikipédia"], "Wikipédia", "https://fr.wikipedia.org/w/index.php?search=", 0xF05AC],
+    [["wiki", "wp", "wikipedia", "wikipédia"], T.t("Wikipédia"), "https://fr.wikipedia.org/w/index.php?search=", 0xF05AC],
     [["gh", "github"], "GitHub", "https://github.com/search?q=", 0xF02A4],
     [["sp", "spotify"], "Spotify", "spotify:search:", 0xF04C7],
     [["maps", "carte", "plan"], "OpenStreetMap", "https://www.openstreetmap.org/search?query=", 0xF034D],
     [["g", "google"], "Google", "https://www.google.com/search?q=", 0xF02AD],
     [["aw", "archwiki"], "ArchWiki", "https://wiki.archlinux.org/index.php?search=", 0xF059F],
     [["aur"], "AUR", "https://aur.archlinux.org/packages?K=", 0xF059F],
-    [["def", "dico", "wiktionnaire"], "Wiktionnaire", "https://fr.wiktionary.org/w/index.php?search=", 0xF059F]
+    [["def", "dico", "wiktionnaire"], T.t("Wiktionnaire"), "https://fr.wiktionary.org/w/index.php?search=", 0xF059F]
   ]
   function siteFor(q) {
     var sp = q.indexOf(" ")
@@ -179,7 +179,7 @@ Item {
       // Champ vide : éléments récents.
       for (var ri = 0; ri < recents.length; ri++) {
         var rc = recents[ri]
-        var item = { section: "Récents", kind: rc.kind, title: rc.title, sub: rc.sub || "", glyph: rc.glyph || 0xF02DA, argv: rc.argv, path: rc.path, url: rc.url }
+        var item = { section: T.t("Récents"), kind: rc.kind, title: rc.title, sub: rc.sub || "", glyph: rc.glyph || 0xF02DA, argv: rc.argv, path: rc.path, url: rc.url }
         if (rc.kind === "app") { if (!appLib) continue; item.icon = appLib.iconSource(rc.iconName); item.entry = { id: rc.id, icon: rc.iconName } }
         out.push(item)
       }
@@ -188,7 +188,7 @@ Item {
 
     if (q.charAt(0) === ">") {
       var cmd = q.slice(1).trim()
-      if (cmd !== "") out.push({ section: "Terminal", kind: "run", title: cmd, sub: "Exécuter dans le terminal", glyph: 0xF018D, cmd: cmd })
+      if (cmd !== "") out.push({ section: T.t("Terminal"), kind: "run", title: cmd, sub: T.t("Exécuter dans le terminal"), glyph: 0xF018D, cmd: cmd })
       results = out; selected = 0; return
     }
 
@@ -196,11 +196,11 @@ Item {
     if (site) out.push({ section: site.site[1], kind: "web", title: T.t("Rechercher « ") + site.q + " »", sub: site.site[1], glyph: site.site[3], url: site.site[2] + encodeURIComponent(site.q) })
 
     var conv = Units.convert(q)
-    if (conv) out.push({ section: "Conversion", kind: "calc", title: "= " + Calc.format(Math.round(conv.value * 1e4) / 1e4) + " " + conv.unit,
-                         sub: Calc.format(conv.input) + " " + conv.fromUnit + "  ·  Entrée pour copier", glyph: 0xF04E1, value: Calc.plain(Math.round(conv.value * 1e6) / 1e6) })
+    if (conv) out.push({ section: T.t("Conversion"), kind: "calc", title: "= " + Calc.format(Math.round(conv.value * 1e4) / 1e4) + " " + conv.unit,
+                         sub: Calc.format(conv.input) + " " + conv.fromUnit + T.t("  ·  Entrée pour copier"), glyph: 0xF04E1, value: Calc.plain(Math.round(conv.value * 1e6) / 1e6) })
 
     var v = conv ? null : Calc.evaluate(q)
-    if (v !== null) out.push({ section: "Calculatrice", kind: "calc", title: "= " + Calc.format(v), sub: q + "  ·  Entrée pour copier", glyph: 0xF00EC, value: Calc.plain(v) })
+    if (v !== null) out.push({ section: T.t("Calculatrice"), kind: "calc", title: "= " + Calc.format(v), sub: q + T.t("  ·  Entrée pour copier"), glyph: 0xF00EC, value: Calc.plain(v) })
 
     if (appLib) {
       var apps = appLib.sortedEntries(q) || []
@@ -214,7 +214,7 @@ Item {
     for (var c = 0; c < commands.length && nc < 4; c++) {
       var cm = commands[c]
       if (matches(cm[0] + " " + cm[1] + " " + cm[4], q)) {
-        out.push({ section: "Commandes", kind: "cmd", title: cm[0], sub: cm[1], glyph: cm[2], argv: cm[3] })
+        out.push({ section: T.t("Commandes"), kind: "cmd", title: cm[0], sub: cm[1], glyph: cm[2], argv: cm[3] })
         nc++
       }
     }
@@ -225,10 +225,10 @@ Item {
       var clean = isDir ? path.slice(0, -1) : path
       var name = clean.slice(clean.lastIndexOf("/") + 1)
       var dir = clean.slice(0, clean.lastIndexOf("/")).replace(home, "~")
-      out.push({ section: "Fichiers", kind: "file", title: name, sub: dir, glyph: isDir ? 0xF024B : 0xF0214, path: clean })
+      out.push({ section: T.t("Fichiers"), kind: "file", title: name, sub: dir, glyph: isDir ? 0xF024B : 0xF0214, path: clean })
     }
 
-    out.push({ section: "Web", kind: "web", title: T.t("Rechercher « ") + q + " » sur le web", sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
+    out.push({ section: "Web", kind: "web", title: T.t("Rechercher « ") + q + T.t(" » sur le web"), sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
     results = out
     if (selected >= out.length) selected = 0
   }
@@ -241,13 +241,13 @@ Item {
       var apps = appLib.sortedEntries(q) || []
       for (i = 0; i < apps.length && i < 60; i++) {
         var e = apps[i].entry || apps[i]
-        out.push({ section: q === "" ? "Toutes les applications" : "Applications", kind: "app", title: appLib.entryName(e), sub: appLib.entrySubtext(e) || "", icon: appLib.iconSource(e.icon), entry: e })
+        out.push({ section: q === "" ? T.t("Toutes les applications") : "Applications", kind: "app", title: appLib.entryName(e), sub: appLib.entrySubtext(e) || "", icon: appLib.iconSource(e.icon), entry: e })
       }
     } else if (mode === "files") {
       for (i = 0; i < fileHits.length; i++) {
         var path = fileHits[i], isDir = path.charAt(path.length - 1) === "/"
         var clean = isDir ? path.slice(0, -1) : path
-        out.push({ section: q === "" ? "Modifiés récemment" : "Fichiers", kind: "file", title: clean.slice(clean.lastIndexOf("/") + 1),
+        out.push({ section: q === "" ? T.t("Modifiés récemment") : T.t("Fichiers"), kind: "file", title: clean.slice(clean.lastIndexOf("/") + 1),
                    sub: clean.slice(0, clean.lastIndexOf("/")).replace(home, "~"), glyph: isDir ? 0xF024B : 0xF0214, path: clean })
       }
     } else if (mode === "actions") {
@@ -262,11 +262,11 @@ Item {
         var c = clipHistory[i]
         if (c.type === "image") {
           if (q !== "" && !matches("image capture " + (c.capturedAt || ""), q)) continue
-          out.push({ section: "Presse-papiers", kind: "clip", title: "Image", sub: c.capturedAt || c.mime || "", glyph: 0xF02E9, image: "file://" + c.path, path: c.path, mime: c.mime || "image/png" })
+          out.push({ section: T.t("Presse-papiers"), kind: "clip", title: "Image", sub: c.capturedAt || c.mime || "", glyph: 0xF02E9, image: "file://" + c.path, path: c.path, mime: c.mime || "image/png" })
         } else if (c.text) {
           if (q !== "" && !matches(c.text, q)) continue
           var one = String(c.text).replace(/\s+/g, " ").trim()
-          out.push({ section: "Presse-papiers", kind: "clip", title: one.slice(0, 120), sub: c.text.length + " caractères  ·  Entrée pour copier", glyph: 0xF0219, text: c.text })
+          out.push({ section: T.t("Presse-papiers"), kind: "clip", title: one.slice(0, 120), sub: c.text.length + T.t(" caractères  ·  Entrée pour copier"), glyph: 0xF0219, text: c.text })
         }
       }
     } else if (mode === "emoji") {
@@ -274,7 +274,7 @@ Item {
         var em = emojis[i]
         if (!em || !em.e) continue
         if (q !== "" && !matches(em.k || "", q)) continue
-        out.push({ section: "Émojis", kind: "emoji", title: String(em.k || ""), sub: "", emoji: em.e })
+        out.push({ section: T.t("Émojis"), kind: "emoji", title: String(em.k || ""), sub: "", emoji: em.e })
       }
     }
     return out
@@ -338,7 +338,7 @@ Item {
       if (r.text !== undefined) Util.execArgv(["wl-copy", "--", r.text])
       else Util.execArgv(["sh", "-c", "wl-copy --type \"$1\" < \"$2\"", "_", r.mime, r.path])
     }
-    else if (r.kind === "run") Util.execArgv(["xdg-terminal-exec", "bash", "-c", r.cmd + "; echo; read -n1 -rsp 'Appuie sur une touche pour fermer…'"])
+    else if (r.kind === "run") Util.execArgv(["xdg-terminal-exec", "bash", "-c", r.cmd + T.t("; echo; read -n1 -rsp 'Appuie sur une touche pour fermer…'")])
   }
 
   // Émojis : grille (comme le visualiseur de caractères de macOS) ; ↑/↓ changent de ligne.
@@ -487,7 +487,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: input.text === ""
             textFormat: Text.PlainText
-            text: root.mode !== "" ? root.modeInfo(root.mode)[1] : "Recherche Spotlight"
+            text: root.mode !== "" ? root.modeInfo(root.mode)[1] : T.t("Recherche Spotlight")
             font: input.font
             color: root.fg
             opacity: 0.38
@@ -638,7 +638,7 @@ Item {
             id: emojiHelp
             anchors.right: parent.right; anchors.rightMargin: Style.space(18); anchors.verticalCenter: parent.verticalCenter
             textFormat: Text.PlainText
-            text: "Entrée : insérer  ·  Ctrl+Entrée : copier"
+            text: T.t("Entrée : insérer  ·  Ctrl+Entrée : copier")
             font.family: root.uiFont; font.pixelSize: Style.space(11.5)
             color: root.fg; opacity: 0.45
           }

@@ -49,7 +49,7 @@ Item {
   readonly property bool isForet: style === "foret"
   // Bureaux qui reprennent l'environnement d'une distribution (DistroPanel, DistroMenu).
   readonly property var distroDefs: ({
-    debian: { layout: "gnome", glyph: "\uf306", menuLabel: "Activités", barH: 30, bottom: false, pins: 0 },
+    debian: { layout: "gnome", glyph: "\uf306", menuLabel: T.t("Activités"), barH: 30, bottom: false, pins: 0 },
     fedora: { layout: "gnome", glyph: "\uf30a", menuLabel: "", barH: 30, bottom: false, pins: 0, pills: true },
     mint: { layout: "cinnamon", glyph: "\uf30e", menuLabel: "Menu", barH: 40, bottom: true, pins: 3 },
     kali: { layout: "xfce", glyph: "\uf327", menuLabel: "", barH: 30, bottom: false, pins: 3 },

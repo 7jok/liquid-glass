@@ -163,8 +163,8 @@ PanelWindow {
       }
       // Citation du jour
       Rectangle {
-        readonly property var quotes: ["Tiens bon !", "Un pas après l'autre.", "Reste curieux.", "Fais simple.", "Respire un coup.",
-          "Ça compile ? On y va.", "Le café d'abord.", "Garde le cap.", "Petit à petit.", "Sois fier de toi."]
+        readonly property var quotes: [T.t("Tiens bon !"), T.t("Un pas après l'autre."), T.t("Reste curieux."), T.t("Fais simple."), T.t("Respire un coup."),
+          T.t("Ça compile ? On y va."), T.t("Le café d'abord."), T.t("Garde le cap."), T.t("Petit à petit."), T.t("Sois fier de toi.")]
         anchors.horizontalCenter: parent.horizontalCenter
         y: clock.height + 12
         height: 26

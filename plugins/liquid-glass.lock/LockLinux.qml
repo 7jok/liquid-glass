@@ -383,9 +383,9 @@ Item {
       Text {
         anchors.centerIn: parent
         visible: root.passwordText.length === 0
-        text: root.authenticatingPassword ? "Vérification…"
+        text: root.authenticatingPassword ? T.t("Vérification…")
             : root.errorState ? root.failureMessage
-            : (root.fingerprintConfigured ? "Empreinte ou mot de passe" : "Mot de passe")
+            : (root.fingerprintConfigured ? T.t("Empreinte ou mot de passe") : T.t("Mot de passe"))
         font.family: "Google Sans Flex"; font.pixelSize: 13
         color: root.errorState ? sc.p.danger : sc.p.sub
       }
@@ -561,9 +561,9 @@ Item {
         width: parent.width - 12
         spacing: 2
         Repeater {
-          model: [["bedtime", "Veille", ["systemctl", "suspend"]],
+          model: [["bedtime", T.t("Veille"), ["systemctl", "suspend"]],
                   ["restart_alt", T.t("Redémarrer"), ["systemctl", "reboot"]],
-                  ["power_settings_new", "Éteindre", ["systemctl", "poweroff"]]]
+                  ["power_settings_new", T.t("Éteindre"), ["systemctl", "poweroff"]]]
           delegate: Rectangle {
             required property var modelData
             required property int index

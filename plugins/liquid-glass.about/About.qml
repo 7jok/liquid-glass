@@ -180,7 +180,7 @@ Item {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           textFormat: Text.PlainText
-          text: root.info.name || "Ordinateur"
+          text: root.info.name || T.t("Ordinateur")
           font.family: Mac.family(Mac.font.title1); font.pixelSize: Style.space(Mac.font.title1); font.weight: Font.Bold
           font.letterSpacing: Mac.tracking(Mac.font.title1)
           color: root.fg
@@ -201,13 +201,13 @@ Item {
           spacing: Style.space(5)
           Repeater {
             model: [
-              ["Puce", root.info.cpu || "—"],
-              ["Graphisme", root.info.gpu || "—"],
-              ["Mémoire", root.info.memory || "—"],
-              ["Stockage", root.info.disk_size ? root.bytes(root.info.disk_avail) + " disponibles sur " + root.bytes(root.info.disk_size) : "—"],
-              ["Écran", root.info.display || "—"],
-              ["Système", "Omarchy " + (root.info.omarchy || "") + " Tahoe"],
-              ["Noyau", root.info.kernel || "—"]
+              [T.t("Puce"), root.info.cpu || "—"],
+              [T.t("Graphisme"), root.info.gpu || "—"],
+              [T.t("Mémoire"), root.info.memory || "—"],
+              [T.t("Stockage"), root.info.disk_size ? root.bytes(root.info.disk_avail) + T.t(" disponibles sur ") + root.bytes(root.info.disk_size) : "—"],
+              [T.t("Écran"), root.info.display || "—"],
+              [T.t("Système"), "Omarchy " + (root.info.omarchy || "") + " Tahoe"],
+              [T.t("Noyau"), root.info.kernel || "—"]
             ]
             delegate: Row {
               required property var modelData
@@ -243,7 +243,7 @@ Item {
           Text {
             id: moreText
             anchors.centerIn: parent
-            textFormat: Text.PlainText; text: "Plus d'infos…"
+            textFormat: Text.PlainText; text: T.t("Plus d'infos…")
             font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.body)
             color: root.fg
           }
@@ -259,7 +259,7 @@ Item {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           textFormat: Text.PlainText
-          text: "Liquid Glass pour Omarchy · Arch Linux"
+          text: T.t("Liquid Glass pour Omarchy · Arch Linux")
           font.family: root.uiFont; font.pixelSize: Style.space(Mac.font.caption1)
           color: root.fg; opacity: Mac.label.tertiary + 0.1
         }

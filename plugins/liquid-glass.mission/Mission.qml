@@ -350,7 +350,7 @@ Item {
               Text {
                 anchors.horizontalCenter: parent.horizontalCenter
                 textFormat: Text.PlainText
-                text: wsPill.modelData.windows + (wsPill.modelData.windows > 1 ? " fenêtres" : " fenêtre")
+                text: wsPill.modelData.windows + (wsPill.modelData.windows > 1 ? T.t(" fenêtres") : T.t(" fenêtre"))
                 font.family: root.uiFont; font.pixelSize: Style.space(11)
                 color: "white"; opacity: 0.65
               }
@@ -366,7 +366,7 @@ Item {
         anchors.bottomMargin: Style.space(22)
         textFormat: Text.PlainText
         visible: root.appClass === ""
-        text: (root.allWindows ? "Toutes les fenêtres" : T.t("Bureau ") + root.currentWs) + "   ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer"
+        text: (root.allWindows ? T.t("Toutes les fenêtres") : T.t("Bureau ") + root.currentWs) + T.t("   ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer")
         font.family: root.uiFont; font.pixelSize: Style.space(12)
         color: "white"
         opacity: root.arranged ? 0.6 : 0
@@ -377,7 +377,7 @@ Item {
         anchors.centerIn: parent
         visible: root.windows.length === 0 && root.arranged
         textFormat: Text.PlainText
-        text: root.appClass !== "" ? "Aucune fenêtre ouverte pour " + root.appName : "Aucune fenêtre sur ce bureau"
+        text: root.appClass !== "" ? T.t("Aucune fenêtre ouverte pour ") + root.appName : T.t("Aucune fenêtre sur ce bureau")
         font.family: root.uiFont; font.pixelSize: Style.space(20); font.weight: Font.Medium
         color: "white"; opacity: 0.7
       }
@@ -408,7 +408,7 @@ Item {
           Text {
             anchors.verticalCenter: parent.verticalCenter
             textFormat: Text.PlainText
-            text: root.appName + "  ·  " + root.windows.length + (root.windows.length > 1 ? " fenêtres" : " fenêtre")
+            text: root.appName + "  ·  " + root.windows.length + (root.windows.length > 1 ? T.t(" fenêtres") : T.t(" fenêtre"))
             font.family: root.uiFont; font.pixelSize: 13; font.weight: Font.DemiBold
             color: "white"
           }

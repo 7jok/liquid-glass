@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Wayland
 import qs.Commons
 import qs.Commons as Commons
+import "T.js" as T
 
 // Fenêtre des widgets : couche « Bottom » (sur le fond d'écran, sous les fenêtres),
 // ancrée en haut à gauche (ou à droite), sous la barre. Seule la zone des widgets
@@ -104,7 +105,7 @@ PanelWindow {
     opacity: visible ? 1 : 0
     Behavior on opacity { NumberAnimation { duration: 200 } }
     Repeater {
-      model: [["add", "＋  Modifier les widgets…"], ["done", "Terminé"]]
+      model: [["add", T.t("＋  Modifier les widgets…")], ["done", T.t("Terminé")]]
       delegate: Rectangle {
         id: eb
         required property var modelData

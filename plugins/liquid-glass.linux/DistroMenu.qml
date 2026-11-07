@@ -51,24 +51,24 @@ PanelWindow {
   readonly property var tools: toolDefs[s.style] || []
   readonly property bool hasTools: tools.length > 0
   readonly property var debianTools: [
-    ["Bureautique", "description", [["LibreOffice", "libreoffice-fresh", "libreoffice"], ["Évince", "evince", "evince"], ["Éditeur de texte", "gnome-text-editor", "gnome-text-editor"]]],
-    ["Système", "settings", [["Moniteur système", "gnome-system-monitor", "gnome-system-monitor"], ["Disques", "gnome-disk-utility", "gnome-disks"], ["Calculatrice", "gnome-calculator", "gnome-calculator"]]],
-    ["Multimédia", "movie", [["VLC", "vlc", "vlc"], ["GIMP", "gimp", "gimp"]]]
+    [T.t("Bureautique"), "description", [["LibreOffice", "libreoffice-fresh", "libreoffice"], ["Évince", "evince", "evince"], [T.t("Éditeur de texte"), "gnome-text-editor", "gnome-text-editor"]]],
+    [T.t("Système"), "settings", [[T.t("Moniteur système"), "gnome-system-monitor", "gnome-system-monitor"], [T.t("Disques"), "gnome-disk-utility", "gnome-disks"], [T.t("Calculatrice"), "gnome-calculator", "gnome-calculator"]]],
+    [T.t("Multimédia"), "movie", [["VLC", "vlc", "vlc"], ["GIMP", "gimp", "gimp"]]]
   ]
   readonly property var fedoraTools: [
-    ["Conteneurs", "deployed_code", [["Podman", "podman", "podman --help | less"], ["Distrobox", "distrobox", "distrobox --help | less"]]],
+    [T.t("Conteneurs"), "deployed_code", [["Podman", "podman", "podman --help | less"], ["Distrobox", "distrobox", "distrobox --help | less"]]],
     ["Virtualisation", "computer", [["GNOME Boxes", "gnome-boxes", "gnome-boxes"], ["Cockpit", "cockpit", "cockpit-bridge --help | less"]]],
-    ["Applications", "apps", [["Flatpak", "flatpak", "flatpak --help | less"], ["Moniteur système", "gnome-system-monitor", "gnome-system-monitor"]]]
+    ["Applications", "apps", [["Flatpak", "flatpak", "flatpak --help | less"], [T.t("Moniteur système"), "gnome-system-monitor", "gnome-system-monitor"]]]
   ]
   readonly property var mintTools: [
-    ["Sauvegarde", "history", [["Timeshift", "timeshift", "timeshift-launcher"]]],
-    ["Sécurité", "shield", [["Pare-feu Gufw", "gufw", "gufw"]]],
-    ["Multimédia", "movie", [["Celluloid", "celluloid", "celluloid"], ["Transmission", "transmission-gtk", "transmission-gtk"]]]
+    [T.t("Sauvegarde"), "history", [["Timeshift", "timeshift", "timeshift-launcher"]]],
+    [T.t("Sécurité"), "shield", [[T.t("Pare-feu Gufw"), "gufw", "gufw"]]],
+    [T.t("Multimédia"), "movie", [["Celluloid", "celluloid", "celluloid"], ["Transmission", "transmission-gtk", "transmission-gtk"]]]
   ]
   readonly property var archTools: [
     ["Pacman", "inventory_2", [["pacman-contrib", "pacman-contrib", "man paccache"], ["Reflector", "reflector", "reflector --help | less"]]],
-    ["Terminal", "terminal", [["Neovim", "neovim", "nvim"], ["btop", "btop", "btop"], ["tmux", "tmux", "tmux"]]],
-    ["Installation", "construction", [["archinstall", "archinstall", "archinstall --help | less"], ["base-devel", "base-devel", "pacman -Qg base-devel | less"]]]
+    [T.t("Terminal"), "terminal", [["Neovim", "neovim", "nvim"], ["btop", "btop", "btop"], ["tmux", "tmux", "tmux"]]],
+    [T.t("Installation"), "construction", [["archinstall", "archinstall", "archinstall --help | less"], ["base-devel", "base-devel", "pacman -Qg base-devel | less"]]]
   ]
   readonly property var kaliTools: [
     ["01 - Collecte d'informations", "travel_explore", [["Nmap", "nmap", "nmap --help | less"]]],
@@ -329,7 +329,7 @@ PanelWindow {
       anchors.bottom: parent.bottom; anchors.bottomMargin: 10
       spacing: 4
       Repeater {
-        model: [["suspend", "bedtime", "Veille"], ["reboot", "restart_alt", T.t("Redémarrer")], ["poweroff", "power_settings_new", "Éteindre"]]
+        model: [["suspend", "bedtime", T.t("Veille")], ["reboot", "restart_alt", T.t("Redémarrer")], ["poweroff", "power_settings_new", T.t("Éteindre")]]
         delegate: Rectangle {
           required property var modelData
           width: ft.implicitWidth + 16; height: 30; radius: 4

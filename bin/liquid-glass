@@ -1639,11 +1639,24 @@ RICE_SCENES = {
     "scope": "Oscilloscope", "cal": "Calendrier", "timer": "Minuteur", "video": "Vidéo",
     "ascii": "Image ASCII", "banner": "Texte en grand", "globe": "Terre ASCII", "moonball": "Lune ASCII",
     "asciivid": "Vidéo ASCII", "hud": "Tableau de bord", "wallfetch": "Terminal à fond d'écran",
+    "grid": "Coucher de soleil rétro", "cube": "Solides en fil de fer", "galaxy": "Galaxie", "aurora": "Aurore boréale",
+    "city": "Ville de nuit", "tree": "Arbre", "boids": "Nuée d'oiseaux", "typing": "Code tapé", "analog": "Horloge à aiguilles",
+    "maze": "Labyrinthe", "dna": "ADN", "harmono": "Harmonographe", "julia": "Fractale", "terrain": "Relief",
+}
+# Familles de couleurs d'un rice : accent, second, fond. Le thème reste la famille par défaut.
+RICE_PALETTES = {
+    "hacker": ("00ff7f", "00b35a", "020a05"), "synthwave": ("ff2fa0", "2de2e6", "12051f"),
+    "ambre": ("ffb000", "ff7a00", "120a02"), "glace": ("8fe3ff", "7aa2ff", "060c16"),
+    "sakura": ("ff9ec7", "ffd1e3", "170a12"), "lave": ("ff5a1f", "ffc23d", "140604"),
+    "menthe": ("5ff5c0", "9ad0ff", "05110f"), "royal": ("b388ff", "ffd166", "0e0820"),
 }
 RICE_RANDOM_PAGE = 99
 RICE_ART = {"ascii", "asciivid", "globe", "moonball", "clip", "hud", "wallfetch", "banner", "fetch", "btop"}
-RICE_NEW = ["ascii", "banner", "globe", "moonball", "asciivid", "clip", "hud", "wallfetch", "btop", "fetch"]
-RICE_HERO = ["ascii", "globe", "hud", "fetch", "clip", "asciivid", "wallfetch", "banner", "btop"]
+RICE_NEW = ["ascii", "banner", "globe", "moonball", "asciivid", "clip", "hud", "wallfetch", "btop", "fetch",
+            "grid", "cube", "galaxy", "aurora", "city", "tree", "boids", "typing", "analog", "maze", "dna", "harmono",
+            "julia", "terrain"]
+RICE_HERO = ["ascii", "globe", "hud", "fetch", "clip", "asciivid", "wallfetch", "banner", "btop", "grid", "galaxy",
+             "city", "aurora", "terrain", "tree", "dna"]
 RICE_FONTS = ["JetBrainsMono Nerd Font", "VT323", "Space Mono", "IBM Plex Mono", "Share Tech Mono", "Press Start 2P",
               "Fira Code", "DM Mono", "Courier Prime", "Martian Mono", "iA Writer Mono S", "Adwaita Mono", "Noto Sans Mono"]
 # Taille relative : à corps égal, VT323 est petite et Press Start 2P très large.
@@ -1782,7 +1795,8 @@ def rice_random(ws: int | None = None, silent: bool = False, monitor: str = "", 
             panes.append(random.choice(["ascii", "banner", "fetch", "rain", "stars", "plasma", "pipes"]))
     st_alpha = RICE_STYLES.get(style, RICE_STYLES["gouts"])[1]
     rice_remember(n)
-    rice_launch(RICE_RANDOM_PAGE, ws, silent, monitor, panes=panes, alpha=random.choice([st_alpha, 0.72, 0.55]))
+    pal = random.choice(list(RICE_PALETTES)) if random.random() < 0.45 else ""
+    rice_launch(RICE_RANDOM_PAGE, ws, silent, monitor, panes=panes, alpha=random.choice([st_alpha, 0.72, 0.55]), pal=pal)
 
 
 def rice_last() -> int:
@@ -1797,7 +1811,7 @@ def rice_remember(n: int) -> None:
 
 
 def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = False, monitor: str = "",
-                panes: list[str] | None = None, alpha: float | None = None) -> None:
+                panes: list[str] | None = None, alpha: float | None = None, pal: str = "") -> None:
     style = linux_style()
     st = rice_state(style)
     if panes is None:
@@ -1875,7 +1889,7 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
         if scene in RICE_ART:
             pfont = "JetBrainsMono Nerd Font"
             # En pixels : la taille en points dépend de la définition annoncée par l'écran.
-            px = {"fetch": 10 if n <= 2 else 9 if n <= 6 else 8, "banner": 12, "btop": 11 if n <= 2 else 10}.get(scene, 11 if n <= 2 else 9 if n <= 6 else 8)
+            px = {"fetch": 12 if n <= 2 else 11 if n <= 6 else 10, "banner": 12, "btop": 11 if n <= 2 else 10}.get(scene, 11 if n <= 2 else 9 if n <= 6 else 8)
         term = ["foot", "--app-id", f"liquid-glass-rice-{page}-{i}", "--title", RICE_SCENES.get(scene, RICE_SPECIAL.get(scene, scene)),
                 "-o", f"font={pfont}:pixelsize={px},JetBrainsMono Nerd Font:pixelsize={px}" if scene in RICE_ART else f"font={pfont}:size={psize},JetBrainsMono Nerd Font:size={psize}", "-o", f"colors-dark.alpha={alpha}", "-o", f"colors-light.alpha={alpha}",
                 "-o", "pad=6x4 center"]
@@ -1884,6 +1898,12 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
         if panes is not None and (style != "blanc" or scene in RICE_ART):
             term += ["-o", "colors-dark.background=0c0c12", "-o", "colors-dark.foreground=e6e6eb", "-o", "initial-color-theme=dark"]
             argv = ["env", "LG_DARK=1", *argv]
+            if pal in RICE_PALETTES:
+                acc, alt, bg = RICE_PALETTES[pal]
+                argv = ["env", f"LG_PAL={acc}:{alt}", *argv]
+                term += ["-o", f"colors-dark.background={bg}", "-o", f"colors-dark.regular1={acc}", "-o", f"colors-dark.regular3={alt}",
+                         "-o", f"colors-dark.regular4={acc}", "-o", f"colors-dark.regular2={alt}", "-o", f"colors-dark.regular5={acc}",
+                         "-o", f"colors-dark.regular6={alt}"]
         cmd = " ".join(shlex.quote(a) for a in term + argv)
         rules = f'float = true, size = "{int(w)} {int(h)}", move = "{int(x)} {int(y)}", workspace = "{ws} silent"'
         run("hyprctl", "dispatch", f"hl.dsp.exec_cmd({_lua_str(cmd)}, {{ {rules} }})")
@@ -1920,7 +1940,7 @@ def cmd_rice(args: list[str]) -> None:
         mon = opts[opts.index("--monitor") + 1] if "--monitor" in opts else ""
         count = int(opts[opts.index("--count") + 1]) if "--count" in opts else 0
         if "--panes" in opts:      # liste imposée : pour essayer une composition
-            rice_launch(RICE_RANDOM_PAGE, ws, "--silent" in opts, mon, panes=opts[opts.index("--panes") + 1].split(","), alpha=0.9)
+            rice_launch(RICE_RANDOM_PAGE, ws, "--silent" in opts, mon, panes=opts[opts.index("--panes") + 1].split(","), alpha=0.9, pal=opts[opts.index("--pal") + 1] if "--pal" in opts else "")
             return
         rice_random(ws, "--silent" in opts, mon, count)
     elif want == "launch":

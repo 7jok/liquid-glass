@@ -40,7 +40,7 @@ Item {
   property string passwordText: ""
   property bool syncingPasswordText: false
 
-  readonly property string placeholderText: "Mot de passe"
+  readonly property string placeholderText: T.t("Mot de passe")
   // Champ du vrai macOS : petite capsule de verre tout en bas (≈ 132 × 22 pt).
   readonly property int fieldWidth: 132
   readonly property int fieldHeight: 22
@@ -277,8 +277,8 @@ Item {
   }
   function appLabel(n) {
     var a = String(n.app || n.source || "")
-    if (a === "omarchy-action" || a === "") return "Système"
-    if (a === "omasnap") return "Capture d'écran"
+    if (a === "omarchy-action" || a === "") return T.t("Système")
+    if (a === "omasnap") return T.t("Capture d'écran")
     return a.charAt(0).toUpperCase() + a.slice(1)
   }
 
@@ -634,7 +634,7 @@ Item {
         anchors.horizontalCenter: parent.horizontalCenter
         topPadding: 2
         textFormat: Text.PlainText
-        text: (root.notifications.length - 4) + (root.notifications.length - 4 > 1 ? " autres notifications" : " autre notification")
+        text: (root.notifications.length - 4) + (root.notifications.length - 4 > 1 ? T.t(" autres notifications") : T.t(" autre notification"))
         font.family: root.uiFont; font.pixelSize: 10; font.weight: Font.Medium
         color: "white"; opacity: 0.7
       }
@@ -778,7 +778,7 @@ Item {
           Text {
             textFormat: Text.PlainText
             anchors.fill: passwordInput
-            text: root.authenticatingPassword ? "Vérification…" : (root.failureMessage.length > 0 ? root.failureMessage : root.placeholderText)
+            text: root.authenticatingPassword ? T.t("Vérification…") : (root.failureMessage.length > 0 ? root.failureMessage : root.placeholderText)
             visible: passwordInput.text.length === 0
             color: root.failureMessage.length > 0 && !root.authenticatingPassword ? "#ffd2d0" : Qt.rgba(1, 1, 1, 0.68)
             font.family: root.uiFont
@@ -841,8 +841,8 @@ Item {
         textFormat: Text.PlainText
         visible: !(root.fingerprintConfigured && root.fingerprintUnavailable)
         text: root.fingerprintConfigured
-          ? "Touchez le lecteur d'empreintes ou saisissez le mot de passe"
-          : "Saisissez votre mot de passe pour déverrouiller"
+          ? T.t("Touchez le lecteur d'empreintes ou saisissez le mot de passe")
+          : T.t("Saisissez votre mot de passe pour déverrouiller")
         font.family: root.uiFont; font.pixelSize: 10
         color: "white"; opacity: 0.55
       }

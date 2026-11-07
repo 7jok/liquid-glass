@@ -47,50 +47,50 @@ PanelWindow {
   }
 
   // ------------------------------------------------------------ données
-  readonly property var mods: [[64, "Super"], [4, "Ctrl"], [8, "Alt"], [1, "Maj"], [128, "AltGr"]]
+  readonly property var mods: [[64, "Super"], [4, "Ctrl"], [8, "Alt"], [1, T.t("Maj")], [128, "AltGr"]]
   readonly property var keyNames: ({
-    "SPACE": "Espace", "space": "Espace", "RETURN": "Entrée", "Return": "Entrée", "ESCAPE": "Échap", "Escape": "Échap",
-    "TAB": "Tab", "Tab": "Tab", "DELETE": "Suppr", "Delete": "Suppr", "BACKSPACE": "⌫", "LEFT": "←", "RIGHT": "→",
+    "SPACE": T.t("Espace"), "space": T.t("Espace"), "RETURN": T.t("Entrée"), "Return": T.t("Entrée"), "ESCAPE": T.t("Échap"), "Escape": T.t("Échap"),
+    "TAB": "Tab", "Tab": "Tab", "DELETE": T.t("Suppr"), "Delete": T.t("Suppr"), "BACKSPACE": "⌫", "LEFT": "←", "RIGHT": "→",
     "UP": "↑", "DOWN": "↓", "Left": "←", "Right": "→", "Up": "↑", "Down": "↓", "grave": "§", "SLASH": "/", "COMMA": ",",
-    "PERIOD": ".", "MINUS": "-", "EQUAL": "=", "Print": "Impr", "PRINT": "Impr", "Home": "Début", "End": "Fin",
-    "mouse:272": "Clic", "mouse:273": "Clic droit", "mouse_down": "Molette ↓", "mouse_up": "Molette ↑",
-    "XF86AudioRaiseVolume": "Vol +", "XF86AudioLowerVolume": "Vol −", "XF86AudioMute": "Muet", "XF86AudioMicMute": "Micro",
+    "PERIOD": ".", "MINUS": "-", "EQUAL": "=", "Print": "Impr", "PRINT": "Impr", "Home": T.t("Début"), "End": T.t("Fin"),
+    "mouse:272": T.t("Clic"), "mouse:273": T.t("Clic droit"), "mouse_down": T.t("Molette ↓"), "mouse_up": T.t("Molette ↑"),
+    "XF86AudioRaiseVolume": "Vol +", "XF86AudioLowerVolume": "Vol −", "XF86AudioMute": T.t("Muet"), "XF86AudioMicMute": T.t("Micro"),
     "XF86MonBrightnessUp": "Lum +", "XF86MonBrightnessDown": "Lum −", "XF86AudioPlay": "⏯", "XF86AudioPause": "⏸",
-    "XF86AudioNext": "⏭", "XF86AudioPrev": "⏮", "XF86PowerOff": "⏻", "XF86KbdBrightnessUp": "Clavier +",
-    "XF86KbdBrightnessDown": "Clavier −", "XF86KbdLightOnOff": "Rétroéclairage", "XF86TouchpadToggle": "Pavé",
+    "XF86AudioNext": "⏭", "XF86AudioPrev": "⏮", "XF86PowerOff": "⏻", "XF86KbdBrightnessUp": T.t("Clavier +"),
+    "XF86KbdBrightnessDown": T.t("Clavier −"), "XF86KbdLightOnOff": T.t("Rétroéclairage"), "XF86TouchpadToggle": T.t("Pavé"),
     "XF86Calculator": "Calc", "XF86Eject": "⏏", "code:201": "Copilot"
   })
   // Traduction des descriptions d'Omarchy (anglais) les plus courantes.
   readonly property var tr: [
-    [/^Switch to workspace/, "Aller à l'espace"], [/^Move window silently to workspace/, "Envoyer la fenêtre (sans suivre) à l'espace"],
-    [/^Move window to workspace/, "Envoyer la fenêtre à l'espace"], [/^Close window$/, "Fermer la fenêtre"],
-    [/^Close all windows$/, "Fermer toutes les fenêtres"], [/^Full screen$/, "Plein écran"], [/^Toggle window floating\/tiling$/, "Flottante / en mosaïque"],
-    [/^Volume up$/, "Monter le son"], [/^Volume down$/, "Baisser le son"], [/^Mute$/, "Couper le son"], [/^Brightness up$/, "Plus lumineux"],
-    [/^Brightness down$/, "Moins lumineux"], [/^Next track$/, "Morceau suivant"], [/^Previous track$/, "Morceau précédent"],
-    [/^Play$/, "Lecture"], [/^Pause$/, "Pause"], [/^Universal copy$/, "Copier"], [/^Universal paste$/, "Coller"], [/^Universal cut$/, "Couper"],
-    [/^Select all$/, "Tout sélectionner"], [/^Clipboard manager$/, "Presse-papiers"], [/^Emojis$/, "Émojis"],
-    [/^Terminal$/, "Terminal"], [/^Browser$/, "Navigateur"], [/^File manager$/, "Fichiers"], [/^Music$/, "Musique"],
-    [/^Toggle scratchpad$/, "Bloc-notes flottant"], [/^Focus on next window$/, "Fenêtre suivante"], [/^Focus on previous window$/, "Fenêtre précédente"],
-    [/^Former workspace$/, "Espace précédent"], [/^Swap window to the left$/, "Échanger à gauche"], [/^Swap window to the right$/, "Échanger à droite"],
-    [/^Swap window up$/, "Échanger en haut"], [/^Swap window down$/, "Échanger en bas"], [/^Toggle window split$/, "Changer la découpe"],
-    [/^Toggle window grouping$/, "Grouper les fenêtres"], [/^Move window$/, "Déplacer la fenêtre"], [/^Resize window$/, "Redimensionner la fenêtre"],
-    [/^Lock system$/, "Verrouiller"], [/^Screenshot$/, "Capture d'écran"], [/^Color picker$/, "Pipette"], [/^Switch input language$/, "Changer de clavier"],
-    [/^Pop window out \(float & pin\)$/, "Détacher la fenêtre (flottante, épinglée)"], [/^Agent$/, "Agent IA (Claude…)"],
+    [/^Switch to workspace/, T.t("Aller à l'espace")], [/^Move window silently to workspace/, T.t("Envoyer la fenêtre (sans suivre) à l'espace")],
+    [/^Move window to workspace/, T.t("Envoyer la fenêtre à l'espace")], [/^Close window$/, T.t("Fermer la fenêtre")],
+    [/^Close all windows$/, T.t("Fermer toutes les fenêtres")], [/^Full screen$/, T.t("Plein écran")], [/^Toggle window floating\/tiling$/, T.t("Flottante / en mosaïque")],
+    [/^Volume up$/, T.t("Monter le son")], [/^Volume down$/, T.t("Baisser le son")], [/^Mute$/, T.t("Couper le son")], [/^Brightness up$/, T.t("Plus lumineux")],
+    [/^Brightness down$/, T.t("Moins lumineux")], [/^Next track$/, T.t("Morceau suivant")], [/^Previous track$/, T.t("Morceau précédent")],
+    [/^Play$/, T.t("Lecture")], [/^Pause$/, "Pause"], [/^Universal copy$/, T.t("Copier")], [/^Universal paste$/, T.t("Coller")], [/^Universal cut$/, T.t("Couper")],
+    [/^Select all$/, T.t("Tout sélectionner")], [/^Clipboard manager$/, T.t("Presse-papiers")], [/^Emojis$/, T.t("Émojis")],
+    [/^Terminal$/, T.t("Terminal")], [/^Browser$/, T.t("Navigateur")], [/^File manager$/, T.t("Fichiers")], [/^Music$/, T.t("Musique")],
+    [/^Toggle scratchpad$/, T.t("Bloc-notes flottant")], [/^Focus on next window$/, T.t("Fenêtre suivante")], [/^Focus on previous window$/, T.t("Fenêtre précédente")],
+    [/^Former workspace$/, T.t("Espace précédent")], [/^Swap window to the left$/, T.t("Échanger à gauche")], [/^Swap window to the right$/, T.t("Échanger à droite")],
+    [/^Swap window up$/, T.t("Échanger en haut")], [/^Swap window down$/, T.t("Échanger en bas")], [/^Toggle window split$/, T.t("Changer la découpe")],
+    [/^Toggle window grouping$/, T.t("Grouper les fenêtres")], [/^Move window$/, T.t("Déplacer la fenêtre")], [/^Resize window$/, T.t("Redimensionner la fenêtre")],
+    [/^Lock system$/, T.t("Verrouiller")], [/^Screenshot$/, T.t("Capture d'écran")], [/^Color picker$/, T.t("Pipette")], [/^Switch input language$/, T.t("Changer de clavier")],
+    [/^Pop window out \(float & pin\)$/, T.t("Détacher la fenêtre (flottante, épinglée)")], [/^Agent$/, T.t("Agent IA (Claude…)")],
     [/^Move window to (\w+) monitor$/, "Fenêtre vers l'écran $1"], [/^Move workspace to (\w+) monitor$/, "Espace vers l'écran $1"],
-    [/^Cycle workspace layout back$/, "Disposition précédente"], [/^Cycle workspace layout$/, "Disposition suivante"],
-    [/^Scroll active workspace forward$/, "Espace suivant (molette)"], [/^Scroll active workspace backward$/, "Espace précédent (molette)"],
-    [/^Previous workspace$/, "Espace précédent"], [/^Next workspace$/, "Espace suivant"], [/^Save window width$/, "Mémoriser la largeur"],
-    [/^Restore window width$/, "Rétablir la largeur"], [/^Pseudo window$/, "Pseudo-mosaïque"], [/^Move window to scratchpad$/, "Envoyer au bloc-notes flottant"],
-    [/^Toggle Quake console$/, "Console déroulante"], [/^Move window to Quake console$/, "Envoyer à la console déroulante"],
-    [/^Minimize window to the dock$/, "Réduire dans le Dock"], [/^Expand window (\w+)( a little| a lot)?$/, "Agrandir vers $1$2"],
-    [/^Shrink window (\w+)( a little| a lot)?$/, "Rétrécir vers $1$2"], [/^Tiled full screen$/, "Plein écran en mosaïque"],
-    [/^Full width$/, "Pleine largeur"], [/^Move active window out of group$/, "Sortir du groupe"], [/^Next window in group$/, "Fenêtre suivante du groupe"],
-    [/^Previous window in group$/, "Fenêtre précédente du groupe"], [/^Switch to group window$/, "Fenêtre du groupe"],
-    [/^Focus on next monitor$/, "Écran suivant"], [/^Focus on previous monitor$/, "Écran précédent"], [/^Reveal active window on top$/, "Fenêtre active au premier plan"],
-    [/^Mute microphone$/, "Couper le micro"], [/^Switch audio output$/, "Changer de sortie audio"], [/^Keyboard brightness (up|down)$/, "Rétroéclairage $1"],
-    [/^Brightness (maximum|minimum)$/, "Luminosité $1"], [/^Volume (up|down) precise$/, "Son $1 (fin)"], [/^Capture menu$/, "Menu capture"],
-    [/^Toggle menu$/, "Menu bascules"], [/^Hardware menu$/, "Menu matériel"], [/^System menu$/, "Menu système"], [/^Background switcher$/, "Fonds d'écran"],
-    [/^Monitor scaling (up|down)$/, "Échelle de l'écran $1"], [/^Switch input language back$/, "Clavier précédent"], [/^Move window to group on (\w+)$/, "Vers le groupe $1"],
+    [/^Cycle workspace layout back$/, T.t("Disposition précédente")], [/^Cycle workspace layout$/, T.t("Disposition suivante")],
+    [/^Scroll active workspace forward$/, T.t("Espace suivant (molette)")], [/^Scroll active workspace backward$/, T.t("Espace précédent (molette)")],
+    [/^Previous workspace$/, T.t("Espace précédent")], [/^Next workspace$/, T.t("Espace suivant")], [/^Save window width$/, T.t("Mémoriser la largeur")],
+    [/^Restore window width$/, T.t("Rétablir la largeur")], [/^Pseudo window$/, T.t("Pseudo-mosaïque")], [/^Move window to scratchpad$/, T.t("Envoyer au bloc-notes flottant")],
+    [/^Toggle Quake console$/, T.t("Console déroulante")], [/^Move window to Quake console$/, T.t("Envoyer à la console déroulante")],
+    [/^Minimize window to the dock$/, T.t("Réduire dans le Dock")], [/^Expand window (\w+)( a little| a lot)?$/, "Agrandir vers $1$2"],
+    [/^Shrink window (\w+)( a little| a lot)?$/, "Rétrécir vers $1$2"], [/^Tiled full screen$/, T.t("Plein écran en mosaïque")],
+    [/^Full width$/, T.t("Pleine largeur")], [/^Move active window out of group$/, T.t("Sortir du groupe")], [/^Next window in group$/, T.t("Fenêtre suivante du groupe")],
+    [/^Previous window in group$/, T.t("Fenêtre précédente du groupe")], [/^Switch to group window$/, T.t("Fenêtre du groupe")],
+    [/^Focus on next monitor$/, T.t("Écran suivant")], [/^Focus on previous monitor$/, T.t("Écran précédent")], [/^Reveal active window on top$/, T.t("Fenêtre active au premier plan")],
+    [/^Mute microphone$/, T.t("Couper le micro")], [/^Switch audio output$/, T.t("Changer de sortie audio")], [/^Keyboard brightness (up|down)$/, "Rétroéclairage $1"],
+    [/^Brightness (maximum|minimum)$/, "Luminosité $1"], [/^Volume (up|down) precise$/, "Son $1 (fin)"], [/^Capture menu$/, T.t("Menu capture")],
+    [/^Toggle menu$/, T.t("Menu bascules")], [/^Hardware menu$/, T.t("Menu matériel")], [/^System menu$/, T.t("Menu système")], [/^Background switcher$/, T.t("Fonds d'écran")],
+    [/^Monitor scaling (up|down)$/, "Échelle de l'écran $1"], [/^Switch input language back$/, T.t("Clavier précédent")], [/^Move window to group on (\w+)$/, T.t("Vers le groupe $1")],
     [/^Move grouped window focus (\w+)$/, "Focus du groupe $1"]
   ]
   readonly property var words: ({ "left": "gauche", "right": "droite", "up": "haut", "down": "bas", "top": "haut", "bottom": "bas",
@@ -125,7 +125,7 @@ PanelWindow {
     if (/^[A-Z0-9][\w.+-]*( [A-Z0-9][\w.+-]*)?$/.test(d) && !/^(Share|Transcode|Show|Set|Clear|Make|Toggle)\b/.test(d)) return 3
     return 5
   }
-  readonly property var groupNames: ["Ce bureau", "Fenêtres", "Espaces", "Applications", "Son, lumière, médias", "Menus et outils"]
+  readonly property var groupNames: [T.t("Ce bureau"), T.t("Fenêtres"), T.t("Espaces"), "Applications", T.t("Son, lumière, médias"), T.t("Menus et outils")]
   readonly property var groupIcons: ["auto_awesome", "select_window", "view_carousel", "apps", "graphic_eq", "construction"]
   // Groupes → lignes { label, keys: [[combo…]…] }, séries « …1 … …10 » réunies.
   readonly property var model: {

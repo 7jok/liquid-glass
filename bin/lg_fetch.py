@@ -37,6 +37,7 @@ STYLES = {
     "ruban": ("frames", "yellow", ["riders", "fuji", "wave"], "RUBAN"),
     "espace": ("frames", "cyan", ["saturn", "astronaut", "aldrin", "pillars"], "ESPACE"),
     "cosmos": ("box", "blue", ["earth", "earthrise", "aldrin", "saturn"], "COSMOS"),
+    "ile": ("tree", "white", ["riders", "vitruve", "wave"], "ILE"),
     "gouts": ("tree", "magenta", ["starry", "wave", "tux", "earth"], "OMARCHY"),
 }
 LABELS = {

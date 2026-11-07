@@ -60,6 +60,14 @@ THEMES = {
         ansi=["#111929", "#ff7b86", "#7fdcae", "#ffd27a", "#8fc7ff", "#c58bff", "#7fdcdc", "#d6e3f2",
               "#25324a", "#ff9aa3", "#a0ecc6", "#ffe0a0", "#b0d8ff", "#d8acff", "#a0ecec", "#ffffff"],
         bar_alpha=0.85, popup_alpha=0.94),
+    "ile": dict(
+        title="île — prune désaturée, encoche noire", mode="dark", icons="Yaru-purple-dark",
+        bg="#26232b", bg_dark="#1b191f", bg_darker="#17151b", bg_light="#322e37",
+        fg="#d8d2da", fg_dark="#8a8490", fg_light="#c9c2cc", fg_bright="#ffffff",
+        accent="#c9c2cc", selection="#3a3640", muted="#5e5864", border=("c9c2cc55", "7c74c855"), inactive="35313bff",
+        ansi=["#322e37", "#d98c8c", "#9cc3a5", "#d8bd8a", "#9aa8d8", "#b8a0d8", "#9cc6c6", "#c9c2cc",
+              "#5e5864", "#e8a3a3", "#b4d6bb", "#e8d2a5", "#b4c0e8", "#cdb8e8", "#b4dada", "#ffffff"],
+        bar_alpha=0.55, popup_alpha=0.96),
     "cosmos": dict(
         title="cosmos — Terre et Lune, verre sarcelle (ilyamiro)", mode="dark", icons="Yaru-blue-dark",
         bg="#0b1216", bg_dark="#070d10", bg_darker="#02070c", bg_light="#152127",

@@ -42,6 +42,7 @@ Agrandir	Zoom
 Agrandissement	Magnification
 Aide	Help
 Aide-mémoire des raccourcis	Shortcut cheat sheet
+Aide-moi à écrire un message poli	Help me write a polite message
 à installer	to install
 Ajouter des commandes	Add controls
 Ajouter un appareil	Add a device
@@ -96,6 +97,7 @@ Aucune fenêtre ouverte pour 	No open window for
 Aucune fenêtre sur ce bureau	No window on this desktop
 Aucune interface réseau	No network interface
 Aucun élément · Ouvrir  ›	No items · Open  ›
+Aucune musique	No music
 Aucune	None
 Aucune nouvelle notification	No new notification
 Aucune parole trouvée pour ce titre.	No lyrics found for this track.
@@ -186,6 +188,7 @@ Capture	Screenshot
 Caractéristiques de l'appareil	Device specifications
 Caractéristiques de l'appareil, renommer le PC	Device specifications, rename this PC
 Caractéristiques du système	System specifications
+ car.	 chars
 Carte	Card
 Carte déplaçable ; double-clic pour le karaoké	Movable card; double-click for karaoke
 Carte graphique	Graphics card
@@ -208,6 +211,7 @@ Changer de piste	Change track
 Changer de sortie audio	Switch audio output
 Changer de thème Omarchy	Change Omarchy theme
 Changer la découpe	Change split
+Chaque Mot	Each Word
 Chargé	Charged
 Charge	Load
 Chercher en orbite…	Search local orbit…
@@ -215,6 +219,7 @@ Chiffres hauts	Tall digits
 Choisir parmi les fonds (carrousel)	Choose from wallpapers (carousel)
 Choisir un bureau  ⌘⇧␣	Choose a desktop  ⌘⇧␣
 Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste.	Choose the round buttons in Control Center (dark mode is always shown). Order follows this list.
+Choisis une durée, une notification te préviendra.	Pick a duration, a notification will tell you.
 ciel dégagé	clear sky
 Cinnamon, panneau en bas	Cinnamon, bottom panel
 Clair	Light
@@ -228,16 +233,20 @@ Clavier mécanique (Mechvibes)	Mechanical keyboard (Mechvibes)
 Clavier précédent	Previous keyboard
 Clé de produit et activation	Product key and activation
 Clic	Click
+Clic : copier	Click: copy
 Clic droit à nouveau pour vider	Right click again to empty
 Clic droit	Right click
 Clic milieu barre	Middle click on bar
 Clic secondaire à deux doigts	Two-finger secondary click
+Clic sur l'anneau : pause	Click the ring: pause
 Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page.	Click a shortcut to open the app, or switch to it if already open. Right click: this page.
 Cliquez avec deux doigts : clic droit ; trois : clic du milieu	Click with two fingers: right click; three: middle click
+Code QR	QR code
 Coins actifs	Hot corners
 Coins d'écran arrondis	Rounded screen corners
 Coller	Paste
 Colonne	Column
+Commande	Command
 Commandes	Commands
 Comme la dalle d'un MacBook ; les clics passent au travers	Like a MacBook screen; clicks pass through
   (comme 	  (like 
@@ -258,6 +267,7 @@ Connecter	Connect
 Connecté, sécurisé · 	Connected, secured · 
 Console déroulante	Drop-down console
 Conteneurs	Containers
+Contrôles	Controls
 Conversion	Conversion
 Copié	Copied
 Copier · Coller · Couper	Copy · Paste · Cut
@@ -284,17 +294,20 @@ Dans la barre (de gauche à droite)	In the bar (left to right)
 Dans la barre	In the bar
 Dans l'île dynamique	In the Dynamic Island
 Début	Home
+Déconnecté	Disconnected
 Déconnecter	Disconnect
 Défilement naturel	Natural scrolling
 Définition	Resolution
 Dégagé	Clear
 Dégradé	Gradient
+Demande ce que tu veux	Ask anything
 Démarrer, Paramètres	Start, Settings
 Demi-grasse	Semi-bold
 Déplacer et redimensionner	Move and resize
 Déplacer la fenêtre	Move window
 Déplacer vers le bureau précédent	Move to previous desktop
 Déplacer vers le bureau suivant	Move to next desktop
+Dépose ici des raccourcis, dossiers ou fichiers	Drop shortcuts, folders or files here
 Dernière écoute · ▶ pour reprendre	Last played · ▶ to resume
 Derrière les fenêtres	Behind windows
 Désactivée	Off
@@ -312,6 +325,7 @@ Disposition suivante	Next layout
 Disque	Disk
 Disques	Disks
 Di	Su
+Donne-moi cinq idées pour le week-end	Give me five ideas for the weekend
 Dossier de départ	Home folder
 Douce	Soft
 Du fond	From wallpaper
@@ -336,10 +350,12 @@ Dynamiques	Dynamic
 Écrans	Displays
 Écran suivant	Next display
 Écran verrouillé	Lock screen
+Écris ici : numéro de commande, liste, bout de code. Tout s'enregistre seul.	Write here: order number, list, code snippet. Everything saves itself.
 Éditeur de texte	Text Editor
 Édition	Edit
 Effets d'animation	Animation effects
 Éléments de la barre	Bar items
+ éléments	 items
 Émojis	Emoji
 Émojis et symboles	Emoji & Symbols
 Empreinte ou mot de passe	Fingerprint or password
@@ -350,6 +366,7 @@ En bas	Bottom
 en charge	charging
 En charge	Charging
 EN CHARGE	CHARGING
+Encoche noire, huit onglets, prune	Black notch, eight tabs, plum
 Encoche	Notch
 En cours	In progress
 Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)	Ink, amber, ice, blood (red) or indigo (blue violet)
@@ -371,6 +388,7 @@ Entrée : insérer  ·  Ctrl+Entrée : copier	Enter: insert  ·  Ctrl+Enter: cop
 Entrée pour appliquer	Enter to apply
   ·  Entrée pour copier	  ·  Enter to copy
  ·  Entrée pour copier	 ·  Enter to copy
+Entrée pour envoyer	Enter to send
 Entrée pour lancer la commande	Enter to run the command
 En veille (StandBy)	StandBy
 Envoyer à la console déroulante	Send to drop-down console
@@ -397,11 +415,14 @@ Espace suivant (molette)	Next workspace (wheel)
 Espace suivant	Next workspace
 Espaces	Workspaces
 Essentiels	Essentials
+Étagère	Shelf
+Étagère vide	Shelf is empty
 Éteindre	Shut Down
 Éteindre…	Shut Down…
 Étire les chiffres pour remplir l'espace, comme iOS 26	Stretches digits to fill the space, like iOS 26
 Exécuter dans le terminal	Run in terminal
 Expérience	Experience
+Explique simplement comment marche un VPN	Explain simply how a VPN works
 Expressif	Expressive
 Fais simple.	Keep it simple.
 fastfetch dans un terminal	fastfetch in a terminal
@@ -476,6 +497,7 @@ Général	General
 Générés	Generated
 Gestes	Gestures
 Glace	Ice
+Glisse des fichiers sur l'île, ils restent ici jusqu'à ce que tu les retires	Drag files onto the island, they stay here until you remove them
 Glissez-le où vous voulez : il glisse et rebondit	Drag it anywhere: it glides and bounces
 GNOME, Activités	GNOME, Activities
 GNOME, bleu Fedora	GNOME, Fedora blue
@@ -509,6 +531,7 @@ HUMID.	HUMID.
 Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
 Ignorer en tapant au clavier	Ignore while typing
 Île dynamique	Dynamic Island
+Île	Island
 Imprimer…	Print…
 Indicateur des agents Omarchy	Omarchy agents indicator
 Informations détaillées	Detailed information
@@ -523,6 +546,8 @@ Jeux	Games
 Jouet	Toy
 Jour en grand	Big day
 Jour en kanji	Day in kanji
+JSON compact	Compact JSON
+JSON lisible	Pretty JSON
 Karaoké	Karaoke
 Karaoké plein écran	Full-screen karaoke
 La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.	The bar is Omarchy's, dressed in glass by the Liquid Glass theme. Widget layout: omarchy bar --help.
@@ -553,6 +578,7 @@ Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture	Sound
 Lever du soleil	Sunrise
 Libre	Free
 Ligne	Line
+ lignes	 lines
 L'île s'élargit et la ligne chantée défile dedans	The island widens and the sung line scrolls inside
 Liquide	Liquid
 Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
@@ -560,6 +586,7 @@ Liquid Glass pour Omarchy · Arch Linux	Liquid Glass for Omarchy · Arch Linux
 Liquid Glass — style Windows	Liquid Glass — Windows style
 Logiciel libre, rien à activer	Free software, nothing to activate
 Logo de la barre	Bar logo
+Lumière nocturne	Night light
 Luminosité	Brightness
 Luminosité, éclairage nocturne	Brightness, night light
 Lu	Mo
@@ -567,6 +594,7 @@ Lu	Mo
 Mac, Omarchy, Mono, Forêt, Violet… (⌘⇧Espace)	Mac, Omarchy, Mono, Forest, Violet… (⌘⇧Space)
 Maint.	Now
 Maj	Shift
+MAJUSCULES	UPPERCASE
 Manuel d'Omarchy	Omarchy Manual
 Manuel	Manual
 Marge d'écran	Screen margin
@@ -594,12 +622,15 @@ Menus et outils	Menus and tools
 Menu système	System menu
 Mes appareils	My devices
 Mes goûts	My Taste
+Message pour l'IA…	Message the AI…
 Météo indisponible	Weather unavailable
 Météo	Weather
 Météo…	Weather…
 Mettre en veille	Sleep
 Me	We
 Micro	Microphone
+minuscules	lowercase
+Minuteur terminé	Timer finished
 Minuteur	Timer
 Miroir	Mirror
 Mise à jour	Update
@@ -637,6 +668,7 @@ Morceau suivant	Next track
 Mot de passe	Password
 Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien	Giant sung word in the center, full line, in the player card, or nothing
 Mot géant	Giant word
+ mots	 words
 Mousse	Moss
 Mousse (vert tilleul) ou cendre (rose poudré)	Moss (lime green) or ash (powder pink)
 Moyen	Medium
@@ -667,6 +699,7 @@ Nom du compte	Account name
 Non connecté	Not connected
 Non connecté (	Not connected (
 Normale	Normal
+Notes	Notes
 Nouvelle fenêtre	New Window
 Nouvelle tâche…	New task…
 Noyau	Kernel
@@ -719,6 +752,7 @@ Pas de musique	No music
 Pas de paroles	No lyrics
 Pas de paroles pour ce morceau	No lyrics for this track
 Pas de paroles pour ce titre	No lyrics for this track
+Pas de réponse : Claude est-il connecté ?	No answer: is Claude signed in?
 Passage au clair	Switch to light
 Passage au sombre	Switch to dark
 Passer en plein écran	Enter Full Screen
@@ -736,6 +770,7 @@ Personnalisation	Personalization
 Personnel	Personal
 Petit à petit.	Little by little.
 Petit	Small
+Phrase	Sentence
 Pipette	Eyedropper
 Placer à droite de l'écran	Move to right of screen
 Placer à gauche de l'écran	Move to left of screen
@@ -822,6 +857,7 @@ Redimensionner la fenêtre	Resize window
 Réduire dans le dock	Minimize to dock
 Réduire dans le Dock	Minimize to Dock
 Réduire	Minimize
+Réflexion…	Thinking…
 Régénère thème, Hyprland, dock et shell	Rebuilds theme, Hyprland, dock and shell
 Réglages appliqués à chaud. ⌘⇧Espace : bureaux. ⌃⌘Espace : carrousel de fonds. En ligne de commande : liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac.	Settings apply live. ⌘⇧Space: desktops. ⌃⌘Space: wallpaper carousel. Command line: liquid-glass profile blanc|sombre|jouet|violet|aube|rose|expressive|lain|mac.
 Réglages avancés de Liquid Glass	Advanced Liquid Glass settings
@@ -849,6 +885,7 @@ Réseaux disponibles	Available networks
 Résolution d'écran	Screen resolution
 Respire	Breathe
 Respire un coup.	Take a breath.
+Ressenti 	Feels like 
 Reste curieux.	Stay curious.
 Rester éveillé	Stay awake
 Résumé	Summary
@@ -865,6 +902,9 @@ Rubans	Ribbons
 Saisie	Input
 Saisissez votre mot de passe pour déverrouiller	Enter your password to unlock
 Sang	Blood
+Sans doubles espaces	No double spaces
+ sans espaces	 no spaces
+Sans retours	No line breaks
 Sa	Sa
 Sauvegarde	Backup
 Scène suivante	Next scene
@@ -935,8 +975,12 @@ Terminal	Terminal
 Terminaux	Terminals
 Terminé	Done
 Terre, Lune et satellites	Earth, Moon and satellites
+Texte brut	Plain text
+Texte de l'écran	Text from screen
+Texte	Text
 Thème actif	Active theme
 Thème de contraste foncé	Dark contrast theme
+Thème sombre	Dark theme
 Thème	Theme
 Tiens bon !	Hang in there!
 Touche /	Key /
@@ -986,8 +1030,11 @@ Vérification…	Checking…
 Verre clair	Clear glass
 Verre	Glass
 Verre teinté	Tinted glass
+Verr. maj. activé	Caps Lock on
+Verr. maj. désactivé	Caps Lock off
 Verrouiller la session	Lock session
 Verrouiller l'écran	Lock screen
+Verrouiller l'écran	Lock Screen
 Verrouiller	Lock
 Verrouiller maintenant	Lock now
 Vers le groupe $1	To group $1
@@ -1008,6 +1055,7 @@ Volume du micro	Microphone volume
 Volume, périphériques de sortie	Volume, output devices
 Vos fichiers récents apparaîtront ici.	Your recent files will appear here.
 Votre photo	Your photo
+Voulez-vous éteindre cet ordinateur ?	Do you want to shut down this computer?
 Voulez-vous forcer « 	Do you want to force “
 Vous pouvez ouvrir cette fenêtre en appuyant sur Option + Commande + Échap.	You can open this window by pressing Option + Command + Esc.
 Widget Calendrier	Calendar widget

@@ -40,7 +40,7 @@ PanelWindow {
   readonly property color tile: monoStyle ? s.surfaceMid : (toy ? "#ffffff" : s.alpha(s.colOnSurface, s.darkSkin ? 0.06 : 0.045))
   readonly property int radius: monoStyle ? 22 : (toy ? 20 : (st === "blanc" ? 10 : (term ? 4 : 24)))
   readonly property int tr: monoStyle ? 16 : (toy ? 14 : (st === "blanc" ? 6 : (term ? 2 : 18)))
-  readonly property string styleName: ({ espace: T.t("Espace"), gouts: T.t("Mes goûts"), ruban: T.t("Rubans"), blanc: T.t("Blanc"), sombre: T.t("Sombre"), jouet: T.t("Jouet"), violet: "Violet", expressive: "Expressive", mono: "Mono", foret: T.t("Forêt"), windows: "Windows" })[st] || st
+  readonly property string styleName: ({ espace: T.t("Espace"), ile: T.t("Île"), gouts: T.t("Mes goûts"), ruban: T.t("Rubans"), blanc: T.t("Blanc"), sombre: T.t("Sombre"), jouet: T.t("Jouet"), violet: "Violet", expressive: "Expressive", mono: "Mono", foret: T.t("Forêt"), windows: "Windows" })[st] || st
 
   // Teintes proposées pour le style courant : [clé de config, [valeur, nom, couleur]…]
   readonly property var tones: s.toneDefs[st] || null

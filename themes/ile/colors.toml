@@ -1,0 +1,37 @@
+# Liquid Glass — île — prune désaturée, encoche noire (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#c9c2cc"
+selection = "#3a3640"
+muted = "#5e5864"
+
+background = "#26232b"
+dark_background = "#1b191f"
+darker_background = "#17151b"
+lighter_background = "#322e37"
+
+foreground = "#d8d2da"
+dark_foreground = "#8a8490"
+light_foreground = "#c9c2cc"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(c9c2cc55) rgba(7c74c855) 45deg"
+
+hyprland_inactive_border = "rgba(35313bff)"
+
+red = "#d98c8c"
+green = "#9cc3a5"
+yellow = "#d8bd8a"
+blue = "#9aa8d8"
+magenta = "#b8a0d8"
+cyan = "#9cc6c6"
+orange = "#d8a48b"
+brown = "#857560"
+
+bright_red = "#e8a3a3"
+bright_green = "#b4d6bb"
+bright_yellow = "#e8d2a5"
+bright_blue = "#b4c0e8"
+bright_magenta = "#cdb8e8"
+bright_cyan = "#b4dada"

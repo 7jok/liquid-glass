@@ -137,6 +137,8 @@ Item {
         { id: "mars", name: "Mars", acc: "#ff8a6b", sub2: "#bda69c" },
         { id: "nebuleuse", name: T.t("Nébuleuse"), acc: "#c58bff", sub2: "#a99dc2" }
       ] },
+    { id: "ile", name: T.t("Île"), sub: T.t("Encoche noire, huit onglets, prune"), bg: themes + "ile/backgrounds/01-ile.jpg",
+      ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "space" },
     { id: "cosmos", name: "Cosmos", sub: T.t("Terre, Lune et satellites"), bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
       ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "space", key: "cosmos_tone",
       tones: [

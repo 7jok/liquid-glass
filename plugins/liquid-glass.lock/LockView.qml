@@ -136,12 +136,20 @@ Item {
     return clockStyle === "light" ? Font.Thin : (clockStyle === "glass" || clockStyle === "liquid" ? Font.DemiBold : (clockStyle === "serif" ? Font.Medium : Font.Bold))
   }
   readonly property real clockBrightness: Math.max(0.4, Math.min(1, Number(lopt("clock_brightness", 1)) || 1))
-  readonly property color clockColor: { var c = String(lopt("clock_color", "#ffffff")); return /^#[0-9a-fA-F]{6}$/.test(c) ? c : "#ffffff" }
+  readonly property color clockColor: { if (ile) return "#c9c2cc"; var c = String(lopt("clock_color", "#ffffff")); return /^#[0-9a-fA-F]{6}$/.test(c) ? c : "#ffffff" }
   readonly property bool tallDigits: lopt("clock_tall", false) === true
   readonly property string dateFormat: String(lopt("date_format", "long"))
   readonly property bool clock24: lopt("clock_24h", true) !== false
   readonly property string uiFont: (cfg.appearance && cfg.appearance.font_ui) || "Inter"
-  readonly property string clockFont: String(lopt("clock_font", "")) || uiFont
+  // Style Île : horloge large et prune, comme sur son bureau.
+  property string themeName: ""
+  FileView {
+    path: Quickshell.env("HOME") + "/.local/state/omarchy/current/theme.name"
+    printErrors: false
+    onLoaded: root.themeName = text().trim()
+  }
+  readonly property bool ile: themeName === "ile"
+  readonly property string clockFont: ile ? "Michroma" : (String(lopt("clock_font", "")) || uiFont)
 
   // ------------------------------------------------------------ musique
   readonly property var player: {

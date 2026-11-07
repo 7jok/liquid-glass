@@ -1638,7 +1638,7 @@ Item {
           label: T.t("Bureaux complets")
           sub: T.t("Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)")
           Seg {
-            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["gouts", T.t("Mes goûts")]]
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["gouts", T.t("Mes goûts")]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }

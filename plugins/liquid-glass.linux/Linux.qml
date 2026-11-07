@@ -39,7 +39,7 @@ Item {
   // Tous sauf lain partagent les mêmes composants (Ex*), habillés par une « peau »
   // (palette, polices, arrondis, bordures, ombres) et un jeu de widgets.
   readonly property var styles: ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                                 "ruban", "espace", "cosmos", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                                 "ruban", "espace", "cosmos", "ile", "gouts", "debian", "fedora", "mint", "kali", "arch"]
   readonly property string style: styles.indexOf(String(opt("style", "blanc"))) >= 0 ? String(opt("style", "blanc")) : "blanc"
   readonly property bool ex: true
   // Familles de bureau : « ex » = barre en îlots + widgets (blanc… expressive),
@@ -60,7 +60,8 @@ Item {
   readonly property bool isRuban: style === "ruban"
   readonly property bool isCosmos: style === "cosmos"
   readonly property bool isEspace: style === "espace" || isCosmos
-  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace
+  readonly property bool isIle: style === "ile"
+  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle
   // Sombre : mur de tuiles à la place de la scène musicale et des widgets.
   readonly property bool wall: style === "sombre" && opt("sombre_wall", true) !== false
   // Blanc : barre de texte en bas (dwm) ; Jouet : gros dock, pas de barre en haut.
@@ -136,6 +137,8 @@ Item {
                   radius: 18, border: 0, shadow: "soft", bar: "side", dark: true },
     gouts:      { sans: "Google Sans Flex", num: "Google Sans Flex", pixel: "Silkscreen", display: "Google Sans Flex",
                   radius: 20, border: 0, shadow: "soft", bar: "float", dark: true },
+    ile:        { sans: "Inter", num: "Michroma", pixel: "Silkscreen", display: "Michroma",
+                  radius: 14, border: 0, shadow: "soft", bar: "ile", dark: true },
     cosmos:     { sans: "JetBrainsMono Nerd Font", num: "JetBrainsMono Nerd Font", pixel: "Silkscreen", display: "JetBrainsMono Nerd Font",
                   radius: 10, border: 1, shadow: "soft", bar: "espace", dark: true },
     espace:     { sans: "Inter", num: "Inter", pixel: "Silkscreen", display: "Inter",
@@ -258,6 +261,14 @@ Item {
 
   // Palettes fixes (mêmes clés que matugen) ; « expressive » prend celle de matugen.
   readonly property var fixed: ({
+    // Île : prune désaturée, noir pur pour l'encoche.
+    ile: {
+      primary: "#c9c2cc", on_primary: "#17151b", primary_container: "#3a3640", on_primary_container: "#e6e0e8",
+      secondary: "#8a8490", secondary_container: "#26232b", on_secondary_container: "#d8d2da",
+      tertiary: "#7c74c8", tertiary_container: "#2e2a4a", on_tertiary_container: "#dcd8f4",
+      surface: "#17151b", surface_container_low: "#1b191f", surface_container: "#211f25", surface_container_high: "#26232b",
+      surface_container_highest: "#322e37", on_surface: "#e0dae2", on_surface_variant: "#8a8490",
+      outline: "#5e5864", outline_variant: "#35313b", error: "#e8857c" },
     // Cosmos : verre sombre sarcelle, accent choisi.
     cosmos: Object.assign({
       primary: "#9fdcf5", on_primary: "#06222e", primary_container: "#16404f", on_primary_container: "#d5f2ff",
@@ -735,7 +746,7 @@ Item {
                         "https://api.open-meteo.com/v1/forecast?latitude=" + coords.lat + "&longitude=" + coords.lon
                         + "&current=temperature_2m,apparent_temperature,relative_humidity_2m,wind_speed_10m,weather_code,is_day"
                         + "&hourly=temperature_2m,weather_code&forecast_hours=12"
-                        + "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&forecast_days=1&timezone=auto"]
+                        + "&daily=temperature_2m_max,temperature_2m_min,sunrise,sunset,precipitation_probability_max&forecast_days=7&timezone=auto"]
     forecast.running = true
   }
   Process {
@@ -764,6 +775,7 @@ Item {
             rain: d.precipitation_probability_max ? Math.round(d.precipitation_probability_max[0] || 0) : 0,
             sunrise: String(d.sunrise[0]).slice(11, 16), sunset: String(d.sunset[0]).slice(11, 16),
             city: svc.coords ? svc.coords.name : svc.city,
+            days: d.time.map(function(t, i) { return { day: t, max: Math.round(d.temperature_2m_max[i]), min: Math.round(d.temperature_2m_min[i]) } }),
             hourly: (j.hourly && j.hourly.time ? j.hourly.time.map(function(t, i) {
               return { h: String(t).slice(11, 16), temp: Math.round(j.hourly.temperature_2m[i]), code: j.hourly.weather_code[i] } }) : [])
           }
@@ -1202,6 +1214,26 @@ Item {
   Variants {
     model: String(svc.opt("live_wall", "off")) !== "off" && !svc.isCosmos ? svc.screens : []
     delegate: Component { LiveWall { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isIle ? svc.screens : []
+    delegate: Component { IleBar { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isIle ? svc.mainScreen : []
+    delegate: Component { IleDesk { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isIle ? svc.mainScreen : []
+    delegate: Component { IleDock { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isIle ? svc.mainScreen : []
+    delegate: Component { IlePanels { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isIle ? svc.mainScreen : []
+    delegate: Component { IleNotch { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
     model: svc.isCosmos ? svc.mainScreen : []

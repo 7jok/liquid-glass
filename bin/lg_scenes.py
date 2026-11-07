@@ -1143,6 +1143,38 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 out.append("".join(parts))
             return out
 
+    class Flame(Base):
+        """Feu en ASCII, tout en blanc : la chaleur monte depuis le bas et le haut lèche l'air."""
+        RAMP = " .,:;i1tfLCG08@"
+
+        def __init__(self, app):
+            super().__init__(app)
+            self.size, self.heat = None, []
+
+        def frame(self, t, w, h):
+            if self.size != (w, h):
+                self.size, self.heat = (w, h), [[0.0] * w for _ in range(h + 2)]
+            g = self.heat
+            for x in range(w):           # foyer : bandes de chaleur qui bougent
+                base = .72 + .28 * math.sin(x * .16 + t * 1.7) * math.sin(x * .05 - t * .6)
+                g[h + 1][x] = g[h][x] = min(1, base + random.uniform(-.12, .22))
+            cool = 1.15 / max(14, h)      # la flamme monte aux deux tiers de la fenêtre
+            wind = math.sin(t * .9) * .6
+            for y in range(h):
+                up, up2, row = g[y + 1], g[y + 2], g[y]
+                for x in range(w):
+                    k = x + int(wind + random.random() * 2.4 - 1.2)
+                    k = 0 if k < 0 else w - 1 if k >= w else k
+                    v = (up[k] * 2 + up[(x - 1) % w] + up[(x + 1) % w] + up2[k]) / 5
+                    row[x] = max(0.0, v - cool * random.uniform(.25, 1.75))
+            out = []
+            top = len(self.RAMP) - 1
+            for y in range(h):
+                row = g[y]
+                line = "".join(self.RAMP[min(top, int(v * top))] for v in row)
+                out.append(fgc((255, 255, 255)) + line)
+            return out
+
     class Grid(Base):
         """Soleil rayé au-dessus d'une grille qui défile, à l'horizon d'un coucher de soleil."""
         def frame(self, t, w, h):
@@ -1551,7 +1583,7 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
             return c.lines()
 
     return {"grid": Grid, "cube": Cube, "galaxy": Galaxy, "aurora": Aurora, "city": City, "tree": Tree, "boids": Boids,
-            "typing": Typing, "analog": Analog, "maze": Maze, "dna": Dna, "harmono": Harmono, "julia": Julia, "terrain": Terrain,
+            "typing": Typing, "analog": Analog, "maze": Maze, "dna": Dna, "harmono": Harmono, "julia": Julia, "terrain": Terrain, "flame": Flame,
             "ascii": AsciiImage, "banner": Banner, "globe": Globe, "moonball": MoonBall, "asciivid": AsciiVideo,
             "hud": Hud, "wallfetch": WallFetch, "video": Video, "stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
             "petals": Petals, "snow": Snow, "plasma": Plasma, "snake": Snake, "life": Life, "pipes": Pipes,

@@ -103,7 +103,7 @@ link "$REPO/themes/liquid-glass-dark" "$CFG/omarchy/themes/liquid-glass-dark"
 link "$REPO/themes/lain" "$CFG/omarchy/themes/lain"
 "$REPO/scripts/gen-linux-themes.py" >/dev/null
 compgen -G "$REPO/themes/violet/backgrounds/*.jpg" >/dev/null || nice -n 10 "$REPO/scripts/gen-linux-wallpapers.py" >/dev/null
-for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace cosmos debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
+for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace cosmos ile debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
 mkdir -p "$REPO/themes/cosmos/backgrounds"
 [ -e "$REPO/themes/cosmos/backgrounds/01-cosmos.jpg" ] || cp "$REPO/plugins/liquid-glass.linux/cosmos/sky.jpg" "$REPO/themes/cosmos/backgrounds/01-cosmos.jpg"
 ok "thèmes liés dans ~/.config/omarchy/themes"

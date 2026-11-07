@@ -8,6 +8,7 @@ import math
 import os
 import random
 import subprocess
+import threading
 import time
 
 
@@ -653,7 +654,77 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 c.center(by + 1, "en pause", a.dim)
             return c.lines()
 
-    return {"stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
+    class Video(Base):
+        """Vidéo en terminal : ffmpeg décode, on trace des demi-blocs aux couleurs du thème
+        (noir → accent → blanc), comme une console de film."""
+        def __init__(self, app):
+            super().__init__(app)
+            self.size, self.proc, self.buf, self.lock = (0, 0), None, None, threading.Lock()
+            self.src = app.video or self.find()
+
+        @staticmethod
+        def find():
+            home = os.path.expanduser("~")
+            for d in (home + "/Vidéos", home + "/Videos", home + "/.local/share/liquid-glass/videos"):
+                if os.path.isdir(d):
+                    for f in sorted(os.listdir(d)):
+                        if f.lower().endswith((".mp4", ".webm", ".mkv", ".mov", ".gif")):
+                            return os.path.join(d, f)
+            return ""
+
+        def start(self, w, h):
+            self.stop()
+            self.size = (w, h)
+            pw, ph = w, h * 2
+            cmd = ["ffmpeg", "-v", "error", "-stream_loop", "-1", "-re", "-i", self.src, "-an", "-vf",
+                   f"fps={self.app.fps},scale={pw}:{ph}:force_original_aspect_ratio=increase,crop={pw}:{ph}",
+                   "-pix_fmt", "gray", "-f", "rawvideo", "-"]
+            self.proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            threading.Thread(target=self.read, args=(self.proc, pw * ph), daemon=True).start()
+
+        def read(self, proc, n):
+            while proc.poll() is None:
+                b = proc.stdout.read(n)
+                if not b or len(b) < n:
+                    return
+                with self.lock:
+                    self.buf = b
+
+        def stop(self):
+            if self.proc:
+                self.proc.terminate()
+                self.proc = None
+
+        def frame(self, t, w, h):
+            a, c = self.app, self.canvas(w, h)
+            if not self.src:
+                c.center(h // 2 - 1, "Aucune vidéo", a.fg)
+                c.center(h // 2, "Dépose un fichier dans ~/Vidéos", a.dim)
+                return c.lines()
+            if self.size != (w, h):
+                self.start(w, h)
+                self.lut = [mix(mix(a.bg, a.acc, min(1, i / 128)), a.fg, max(0, (i - 128) / 127)) for i in range(256)]
+            with self.lock:
+                b = self.buf
+            if b is None or len(b) < w * h * 2:
+                c.center(h // 2, "…", a.dim)
+                return c.lines()
+            out, lut = [], self.lut
+            for y in range(h):
+                up, lo = y * 2 * w, (y * 2 + 1) * w
+                row, last = [], None
+                for x in range(w):
+                    k = (b[up + x] >> 3, b[lo + x] >> 3)
+                    if k != last:
+                        last = k
+                        u, l = lut[b[up + x]], lut[b[lo + x]]
+                        row.append(f"\x1b[38;2;{u[0]};{u[1]};{u[2]};48;2;{l[0]};{l[1]};{l[2]}m")
+                    row.append("▀")
+                row.append("\x1b[0m")
+                out.append("".join(row))
+            return out
+
+    return {"video": Video, "stars": Stars, "orbit": Orbit, "hole": Hole, "fish": Fish, "lava": Lava, "leaves": Leaves,
             "petals": Petals, "snow": Snow, "plasma": Plasma, "snake": Snake, "life": Life, "pipes": Pipes,
             "tunnel": Tunnel, "waves": Waves, "fire": Fire, "bounce": Bounce, "radar": Radar, "hex": Hex,
             "cpu": Cpu, "scope": Scope, "cal": Cal, "timer": Timer}

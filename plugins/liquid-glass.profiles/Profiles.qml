@@ -136,6 +136,13 @@ Item {
         { id: "mars", name: "Mars", acc: "#ff8a6b", sub2: "#bda69c" },
         { id: "nebuleuse", name: "Nébuleuse", acc: "#c58bff", sub2: "#a99dc2" }
       ] },
+    { id: "cosmos", name: "Cosmos", sub: "Terre, Lune et satellites", bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
+      ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "space", key: "cosmos_tone",
+      tones: [
+        { id: "orbite", name: "Orbite", acc: "#9fdcf5" },
+        { id: "mousse", name: "Mousse", acc: "#a8e0a4" },
+        { id: "corail", name: "Corail", acc: "#ffb09c" }
+      ] },
     { id: "gouts", name: "Mes goûts", sub: "Tout, aux couleurs d'un thème", bg: "/usr/share/omarchy/themes/tokyo-night/backgrounds/1-winding-road.webp",
       ink: "#c0caf5", sub2: "#a9b1d6", acc: "#7aa2f7", font: "Google Sans Flex", mock: "stack" },
     { id: "debian", name: "Debian", sub: "GNOME, Activités", bg: themes + "debian/backgrounds/01-debian.jpg",
@@ -165,6 +172,14 @@ Item {
     var o = Object.assign({}, toneSel)
     o[it.id] = (t + it.tones.length) % it.tones.length
     toneSel = o
+  }
+  // Numéro au clavier : un ou deux chiffres (« 1 » puis « 4 » = carte 14).
+  property string typed: ""
+  Timer { id: digitTimer; interval: 420; onTriggered: { var n = parseInt(root.typed); root.typed = ""; if (n > 0) root.apply(n - 1) } }
+  function digit(d) {
+    typed += String(d)
+    if (typed.length >= 2) { digitTimer.stop(); var n = parseInt(typed); typed = ""; if (n > 0) apply(n - 1) }
+    else digitTimer.restart()
   }
   function cycleTone(d) { var it = items[selected]; if (it && it.tones) setTone(selected, toneIndex(it, toneSel) + d) }
   // Carte vue avec sa teinte : les champs de la teinte remplacent ceux du style.
@@ -237,8 +252,7 @@ Item {
         else if (ev.key === Qt.Key_Down || ev.key === Qt.Key_J) root.move(0, 1)
         else if (ev.key === Qt.Key_T) root.cycleTone(ev.modifiers & Qt.ShiftModifier ? -1 : 1)
         else if (ev.key === Qt.Key_Return || ev.key === Qt.Key_Enter || ev.key === Qt.Key_Space) root.apply(root.selected)
-        else if (ev.key >= Qt.Key_1 && ev.key <= Qt.Key_9) root.apply(ev.key - Qt.Key_1)
-        else if (ev.key === Qt.Key_0) root.apply(9)
+        else if (ev.key >= Qt.Key_0 && ev.key <= Qt.Key_9) root.digit(ev.key - Qt.Key_0)
         else return
         ev.accepted = true
       }
@@ -363,11 +377,10 @@ Item {
                 width: parent.width
                 height: nameText.implicitHeight
                 Rectangle {
-                  visible: cell.index < 10
                   anchors.right: parent.right; anchors.verticalCenter: parent.verticalCenter
-                  width: 20; height: 20; radius: 6
+                  width: cell.index < 9 ? 20 : 26; height: 20; radius: 6
                   color: cell.sel ? "white" : Qt.rgba(1, 1, 1, 0.12)
-                  Text { anchors.centerIn: parent; text: String((cell.index + 1) % 10); font.family: "Google Sans Flex"; font.pixelSize: 11; font.weight: Font.Bold; color: cell.sel ? "#111" : Qt.rgba(1, 1, 1, 0.7) }
+                  Text { anchors.centerIn: parent; text: String(cell.index + 1); font.family: "Google Sans Flex"; font.pixelSize: 11; font.weight: Font.Bold; color: cell.sel ? "#111" : Qt.rgba(1, 1, 1, 0.7) }
                 }
               Text {
                 id: nameText

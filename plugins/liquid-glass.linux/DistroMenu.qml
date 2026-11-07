@@ -31,7 +31,7 @@ PanelWindow {
   property string query: ""
   property string cat: kali ? "tools:0" : "all"
   property bool revealed: false
-  Component.onCompleted: { revealed = true; input.forceActiveFocus(); if (kali) probe.running = true }
+  Component.onCompleted: { revealed = true; input.forceActiveFocus(); if (hasTools) probe.running = true }
 
   // Catégories XDG → rubrique du menu.
   readonly property var cats: [
@@ -46,7 +46,30 @@ PanelWindow {
     ["util", "Accessoires", "handyman", ["Utility"]]
   ]
   // Outils de Kali, rangés comme son menu. [nom, paquet Arch, commande]
-  readonly property var tools: [
+  readonly property var toolDefs: ({ kali: kaliTools, debian: debianTools, fedora: fedoraTools, mint: mintTools, arch: archTools })
+  readonly property var tools: toolDefs[s.style] || []
+  readonly property bool hasTools: tools.length > 0
+  readonly property var debianTools: [
+    ["Bureautique", "description", [["LibreOffice", "libreoffice-fresh", "libreoffice"], ["Évince", "evince", "evince"], ["Éditeur de texte", "gnome-text-editor", "gnome-text-editor"]]],
+    ["Système", "settings", [["Moniteur système", "gnome-system-monitor", "gnome-system-monitor"], ["Disques", "gnome-disk-utility", "gnome-disks"], ["Calculatrice", "gnome-calculator", "gnome-calculator"]]],
+    ["Multimédia", "movie", [["VLC", "vlc", "vlc"], ["GIMP", "gimp", "gimp"]]]
+  ]
+  readonly property var fedoraTools: [
+    ["Conteneurs", "deployed_code", [["Podman", "podman", "podman --help | less"], ["Distrobox", "distrobox", "distrobox --help | less"]]],
+    ["Virtualisation", "computer", [["GNOME Boxes", "gnome-boxes", "gnome-boxes"], ["Cockpit", "cockpit", "cockpit-bridge --help | less"]]],
+    ["Applications", "apps", [["Flatpak", "flatpak", "flatpak --help | less"], ["Moniteur système", "gnome-system-monitor", "gnome-system-monitor"]]]
+  ]
+  readonly property var mintTools: [
+    ["Sauvegarde", "history", [["Timeshift", "timeshift", "timeshift-launcher"]]],
+    ["Sécurité", "shield", [["Pare-feu Gufw", "gufw", "gufw"]]],
+    ["Multimédia", "movie", [["Celluloid", "celluloid", "celluloid"], ["Transmission", "transmission-gtk", "transmission-gtk"]]]
+  ]
+  readonly property var archTools: [
+    ["Pacman", "inventory_2", [["pacman-contrib", "pacman-contrib", "man paccache"], ["Reflector", "reflector", "reflector --help | less"]]],
+    ["Terminal", "terminal", [["Neovim", "neovim", "nvim"], ["btop", "btop", "btop"], ["tmux", "tmux", "tmux"]]],
+    ["Installation", "construction", [["archinstall", "archinstall", "archinstall --help | less"], ["base-devel", "base-devel", "pacman -Qg base-devel | less"]]]
+  ]
+  readonly property var kaliTools: [
     ["01 - Collecte d'informations", "travel_explore", [["Nmap", "nmap", "nmap --help | less"]]],
     ["02 - Analyse de vulnérabilités", "bug_report", [["Nikto", "nikto", "nikto -Help | less"]]],
     ["03 - Applications web", "public", [["sqlmap", "sqlmap", "sqlmap -h | less"], ["Gobuster", "gobuster", "gobuster --help | less"]]],
@@ -110,7 +133,7 @@ PanelWindow {
 
   Item {
     id: panel
-    readonly property int menuW: win.lay === "plasma" ? 620 : (win.kali ? 640 : 600)
+    readonly property int menuW: win.lay === "plasma" ? 620 : (win.hasTools ? 640 : 600)
     readonly property int menuH: Math.min(win.height - 80, 560)
     x: win.gnome ? 0 : (win.lay === "plasma" ? 8 : 4)
     y: win.gnome ? 0 : (win.d.bottom ? win.height - height - win.d.barH - (win.lay === "plasma" ? 12 : 4) : win.d.barH + (win.s.testing ? 34 : 4))
@@ -206,7 +229,7 @@ PanelWindow {
       visible: !win.gnome
       x: win.lay === "cinnamon" ? 56 : 8
       y: 56
-      width: win.kali ? 262 : 196
+      width: win.hasTools ? 262 : 196
       height: parent.height - y - (win.lay === "plasma" ? 50 : 10)
       contentHeight: catCol.height
       clip: true
@@ -215,14 +238,14 @@ PanelWindow {
         width: parent.width
         spacing: 1
         Repeater {
-          model: win.kali ? win.tools : []
+          model: win.tools
           delegate: CatRow {
             required property var modelData
             required property int index
             key: "tools:" + index; label: modelData[0]; icon: modelData[1]
           }
         }
-        Rectangle { visible: win.kali; width: parent.width; height: 1; color: win.s.alpha(win.ink, 0.14) }
+        Rectangle { visible: win.hasTools; width: parent.width; height: 1; color: win.s.alpha(win.ink, 0.14) }
         Repeater {
           model: win.cats
           delegate: CatRow {

@@ -38,7 +38,7 @@ Item {
   // Tous sauf lain partagent les mêmes composants (Ex*), habillés par une « peau »
   // (palette, polices, arrondis, bordures, ombres) et un jeu de widgets.
   readonly property var styles: ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                                 "ruban", "espace", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                                 "ruban", "espace", "cosmos", "gouts", "debian", "fedora", "mint", "kali", "arch"]
   readonly property string style: styles.indexOf(String(opt("style", "blanc"))) >= 0 ? String(opt("style", "blanc")) : "blanc"
   readonly property bool ex: true
   // Familles de bureau : « ex » = barre en îlots + widgets (blanc… expressive),
@@ -57,7 +57,8 @@ Item {
   readonly property var distro: distroDefs[style] || null
   readonly property bool isDistro: !!distro
   readonly property bool isRuban: style === "ruban"
-  readonly property bool isEspace: style === "espace"
+  readonly property bool isCosmos: style === "cosmos"
+  readonly property bool isEspace: style === "espace" || isCosmos
   readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace
   // Sombre : mur de tuiles à la place de la scène musicale et des widgets.
   readonly property bool wall: style === "sombre" && opt("sombre_wall", true) !== false
@@ -83,6 +84,7 @@ Item {
     jouet: ["jouet_tone", [["bonbon", "Bonbon", "#ff5fa2"], ["menthe", "Menthe", "#18b98f"], ["peche", "Pêche", "#ff7a45"]]],
     mono: ["mono_tone", [["noir", "Noir", "#000000"], ["papier", "Papier", "#ffffff"], ["sakura", "Sakura", "#f7a8c4"]]],
     windows: ["windows_tone", [["clair", "Clair", "#f3f3f3"], ["sombre", "Sombre", "#202020"]]],
+    cosmos: ["cosmos_tone", [["orbite", "Orbite", "#9fdcf5"], ["mousse", "Mousse", "#a8e0a4"], ["corail", "Corail", "#ffb09c"]]],
     espace: ["espace_tone", [["bleu", "Bleu", "#8fc7ff"], ["mars", "Mars", "#ff8a6b"], ["nebuleuse", "Nébuleuse", "#c58bff"]]],
     ruban: ["ruban_tone", [["bleu", "Bleu", "#19d3ff"], ["rouge", "Rouge", "#ff3b3b"], ["or", "Or", "#ffc800"]]],
     foret: ["foret_tone", [["mousse", "Mousse", "#cfe89a"], ["cendre", "Cendre", "#f3b6c8"]]],
@@ -133,6 +135,8 @@ Item {
                   radius: 18, border: 0, shadow: "soft", bar: "side", dark: true },
     gouts:      { sans: "Google Sans Flex", num: "Google Sans Flex", pixel: "Silkscreen", display: "Google Sans Flex",
                   radius: 20, border: 0, shadow: "soft", bar: "float", dark: true },
+    cosmos:     { sans: "JetBrainsMono Nerd Font", num: "JetBrainsMono Nerd Font", pixel: "Silkscreen", display: "JetBrainsMono Nerd Font",
+                  radius: 10, border: 1, shadow: "soft", bar: "espace", dark: true },
     espace:     { sans: "Inter", num: "Inter", pixel: "Silkscreen", display: "Inter",
                   radius: 14, border: 1, shadow: "soft", bar: "espace", dark: true },
     ruban:      { sans: "Rubik", num: "Rubik", pixel: "Silkscreen", display: "Rubik",
@@ -172,6 +176,7 @@ Item {
   readonly property string tone: String(opt("blanc_tone", "pur")) === "creme" ? "creme" : "pur"
   // Tonalité du violet : nuit (montagnes violettes la nuit), aube (lilas clair), rose (pastel).
   readonly property string stone: ["encre", "ambre", "glace", "sang", "indigo"].indexOf(String(opt("sombre_tone", "encre"))) >= 0 ? String(opt("sombre_tone", "encre")) : "encre"
+  readonly property string ctone: ["orbite", "mousse", "corail"].indexOf(String(opt("cosmos_tone", "orbite"))) >= 0 ? String(opt("cosmos_tone", "orbite")) : "orbite"
   readonly property string etone: ["bleu", "mars", "nebuleuse"].indexOf(String(opt("espace_tone", "bleu"))) >= 0 ? String(opt("espace_tone", "bleu")) : "bleu"
   readonly property string rtone: ["bleu", "rouge", "or"].indexOf(String(opt("ruban_tone", "bleu"))) >= 0 ? String(opt("ruban_tone", "bleu")) : "bleu"
   readonly property string jtone: ["bonbon", "menthe", "peche"].indexOf(String(opt("jouet_tone", "bonbon"))) >= 0 ? String(opt("jouet_tone", "bonbon")) : "bonbon"
@@ -252,6 +257,18 @@ Item {
 
   // Palettes fixes (mêmes clés que matugen) ; « expressive » prend celle de matugen.
   readonly property var fixed: ({
+    // Cosmos : verre sombre sarcelle, accent choisi.
+    cosmos: Object.assign({
+      primary: "#9fdcf5", on_primary: "#06222e", primary_container: "#16404f", on_primary_container: "#d5f2ff",
+      secondary: "#a5c3cf", secondary_container: "#17272e", on_secondary_container: "#d5e6ee",
+      tertiary: "#cdbdff", tertiary_container: "#2b2548", on_tertiary_container: "#e6deff",
+      surface: "#0b1216", surface_container_low: "#10191e", surface_container: "#152127", surface_container_high: "#1c2a31",
+      surface_container_highest: "#25353d", on_surface: "#e4eef2", on_surface_variant: "#92a6af",
+      outline: "#5b6f78", outline_variant: "#2a3a42", error: "#ff8a8a" }, ctone === "mousse" ? {
+      primary: "#a8e0a4", on_primary: "#0d2b10", primary_container: "#1f4624", on_primary_container: "#d4f3d0",
+      surface: "#10140f", surface_container_low: "#151b14", surface_container: "#1b2319", surface_container_high: "#232d21", surface_container_highest: "#2d3a2b" } : ctone === "corail" ? {
+      primary: "#ffb09c", on_primary: "#361006", primary_container: "#5e2a1c", on_primary_container: "#ffe0d6",
+      surface: "#150f0d", surface_container_low: "#1b1412", surface_container: "#231a17", surface_container_high: "#2e221e", surface_container_highest: "#3a2c27" } : {}),
     // Espace : ciel presque noir, accent qui suit l'astre du fond.
     espace: Object.assign({
       primary: "#8fc7ff", on_primary: "#06162b", primary_container: "#1c3a5e", on_primary_container: "#d6ebff",
@@ -548,6 +565,7 @@ Item {
   onMtoneChanged: hyprDebounce.restart()
   onRtoneChanged: hyprDebounce.restart()
   onEtoneChanged: hyprDebounce.restart()
+  onCtoneChanged: hyprDebounce.restart()
   onAccentHexChanged: hyprDebounce.restart()
   onColorModeChanged: hyprDebounce.restart()
   onExChanged: if (ex) hyprDebounce.restart(); else Quickshell.execDetached(["hyprctl", "reload"])
@@ -976,7 +994,7 @@ Item {
     interval: 600
     onTriggered: {
       var o = String(Quickshell.env("LG_OPEN")), k = o.split(":")
-      if (k[0] === "walls") svc.wallsOpen = true; else if (k[0] === "keys") svc.toggleKeys(); else if (k[0] === "launcher") svc.toggleLauncher(); else if (k[0] === "menu") svc.toggleMenu(k[1] || "home"); else if (k[0] === "panel") svc.togglePanel(k[1] || "")
+      if (k[0] === "walls") svc.wallsOpen = true; else if (k[0] === "moon") svc.launcherOpen = true; else if (k[0] === "keys") svc.toggleKeys(); else if (k[0] === "launcher") svc.toggleLauncher(); else if (k[0] === "menu") svc.toggleMenu(k[1] || "home"); else if (k[0] === "panel") svc.togglePanel(k[1] || "")
     }
   }
   function closeAll() { launcherOpen = false; panel = ""; keysOpen = false; if (!win11) menuOpen = false }
@@ -1181,7 +1199,15 @@ Item {
     delegate: Component { EspaceBar { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
-    model: svc.isEspace && svc.showWidgets ? svc.mainScreen : []
+    model: String(svc.opt("live_wall", "off")) !== "off" && !svc.isCosmos ? svc.screens : []
+    delegate: Component { LiveWall { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isCosmos ? svc.mainScreen : []
+    delegate: Component { CosmosDesk { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.style === "espace" && svc.showWidgets ? svc.mainScreen : []
     delegate: Component { EspaceDesk { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
@@ -1270,7 +1296,8 @@ Item {
   LazyLoader { active: svc.isEspace && svc.panel === "net"; EspaceNet { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.isEspace && svc.panel === "stats"; EspaceStats { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.isRuban && svc.launcherOpen; RubanMenu { service: svc; screen: svc.primaryScreen } }
-  LazyLoader { active: !svc.win11 && !svc.isDistro && !svc.isRuban && svc.launcherOpen; Launcher { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.isCosmos && svc.launcherOpen; CosmosMoon { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: !svc.win11 && !svc.isDistro && !svc.isRuban && !svc.isCosmos && svc.launcherOpen; Launcher { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.isDistro && svc.launcherOpen; DistroMenu { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.keysOpen; KeySheet { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: !svc.win11 && svc.menuOpen; StyleMenu { service: svc; screen: svc.primaryScreen } }

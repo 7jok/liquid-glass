@@ -648,10 +648,10 @@ SCENES = SCENES + list(EXTRA)
 
 
 class App:
-    def __init__(self, scene, cycle, fps, order=None, minutes=25, label="", glyph="", audio=None):
+    def __init__(self, scene, cycle, fps, order=None, minutes=25, label="", glyph="", audio=None, video=""):
         self.bg, self.fg, self.acc, self.alt, self.light = theme_colors()
         self.dim = mix(self.bg, self.fg, 0.45)
-        self.minutes, self.label, self.glyph = minutes, label, glyph
+        self.minutes, self.label, self.glyph, self.video = minutes, label, glyph, video
         self.audio = Audio(share=audio)
         self.scenes = {}
         self.order = [x for x in (order or []) if x in SCENES] or SCENES
@@ -716,6 +716,9 @@ class App:
             if old:
                 termios.tcsetattr(fd, termios.TCSADRAIN, old)
             self.audio.close()
+            for sc in self.scenes.values():
+                if hasattr(sc, "stop"):
+                    sc.stop()
 
 
 def main():
@@ -723,7 +726,7 @@ def main():
     if "-h" in args or "--help" in args:
         print(__doc__.strip())
         return
-    scene, cycle, fps, order, minutes, label, glyph, audio = "eye", 0.0, 20, None, 25, "", "", None
+    scene, cycle, fps, order, minutes, label, glyph, audio, video = "eye", 0.0, 20, None, 25, "", "", None, ""
     i = 0
     while i < len(args):
         a = args[i]
@@ -739,12 +742,14 @@ def main():
             label = args[i + 1]; i += 1
         elif a == "--glyph" and i + 1 < len(args):
             glyph = args[i + 1]; i += 1
+        elif a == "--video" and i + 1 < len(args):
+            video = args[i + 1]; i += 1
         elif a == "--audio" and i + 1 < len(args):
             audio = args[i + 1]; i += 1
         elif a in SCENES:
             scene = a
         i += 1
-    App(scene, cycle, fps, order, minutes, label, glyph, audio).run()
+    App(scene, cycle, fps, order, minutes, label, glyph, audio, video).run()
 
 
 if __name__ == "__main__":

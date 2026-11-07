@@ -1284,9 +1284,9 @@ PROFILE_DIR = CONF_DIR / "profiles"
 LINUX_THEME = "lain"   # thème de repli du style « expressive » (couleurs tirées du fond)
 # Styles du bureau Linux et leur thème Omarchy (terminaux, bordures, fonds).
 LINUX_STYLES = ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                "ruban", "espace", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                "ruban", "espace", "cosmos", "gouts", "debian", "fedora", "mint", "kali", "arch"]
 LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "windows", "windows-sombre", "mono", "mono-papier",
-                "mono-sakura", "foret", "ruban", "espace", "debian", "fedora", "mint", "kali", "arch"]
+                "mono-sakura", "foret", "ruban", "espace", "cosmos", "debian", "fedora", "mint", "kali", "arch"]
 VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose"}
 # Teintes de chaque style (un seul style, plusieurs couleurs) : clé de [linux] et valeurs.
 STYLE_TONES = {
@@ -1298,6 +1298,7 @@ STYLE_TONES = {
     "mono": ("mono_tone", ["noir", "papier", "sakura"]),
     "ruban": ("ruban_tone", ["bleu", "rouge", "or"]),
     "espace": ("espace_tone", ["bleu", "mars", "nebuleuse"]),
+    "cosmos": ("cosmos_tone", ["orbite", "mousse", "corail"]),
     "windows": ("windows_tone", ["clair", "sombre"]),
     "expressive": ("scheme", ["tonal-spot", "expressive", "vibrant", "fruit-salad", "monochrome"]),
 }
@@ -1335,7 +1336,7 @@ def style_theme(cfg: dict | None = None) -> str:
     if st == "mono":
         t = str(cfg.get("linux", {}).get("mono_tone", "noir"))
         return "mono-" + t if t in ("papier", "sakura") else "mono"
-    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "debian", "fedora", "mint", "kali", "arch"):
+    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "cosmos", "debian", "fedora", "mint", "kali", "arch"):
         return st
     return LINUX_THEME
 
@@ -1452,6 +1453,18 @@ def _ensure_linux_wallpapers() -> None:
                 shutil.copy(f, dest / f"{i:02d}-lain.png")
 
 
+def apply_fastfetch(style: str | None) -> None:
+    """Fiche fastfetch du bureau : ~/.config/fastfetch/config.jsonc suit le style actif."""
+    src = REPO / "terminal/fastfetch" / (f"styles/{style}.jsonc" if style else "config.jsonc")
+    if not src.exists():
+        src = REPO / "terminal/fastfetch/config.jsonc"
+    dst = CONF_DIR.parent / "fastfetch/config.jsonc"
+    if dst.is_symlink() or not dst.exists():
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        dst.unlink(missing_ok=True)
+        dst.symlink_to(src)
+
+
 def _omarchy_themes() -> list[str]:
     """Thèmes Omarchy installés, sans ceux de Liquid Glass."""
     names = set()
@@ -1537,6 +1550,7 @@ def cmd_profile(args: list[str]) -> None:
         cfg = load()
         write_json(cfg)
         if now == "linux":
+            apply_fastfetch(style)
             theme = style_theme(cfg)
             _ensure_linux_theme_files(theme)
             if current_theme() != theme:
@@ -1604,6 +1618,7 @@ def cmd_profile(args: list[str]) -> None:
         run("hyprctl", "reload")
         set_theme(_stock_theme())
     names = {"mac": "Mac", "linux": "Linux · " + style_label(linux_style(cfg)), "omarchy": "Omarchy (d'origine)"}
+    apply_fastfetch(linux_style(cfg) if want == "linux" else None)
     run("omarchy-notification-send", "-u", "low", "Bureau " + names[want], "⌘⇧Espace pour changer de bureau")
     print(f"Profil {want}.")
 
@@ -1617,7 +1632,7 @@ RICE_SCENES = {
     "fish": "Aquarium", "lava": "Lampe à lave", "leaves": "Feuilles", "petals": "Sakura", "snow": "Neige",
     "plasma": "Plasma", "snake": "Serpent", "life": "Jeu de la vie", "pipes": "Tuyaux", "tunnel": "Tunnel",
     "waves": "Mer", "fire": "Feu", "bounce": "Logo", "radar": "Radar", "hex": "Hexa", "cpu": "Processeur",
-    "scope": "Oscilloscope", "cal": "Calendrier", "timer": "Minuteur",
+    "scope": "Oscilloscope", "cal": "Calendrier", "timer": "Minuteur", "video": "Vidéo",
 }
 RICE_FONTS = ["JetBrainsMono Nerd Font", "VT323", "Space Mono", "IBM Plex Mono", "Share Tech Mono", "Press Start 2P",
               "Fira Code", "DM Mono", "Courier Prime", "Martian Mono", "iA Writer Mono S", "Adwaita Mono", "Noto Sans Mono"]
@@ -1635,6 +1650,7 @@ RICE_STYLES = {
     "foret": ("IBM Plex Mono", 0.82, 12, "leaves waves fire clock cava snow cal timer heart scope life cpu shell"),
     "ruban": ("Martian Mono", 0.9, 6, "pipes fire plasma cava clock bounce tunnel scope timer cal heart cpu shell"),
     "espace": ("Space Mono", 0.7, 10, "stars hole orbit cava cal cpu radar clock scope timer tunnel cover shell"),
+    "cosmos": ("JetBrainsMono Nerd Font", 0.72, 10, "stars orbit hole radar cava cal cpu clock scope timer tunnel cover shell"),
     "gouts": ("JetBrainsMono Nerd Font", 0.8, 10, "eye stars lava cava clock cover plasma donut timer cal heart waves fetch"),
     "debian": ("Adwaita Mono", 0.92, 8, "waves bounce fetch cpu clock cal cava timer btop life scope pipes shell"),
     "fedora": ("Adwaita Mono", 0.92, 8, "bounce waves cpu fetch clock cal cava timer btop plasma scope snow shell"),
@@ -1663,7 +1679,7 @@ def rice_grid(n: int) -> list[list[float]]:
 def _rice_defaults(style: str) -> dict:
     font, alpha, gap, scenes = RICE_STYLES.get(style, RICE_STYLES["gouts"])
     sc = scenes.split()
-    return {"page": 0, "font": font, "alpha": alpha, "gap": gap, "size": 0, "minutes": 25, "pages": [
+    return {"page": 0, "font": font, "alpha": alpha, "gap": gap, "size": 0, "minutes": 25, "video": "", "pages": [
         {"name": "Duo", "panes": sc[:2], "cycle": 0},
         {"name": "Mosaïque", "panes": sc[:5], "cycle": 60},
         {"name": "Mur", "panes": sc[:13], "cycle": 120},
@@ -1696,7 +1712,7 @@ def rice_state(style: str | None = None) -> dict:
 
 def rice_save(style: str, state: dict) -> None:
     allp = _rice_all()
-    allp[style] = {k: state[k] for k in ("page", "font", "alpha", "gap", "size", "minutes", "pages") if k in state}
+    allp[style] = {k: state[k] for k in ("page", "font", "alpha", "gap", "size", "minutes", "pages", "video") if k in state}
     tmp = RICE_FILE.with_suffix(".tmp")
     tmp.write_text(json.dumps(allp, ensure_ascii=False, indent=1))
     tmp.replace(RICE_FILE)
@@ -1756,7 +1772,7 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
     box = str(REPO / "terminal/fastfetch/box.jsonc")
     alpha = st["alpha"]
     bus = os.environ.get("XDG_RUNTIME_DIR", "/tmp") + f"/liquid-glass-rice-audio-{page}"
-    loop = ",".join(x for x in RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split() if x in RICE_SCENES and x not in ("timer", "cover"))
+    loop = ",".join(x for x in RICE_STYLES.get(style, RICE_STYLES["gouts"])[3].split() if x in RICE_SCENES and x not in ("timer", "cover", "video"))
     label = style_label(style)
     glyph = RICE_GLYPHS.get(style, "")
     master_done = False
@@ -1776,9 +1792,11 @@ def rice_launch(page: int | None = None, ws: int | None = None, silent: bool = F
             argv = ["btop"]
         else:
             argv = [tty, scene, "--fps", str(fps), "--minutes", str(st["minutes"]), "--label", label, "--glyph", glyph]
+            if scene == "video" and st.get("video"):
+                argv += ["--video", st["video"]]
             argv += ["--audio", ("" if master_done else "+") + bus]
             master_done = True
-            if pg["cycle"] and scene not in ("timer", "cover"):
+            if pg["cycle"] and scene not in ("timer", "cover", "video"):
                 argv += ["--cycle", str(round(pg["cycle"] * (1 + 0.13 * i), 1)), "--list", loop]
         term = ["foot", "--app-id", f"liquid-glass-rice-{page}-{i}", "--title", RICE_SCENES.get(scene, RICE_SPECIAL.get(scene, scene)),
                 "-o", f"font={font}:size={size}", "-o", f"colors-dark.alpha={alpha}", "-o", f"colors-light.alpha={alpha}",

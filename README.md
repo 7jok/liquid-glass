@@ -115,6 +115,7 @@ et **⌃⌘T** passe à la teinte suivante. En ligne de commande :
 | **foret** | Rice « c01 » : puces flottantes, horloge à secondes, météo heure par heure en orbite, spectre musical à curseurs, volets batterie et réseau | mousse, cendre |
 | **ruban** | Bandes en biais, date géante, batterie qui ondule, lanceur oblique qui glisse | bleu, rouge, or |
 | **espace** | Barre fine, paroles qui défilent au centre, horloge à planètes, grille d'activité, tableau de bord central | bleu, mars, nébuleuse |
+| **cosmos** | Système solaire vivant : la Terre tourne, la Lune passe devant et derrière, widgets en satellites, applications sur la Lune, caméra libre | orbite, mousse, corail |
 | **gouts** | « Mes goûts » : horloge empilée, planètes, vinyle, mot chanté géant, aux couleurs du thème Omarchy choisi | tous les thèmes installés |
 | **debian**, **fedora** | Bureau GNOME : barre noire, Activités, vue d'ensemble, grille d'applications, dash | — |
 | **mint** | Bureau Cinnamon : panneau en bas, menu avec favoris et catégories | — |

@@ -60,6 +60,14 @@ THEMES = {
         ansi=["#111929", "#ff7b86", "#7fdcae", "#ffd27a", "#8fc7ff", "#c58bff", "#7fdcdc", "#d6e3f2",
               "#25324a", "#ff9aa3", "#a0ecc6", "#ffe0a0", "#b0d8ff", "#d8acff", "#a0ecec", "#ffffff"],
         bar_alpha=0.85, popup_alpha=0.94),
+    "cosmos": dict(
+        title="cosmos — Terre et Lune, verre sarcelle (ilyamiro)", mode="dark", icons="Yaru-blue-dark",
+        bg="#0b1216", bg_dark="#070d10", bg_darker="#02070c", bg_light="#152127",
+        fg="#e4eef2", fg_dark="#92a6af", fg_light="#d5e6ee", fg_bright="#ffffff",
+        accent="#9fdcf5", selection="#16404f", muted="#5b6f78", border=("9fdcf5aa", "cdbdffaa"), inactive="2a3a42ff",
+        ansi=["#152127", "#ff8a8a", "#8fe0b0", "#ffd98a", "#9fdcf5", "#cdbdff", "#8fe0e0", "#d5e6ee",
+              "#2a3a42", "#ffa8a8", "#a8ecc4", "#ffe6a8", "#bce8fa", "#e0d4ff", "#a8ecec", "#ffffff"],
+        bar_alpha=0.85, popup_alpha=0.94),
     "ruban": dict(
         title="rubans — bleu nuit, cyan, aplats en biais", mode="dark", icons="Yaru-blue-dark",
         bg="#06102e", bg_dark="#050c24", bg_darker="#03081a", bg_light="#0d2050",

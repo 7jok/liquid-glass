@@ -91,7 +91,7 @@ link "$REPO/themes/liquid-glass-dark" "$CFG/omarchy/themes/liquid-glass-dark"
 link "$REPO/themes/lain" "$CFG/omarchy/themes/lain"
 "$REPO/scripts/gen-linux-themes.py" >/dev/null
 compgen -G "$REPO/themes/violet/backgrounds/*.jpg" >/dev/null || nice -n 10 "$REPO/scripts/gen-linux-wallpapers.py" >/dev/null
-for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
+for t in blanc sombre jouet violet violet-aube rose windows windows-sombre mono mono-papier mono-sakura foret ruban espace cosmos debian fedora mint kali arch; do link "$REPO/themes/$t" "$CFG/omarchy/themes/$t"; done
 ok "thèmes liés dans ~/.config/omarchy/themes"
 say "Polices du bureau Linux (Material Symbols, Google Sans Flex, Rubik)"
 "$REPO/scripts/fetch-fonts.sh" && ok "polices dans ~/.local/share/fonts/liquid-glass"

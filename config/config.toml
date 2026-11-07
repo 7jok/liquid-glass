@@ -210,6 +210,7 @@ active = "mac"
 #   foret      rice c01 : puces flottantes, météo en orbite, spectre (foret_tone)
 #   ruban      bandes en biais, grande date, menu oblique (ruban_tone : bleu | rouge | or)
 #   espace     paroles au centre, horloge à planètes, tableau de bord (espace_tone : bleu | mars | nebuleuse)
+#   cosmos     Terre et Lune en 3D, satellites, applications sur la Lune (cosmos_tone : orbite | mousse | corail)
 #   gouts      « Mes goûts » : horloge empilée, planètes, paroles, aux couleurs d'un thème Omarchy (gouts_theme)
 #   debian fedora mint kali arch   panneau et menu de GNOME, Cinnamon, Xfce ou Plasma
 # Une teinte = mêmes widgets, autres couleurs : ⌃⌘T ou touche T dans ⌘⇧Espace.

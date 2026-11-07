@@ -1637,7 +1637,7 @@ Item {
           label: "Bureaux complets"
           sub: "Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)"
           Seg {
-            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", "Forêt"], ["ruban", "Rubans"], ["espace", "Espace"], ["gouts", "Mes goûts"]]
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", "Forêt"], ["ruban", "Rubans"], ["espace", "Espace"], ["cosmos", "Cosmos"], ["gouts", "Mes goûts"]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }
@@ -1709,6 +1709,25 @@ Item {
             options: [["bleu", "Bleu"], ["rouge", "Rouge"], ["or", "Or"]]
             value: root.val("linux.ruban_tone", "bleu")
             onPicked: function(v) { lp.pick("ruban:" + v, "linux.ruban_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Teinte"
+          visible: lp.st === "cosmos"
+          sub: "Orbite, mousse ou corail"
+          Seg {
+            options: [["orbite", "Orbite"], ["mousse", "Mousse"], ["corail", "Corail"]]
+            value: root.val("linux.cosmos_tone", "orbite")
+            onPicked: function(v) { lp.pick("cosmos:" + v, "linux.cosmos_tone", v) }
+          }
+        }
+        Row_ {
+          label: "Fond vivant"
+          sub: "Anime le fond sans vidéo, en pause quand une fenêtre est ouverte"
+          Seg {
+            options: [["off", "Fixe"], ["tourbillon", "Tourbillon"], ["vague", "Vague"], ["respire", "Respire"]]
+            value: root.val("linux.live_wall", "off")
+            onPicked: function(v) { root.set("linux.live_wall", v) }
           }
         }
         Row_ {

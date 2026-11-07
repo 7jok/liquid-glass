@@ -1,0 +1,37 @@
+# Liquid Glass — cosmos — Terre et Lune, verre sarcelle (ilyamiro) (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#9fdcf5"
+selection = "#16404f"
+muted = "#5b6f78"
+
+background = "#0b1216"
+dark_background = "#070d10"
+darker_background = "#02070c"
+lighter_background = "#152127"
+
+foreground = "#e4eef2"
+dark_foreground = "#92a6af"
+light_foreground = "#d5e6ee"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(9fdcf5aa) rgba(cdbdffaa) 45deg"
+
+hyprland_inactive_border = "rgba(2a3a42ff)"
+
+red = "#ff8a8a"
+green = "#8fe0b0"
+yellow = "#ffd98a"
+blue = "#9fdcf5"
+magenta = "#cdbdff"
+cyan = "#8fe0e0"
+orange = "#ffb18a"
+brown = "#8a7d58"
+
+bright_red = "#ffa8a8"
+bright_green = "#a8ecc4"
+bright_yellow = "#ffe6a8"
+bright_blue = "#bce8fa"
+bright_magenta = "#e0d4ff"
+bright_cyan = "#a8ecec"

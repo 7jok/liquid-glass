@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import Quickshell.Services.Pipewire
 import Quickshell.Services.SystemTray
 import Quickshell.Wayland
@@ -128,6 +129,43 @@ PanelWindow {
           }
         }
       }
+    }
+    // Mode du bureau : grille, ouvert (ruban qu'on fait défiler), libre (fenêtres flottantes).
+    Rectangle {
+      id: modePill
+      property string mode: "dwindle"
+      readonly property var names: ({ dwindle: "Grille", scrolling: "Ouvert", floating: "Libre" })
+      anchors.verticalCenter: parent.verticalCenter
+      width: modeRow.implicitWidth + 12; height: 18; radius: 5
+      color: mma.containsMouse ? s.primary : s.alpha(s.colOnSurface, 0.14)
+      Row {
+        id: modeRow
+        anchors.centerIn: parent; spacing: 3
+        MIcon {
+          anchors.verticalCenter: parent.verticalCenter; size: 12
+          icon: modePill.mode === "floating" ? "open_with" : (modePill.mode === "scrolling" ? "view_carousel" : "grid_view")
+          color: mma.containsMouse ? s.colOnPrimary : s.colOnSurface
+        }
+        Text {
+          anchors.verticalCenter: parent.verticalCenter
+          text: modePill.names[modePill.mode] || "Grille"
+          font.family: win.font; font.pixelSize: 10; font.weight: Font.Bold
+          color: mma.containsMouse ? s.colOnPrimary : s.colOnSurface
+        }
+      }
+      MouseArea {
+        id: mma
+        anchors.fill: parent; hoverEnabled: true
+        onClicked: { Quickshell.execDetached(["omarchy-hyprland-workspace-layout-toggle"]); modeRead.restart() }
+      }
+      Process {
+        id: modeProc
+        command: ["omarchy-hyprland-workspace-layout-current"]
+        stdout: StdioCollector { onStreamFinished: { var m = text.trim(); if (m !== "") modePill.mode = m } }
+      }
+      Timer { id: modeRead; interval: 350; onTriggered: { modeProc.running = false; modeProc.running = true } }
+      Connections { target: win; function onActiveWsChanged() { modeRead.restart() } }
+      Component.onCompleted: modeRead.restart()
     }
     Rectangle {
       anchors.verticalCenter: parent.verticalCenter

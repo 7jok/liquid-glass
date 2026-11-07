@@ -747,6 +747,7 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
             src = self.pick()
             self.color = random.random() < 0.5
             self.rows = lg_art.grid(src, w, h) if src else []
+            self.dots = [] if not src or random.random() < 0.6 else lg_art.braille(src, w, h)
             self.key, self.since, self.done = (w, h), t, None
 
         def frame(self, t, w, h):
@@ -760,6 +761,13 @@ def build(Scene, mix, fgc, shade_lines, FONT, JOURS, MOIS):
                 c.center(h // 2, "Aucune image", a.dim)
                 return c.lines()
             shown = min(h, int((t - self.since) * h / 1.6))
+            if self.dots:
+                for y in range(min(shown, len(self.dots))):
+                    c.text(0, y, self.dots[y], mix(a.acc, a.alt, y / max(1, h)))
+                lines = c.lines()
+                if shown >= h:
+                    self.done = lines
+                return lines
             for y in range(shown):
                 row = self.rows[y]
                 for x in range(w):

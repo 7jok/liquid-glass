@@ -2,7 +2,7 @@
 """Fiche système qui s'adapte à la taille du terminal : image en ASCII, en couleur, vraie image
 (sixel), texte en grand, ou logo de la distribution sur leurs bureaux.
 
-    liquid-glass-fetch [--style S] [--mode ascii|color|image|text] [--shell]
+    liquid-glass-fetch [--style S] [--mode image|dots|color|text] [--shell]
 
 --shell : garde la fiche affichée, une touche ouvre le shell (terminaux des rices).
 """
@@ -43,15 +43,18 @@ def main() -> None:
         style = args[args.index("--style") + 1]
     if "--mode" in args:
         mode = args[args.index("--mode") + 1]
+    if "--logo" in args:        # appelé par fastfetch : imprime seulement le logo
+        i = args.index("--logo")
+        lg_fetch.print_logo(style, int(args[i + 1]), int(args[i + 2]))
+        return
     shell = "--shell" in args
     if shell:
         time.sleep(0.25)       # le gestionnaire de fenêtres vient de donner sa taille au terminal
     cols, rows = lg_art.terminal_size()
     logo, density = lg_fetch.choose(style, cols, rows, mode)
-    image = logo.pop("sixel", "")
     conf = lg_fetch.config(style, density, lang, logo)
     # fastfetch regarde ses parents : ici, il verrait python au lieu du shell et du terminal.
-    named = {"shell": pathlib.Path(os.environ.get("SHELL", "bash")).name, "terminal": os.environ.get("TERM", "foot").split("-")[0]}
+    named = {"shell": pathlib.Path(os.environ.get("SHELL", "bash")).name, "terminal": os.environ.get("TERM_PROGRAM", "foot")}
     conf["modules"] = [{"type": "custom", "key": m["key"], "format": named[m["type"]]}
                        if isinstance(m, dict) and m.get("type") in named else m for m in conf["modules"]]
     with tempfile.NamedTemporaryFile("w", suffix=".jsonc", delete=False) as f:
@@ -59,9 +62,8 @@ def main() -> None:
     sys.stdout.write("\x1b[H\x1b[2J")
     sys.stdout.flush()
     subprocess.run(["fastfetch", "-c", f.name])
-    if image:       # après la fiche : foot efface une image quand on écrit sur ses lignes
-        sys.stdout.write("\x1b7\x1b[2;2H" + pathlib.Path(image).read_text() + "\x1b8")
-        sys.stdout.flush()
+    if logo.get("source", "").endswith(f"logo-{os.getpid()}.txt"):
+        os.unlink(logo["source"])
     os.unlink(f.name)
     if shell:
         # La fiche reste affichée ; une touche ouvre le shell.

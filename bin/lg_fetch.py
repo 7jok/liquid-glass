@@ -4,9 +4,10 @@ la place : full, short, mini. Couleurs ANSI : elles suivent le thème du termina
 """
 import fcntl
 import json
+import os
 import random
 import struct
-import subprocess
+import sys
 import termios
 from pathlib import Path
 
@@ -14,41 +15,43 @@ import lg_art
 
 SCHEMA = "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json"
 MARK = "// liquid-glass : fiche générée, remplacée à chaque changement de bureau.\n"
-BUILTIN = {"debian": "debian", "fedora": "fedora", "mint": "linuxmint", "kali": "kali", "arch": "arch",
-           "windows": "windows", "mac": "macos"}
+BUILTIN = {"debian": "debian", "fedora": "fedora", "mint": "linuxmint", "kali": "kali", "arch": "arch", "mac": "macos"}
 OS_NAME = {"debian": "Debian", "fedora": "Fedora", "mint": "Linux Mint", "kali": "Kali Linux", "arch": "Arch Linux"}
 # clé : présentation, couleur des libellés, images, texte en grand.
 STYLES = {
     "mac": ("classic", "blue", [], "MAC"),
-    "windows": ("classic", "cyan", [], "WINDOWS"),
+    "omarchy": ("tree", "green", ["tux", "earth"], "OMARCHY"),
+    "windows": ("frames", "cyan", ["fuji", "wave"], "WINDOWS"),
     "debian": ("classic", "red", [], "DEBIAN"),
     "fedora": ("classic", "blue", [], "FEDORA"),
     "mint": ("classic", "green", [], "MINT"),
     "kali": ("classic", "blue", [], "KALI"),
     "arch": ("classic", "cyan", [], "ARCH"),
-    "blanc": ("box", "default", ["vitruve", "riders", "wave"], "BLANC"),
-    "sombre": ("classic", "white", ["riders", "aldrin", "pillars"], "SOMBRE"),
-    "jouet": ("card", "magenta", ["tux", "fuji", "starry"], "JOUET"),
-    "violet": ("card", "magenta", ["starry", "pillars", "wave"], "VIOLET"),
+    "blanc": ("frames", "default", ["vitruve", "riders", "wave"], "BLANC"),
+    "sombre": ("tree", "white", ["riders", "aldrin", "pillars"], "SOMBRE"),
+    "jouet": ("tree", "magenta", ["tux", "fuji", "starry"], "JOUET"),
+    "violet": ("tree", "magenta", ["starry", "pillars", "wave"], "VIOLET"),
     "expressive": ("card", "yellow", ["starry", "wave", "fuji"], "EXPRESSIVE"),
-    "mono": ("box", "white", ["wave", "riders", "vitruve"], "MONO"),
-    "foret": ("classic", "green", ["fuji", "wave", "starry"], "FORET"),
-    "ruban": ("card", "red", ["riders", "fuji", "wave"], "RUBAN"),
-    "espace": ("box", "cyan", ["saturn", "astronaut", "aldrin", "pillars"], "ESPACE"),
+    "mono": ("frames", "white", ["wave", "riders", "vitruve"], "MONO"),
+    "foret": ("tree", "green", ["fuji", "wave", "starry"], "FORET"),
+    "ruban": ("frames", "yellow", ["riders", "fuji", "wave"], "RUBAN"),
+    "espace": ("frames", "cyan", ["saturn", "astronaut", "aldrin", "pillars"], "ESPACE"),
     "cosmos": ("box", "blue", ["earth", "earthrise", "aldrin", "saturn"], "COSMOS"),
-    "gouts": ("card", "magenta", ["starry", "wave", "tux", "earth"], "OMARCHY"),
+    "gouts": ("tree", "magenta", ["starry", "wave", "tux", "earth"], "OMARCHY"),
 }
 LABELS = {
     "fr": {"os": "OS", "host": "Hôte", "kernel": "Noyau", "uptime": "Allumé", "packages": "Paquets", "shell": "Shell",
            "display": "Écran", "de": "Bureau", "wm": "Fenêtres", "wmtheme": "Thème fen.", "theme": "Thème",
            "icons": "Icônes", "font": "Police", "cursor": "Curseur", "terminal": "Terminal", "terminalfont": "Police term.",
            "cpu": "Processeur", "gpu": "Carte vidéo", "memory": "Mémoire", "swap": "Échange", "disk": "Disque",
-           "localip": "IP locale", "battery": "Batterie", "locale": "Langue", "hard": "Matériel", "soft": "Logiciel"},
+           "localip": "IP locale", "battery": "Batterie", "locale": "Langue", "hard": "Matériel", "soft": "Logiciel",
+           "sys": "SYSTÈME", "desk": "BUREAU", "mach": "MATÉRIEL", "life": "Vie"},
     "en": {"os": "OS", "host": "Host", "kernel": "Kernel", "uptime": "Uptime", "packages": "Packages", "shell": "Shell",
            "display": "Display", "de": "DE", "wm": "WM", "wmtheme": "WM Theme", "theme": "Theme", "icons": "Icons",
            "font": "Font", "cursor": "Cursor", "terminal": "Terminal", "terminalfont": "Terminal Font", "cpu": "CPU",
            "gpu": "GPU", "memory": "Memory", "swap": "Swap", "disk": "Disk", "localip": "Local IP", "battery": "Battery",
-           "locale": "Locale", "hard": "Hardware", "soft": "Software"},
+           "locale": "Locale", "hard": "Hardware", "soft": "Software",
+           "sys": "SYSTEM", "desk": "DESKTOP", "mach": "HARDWARE", "life": "Life"},
 }
 SPACE = {"fr": {"os": "Orbite", "host": "Vaisseau", "uptime": "En vol", "packages": "Cargo", "cpu": "Moteur",
                 "disk": "Soute", "battery": "Énergie"},
@@ -134,14 +137,66 @@ def card(style: str, density: str, lang: str, color: str) -> list:
     return mods
 
 
-KINDS = {"classic": classic, "box": box, "card": card}
+TREE = {"full": (["os", "kernel", "uptime", "packages", "shell"], ["de", "wm", "theme", "icons", "font", "terminal"],
+                  ["cpu", "gpu", "memory", "disk", "battery", "localip"]),
+        "short": (["os", "kernel", "uptime", "shell"], ["wm", "theme", "terminal"], ["cpu", "gpu", "memory", "disk"]),
+        "mini": (["os", "kernel"], ["wm"], ["cpu", "memory"])}
+COLORS3 = ("red", "yellow", "blue")
+
+
+def tree(style: str, density: str, lang: str, color: str) -> list:
+    """Sections de couleur, branches et flèches."""
+    k = labels(style, lang)
+    mods: list = [{"type": "title", "format": "{user-name-colored}{at-symbol-colored}{host-name-colored}"}, "separator"]
+    for sec, tint, names in zip(("sys", "desk", "mach"), COLORS3, TREE[density]):
+        mods.append({"type": "custom", "format": f"{{#1;{ansi_of(tint)}}}○ {k[sec]}{{#}}"})
+        for i, n in enumerate(names):
+            branch = "┗" if i == len(names) - 1 else "┣"
+            mods.append({**module(style, n, f" {branch} {k[n]}"), "keyColor": tint})
+        if density != "mini" and sec != "mach":
+            mods.append("break")
+    if density != "mini":
+        mods += ["break", {"type": "colors", "paddingLeft": 2, "symbol": "circle"}]
+    return mods
+
+
+def frames(style: str, density: str, lang: str, color: str) -> list:
+    """Cadres titrés et arbres d'icônes."""
+    k = labels(style, lang)
+    width = 46
+
+    def head(title: str) -> dict:
+        side = (width - len(title) - 2) // 2
+        return {"type": "custom", "format": f"┌{'─' * side}{{#1}}{title}{{#}}{'─' * (width - side - len(title) - 2)}┐"}
+
+    def foot() -> dict:
+        return {"type": "custom", "format": f"└{'─' * width}┘"}
+
+    def rows(names: list[str], tint: str) -> list:
+        out = []
+        for i, n in enumerate(names):
+            branch = "└" if i == len(names) - 1 else "├"
+            out.append({**module(style, n, f"  {branch} {ICON.get(n, '•')} "), "keyColor": tint})
+        return out
+
+    take = {"full": 6, "short": 4, "mini": 2}[density]
+    mods: list = [head(k["hard"]), *rows(["cpu", "gpu", "memory", "disk", "battery", "display"][:take], "green"), foot()]
+    if density != "mini":
+        mods.append("break")
+    mods += [head(k["soft"]), *rows(["os", "kernel", "packages", "wm", "shell", "terminal"][:take], "yellow"), foot()]
+    if density == "full":
+        mods += ["break", head(k["life"]), *rows(["uptime", "localip"], "magenta"), foot()]
+    return mods
+
+
+KINDS = {"classic": classic, "box": box, "card": card, "tree": tree, "frames": frames}
 
 
 def config(style: str, density: str = "full", lang: str = "fr", logo: dict | None = None) -> dict:
     kind, color, _, _ = STYLES.get(style, STYLES["gouts"])
-    key_width = 0 if kind != "classic" else 14
+    key_width = 14 if kind == "classic" else 16 if kind == "tree" else 0
     return {"$schema": SCHEMA, "logo": logo if logo is not None else default_logo(style),
-            "display": {"separator": " " if kind != "classic" else ": ", "key": {"width": key_width},
+            "display": {"separator": ": " if kind == "classic" else " → " if kind == "tree" else " ", "key": {"width": key_width},
                         "color": {"keys": color, "title": color}, "bar": {"width": 12}, "disableLinewrap": True,
                         "percent": {"type": 3}},
             "modules": KINDS[kind](style, density, lang, color)}
@@ -164,41 +219,23 @@ def ansi_of(color: str) -> str:
             "white": "37"}.get(color, "")
 
 
-def ascii_logo(path: Path, w: int, h: int, color: bool, tint: str, position: str = "left") -> dict:
-    f = lg_art.cached(path, w, h, color=color, ansi="" if color else ansi_of(tint))
-    return {"type": "file-raw", "source": str(f), "width": w, "height": h, "position": position,
-            "padding": {"top": 1, "left": 1, "right": 3}}
-
-
 def cell_size() -> tuple[int, int]:
     """Taille d'une case en pixels, telle que le terminal la déclare."""
     try:
-        rows, cols, xp, yp = struct.unpack("HHHH", fcntl.ioctl(1, termios.TIOCGWINSZ, b"\0" * 8))
+        with open("/dev/tty", "rb", buffering=0) as t:
+            rows, cols, xp, yp = struct.unpack("HHHH", fcntl.ioctl(t, termios.TIOCGWINSZ, b"\0" * 8))
         return (xp // cols, yp // rows) if xp and yp and cols and rows else (0, 0)
     except OSError:
         return 0, 0
 
 
-def sixel_file(path: Path, w: int, h: int) -> Path | None:
-    """Vraie image (sixel), à la taille exacte de w×h cases : foot l'affiche à côté de la fiche."""
-    cw, ch = cell_size()
-    if not cw:
-        return None
-    f = lg_art.CACHE / f"sixel-{path.stem}-{w * cw}x{h * ch}.six"
-    if not f.exists() or f.stat().st_size == 0:
-        f.parent.mkdir(parents=True, exist_ok=True)
-        subprocess.run(["magick", str(path) + "[0]", "-background", "#0c0c12", "-alpha", "remove", "-resize", f"{w * cw}x{h * ch}",
-                        "-colors", "200", f"sixel:{f}"], timeout=30)
-    return f if f.exists() and f.stat().st_size else None
-
-
 def default_logo(style: str) -> dict:
-    """Logo du `fastfetch` tapé à la main : celui de la distribution, ou une image du style."""
+    """Logo du `fastfetch` tapé à la main : celui de la distribution, ou une image du bureau."""
     if style in BUILTIN:
         return builtin_logo(style)
-    _, color, art, _ = STYLES.get(style, STYLES["gouts"])
-    p = art_path(art[0]) if art else None
-    return ascii_logo(p, 40, 20, True, color) if p else {"type": "small"}
+    run = Path(__file__).resolve().parent / "liquid-glass-fetch"
+    return {"type": "command-raw", "source": f"{run} --logo 42 21 --style {style}", "width": 42, "height": 21,
+            "padding": {"top": 1, "left": 1, "right": 3}}
 
 
 def banner_logo(text: str, width: int, tint: str) -> dict | None:
@@ -214,33 +251,71 @@ def banner_logo(text: str, width: int, tint: str) -> dict | None:
             "padding": {"top": 1, "left": 1, "right": 1}}
 
 
+def pool(style: str) -> list[Path]:
+    """Tes images, les fonds du bureau, puis les images du dépôt."""
+    _, _, art, _ = STYLES.get(style, STYLES["gouts"])
+    own = lg_art.gallery(own_only=True)
+    walls = lg_art.style_backgrounds(style)
+    mine = [p for p in (art_path(n) for n in art) if p]
+    return own * 4 + walls + mine * 3 or lg_art.gallery()
+
+
 def choose(style: str, cols: int, rows: int, mode: str = "") -> tuple[dict, str]:
-    """Logo et densité qui tiennent dans le terminal. mode : ascii, color, image, text ou vide."""
-    kind, color, art, word = STYLES.get(style, STYLES["gouts"])
-    info = 46 if kind == "classic" else 44      # les lignes trop longues sont coupées, pas repliées
-    density = "full" if rows >= 29 else "short" if rows >= 17 else "mini"
-    room = cols - info - 5
+    """Logo et densité qui tiennent dans le terminal. mode : image, dots, color, text ou vide."""
+    kind, color, _, word = STYLES.get(style, STYLES["gouts"])
+    density = "full" if rows >= 27 else "short" if rows >= 17 else "mini"
+    room = cols - (34 if density == "mini" else 50)
     if style in BUILTIN:
         return (builtin_logo(style) if room >= 34 else {"type": "none"}), density
-    names = art or [p.stem for p in lg_art.gallery()]
-    own = [p for p in lg_art.gallery(own_only=True)]
-    pick = random.choice(own) if own and random.random() < 0.5 else art_path(random.choice(names))
-    mode = mode or random.choice(["ascii", "ascii", "color", "color", "image", "text"])
+    cw, ch = cell_size()
+    mode = mode or random.choice(["image"] * 6 + ["dots"] * 3 + ["color", "text"])
     if mode == "text" and rows >= 26 and cols >= 50:
         logo = banner_logo(word, cols - 4, color)
         if logo:
             return logo, "short" if rows >= 34 else "mini"
-    if room < 18 or not pick:
-        return {"type": "none"}, density
-    w = min(room, 64, int((rows - 3) * 2.05))
-    h = max(6, int(w / 2.05))
-    if mode == "image" and (f := sixel_file(pick, w, h)):
-        # La fiche réserve la place avec un logo vide ; liquid-glass-fetch dessine l'image avant.
-        blank = lg_art.CACHE / f"blank-{h}.txt"
-        blank.write_text("\n" * (h - 1))
-        return {"type": "file-raw", "source": str(blank), "width": w, "height": h, "sixel": str(f),
-                "padding": {"top": 1, "left": 1, "right": 3}}, density
-    return ascii_logo(pick, w, h, mode == "color", color), density
+        mode = "image"
+    ratio = (ch / cw) if cw else 2.05
+    src = random.choice(pool(style))
+    h = max(8, min(rows - 2, 34))
+    w = min(room, int(h * ratio))
+    if w >= 24:
+        h = min(h, max(8, int(w / ratio)))
+        return raw_logo(src, mode, w, h, color, cw, ch), density
+    # Terminal étroit et haut : l'image passe au-dessus de la fiche.
+    if rows >= 22:
+        h = int(rows * 0.55)
+        w = min(cols - 2, int(h * ratio))
+        h = min(h, int(w / ratio))
+        return {**raw_logo(src, mode, w, h, color, cw, ch), "position": "top"}, "mini"
+    return {"type": "none"}, density
+
+
+def raw_logo(src: Path, mode: str, w: int, h: int, tint: str, cw: int, ch: int) -> dict:
+    """Fichier de logo. La vraie image finit en revenant à son point de départ et en passant
+    h lignes : fastfetch compte les lignes pour remonter à droite du logo."""
+    f = lg_art.CACHE / f"logo-{os.getpid()}.txt"
+    f.parent.mkdir(parents=True, exist_ok=True)
+    f.write_bytes(logo_bytes(src, mode, w, h, tint, cw, ch))
+    return {"type": "file-raw", "source": str(f), "width": w, "height": h, "padding": {"top": 1, "left": 1, "right": 3}}
+
+
+def logo_bytes(src: Path, mode: str, w: int, h: int, tint: str, cw: int, ch: int) -> bytes:
+    if mode == "image" and cw:
+        data = lg_art.sixel(src, w, h, cw, ch)
+        if data:
+            return b"\x1b7" + data + b"\x1b8" + b"\n" * h
+    if mode == "color" and w >= 40:
+        return ("\n".join(lg_art.render(src, w, h, color=True)) + "\n").encode()
+    return ("\n".join(lg_art.braille(src, w, h, ansi_of(tint) or "37")) + "\n").encode()
+
+
+def print_logo(style: str, w: int, h: int) -> None:
+    """Logo du `fastfetch` tapé à la main : fastfetch lance cette commande à chaque fois,
+    l'image change donc à chaque terminal ouvert."""
+    _, color, _, _ = STYLES.get(style, STYLES["gouts"])
+    cw, ch = cell_size()
+    mode = random.choice(["image"] * 7 + ["dots"] * 3)
+    sys.stdout.buffer.write(logo_bytes(random.choice(pool(style)), mode, w, h, color, cw, ch))
 
 
 def write_default(style: str, dest: Path, lang: str = "fr") -> None:

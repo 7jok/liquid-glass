@@ -57,10 +57,11 @@ def main() -> None:
     with tempfile.NamedTemporaryFile("w", suffix=".jsonc", delete=False) as f:
         json.dump(conf, f, ensure_ascii=False)
     sys.stdout.write("\x1b[H\x1b[2J")
-    if image:
-        sys.stdout.write("\x1b[2;2H" + pathlib.Path(image).read_text() + "\x1b[H")
     sys.stdout.flush()
     subprocess.run(["fastfetch", "-c", f.name])
+    if image:       # après la fiche : foot efface une image quand on écrit sur ses lignes
+        sys.stdout.write("\x1b7\x1b[2;2H" + pathlib.Path(image).read_text() + "\x1b8")
+        sys.stdout.flush()
     os.unlink(f.name)
     if shell:
         # La fiche reste affichée ; une touche ouvre le shell.

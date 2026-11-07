@@ -15,17 +15,12 @@ void main() {
   vec2 c = (uv - 0.5) * vec2(aspect, 1.0);
   float r = length(c);
   if (mode < 0.5) {
-    // Tourbillon : plus on approche du centre, plus ça tourne ; deux phases fondues pour boucler sans saut.
-    float t = fract(time * 0.03);
-    vec3 acc = vec3(0.0);
-    for (int i = 0; i < 2; i++) {
-      float ph = fract(t + float(i) * 0.5);
-      float a = (ph - 0.5) * 0.22 / (r + 0.25);
-      float cs = cos(a), sn = sin(a);
-      vec2 q = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs) / vec2(aspect, 1.0) + 0.5;
-      acc += texture(wall, q).rgb * (1.0 - abs(ph * 2.0 - 1.0));
-    }
-    fragColor = vec4(acc, 1.0) * qt_Opacity;
+    // Tourbillon : le centre tourne plus que les bords, dans un sens puis dans l'autre.
+    // Une seule lecture de l'image, pour que les textes et les traits ne se dédoublent pas.
+    float a = 0.16 * sin(time * 0.16) / (r + 0.25);
+    float cs = cos(a), sn = sin(a);
+    vec2 q = vec2(c.x * cs - c.y * sn, c.x * sn + c.y * cs) * 0.9 / vec2(aspect, 1.0) + 0.5;
+    fragColor = vec4(texture(wall, q).rgb, 1.0) * qt_Opacity;
     return;
   }
   if (mode < 1.5) {

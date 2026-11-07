@@ -1,5 +1,6 @@
 import QtQuick
 import Quickshell
+import Quickshell.Bluetooth
 import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Pipewire
@@ -14,6 +15,7 @@ PanelWindow {
   id: win
   property var service: null
   readonly property var s: service
+  readonly property var bt: Bluetooth.defaultAdapter
 
   anchors { top: true; left: true; right: true }
   implicitHeight: 28
@@ -175,6 +177,20 @@ PanelWindow {
       MIcon { anchors.centerIn: parent; icon: "bar_chart"; size: 13; color: tma.containsMouse ? s.colOnPrimary : s.colOnSurface }
       MouseArea { id: tma; anchors.fill: parent; hoverEnabled: true; onClicked: s.togglePanel("stats") }
     }
+    // Langue : un clic passe du français à l'anglais (liquid-glass lang).
+    Chip {
+      fill: s.alpha(s.colOnSurface, 0.14); ink: s.colOnSurface; icon: "language"
+      label: T.loc === "en_US" ? "EN" : "FR"
+      run: ["liquid-glass", "lang", T.loc === "en_US" ? "fr" : "en"]
+    }
+    // Bluetooth : allumé ou éteint d'un clic.
+    Chip {
+      visible: !!win.bt
+      fill: win.bt && win.bt.enabled ? s.primary : s.alpha(s.colOnSurface, 0.14)
+      ink: win.bt && win.bt.enabled ? s.colOnPrimary : s.colOnSurface
+      icon: win.bt && win.bt.enabled ? "bluetooth" : "bluetooth_disabled"
+      run: ["omarchy-bluetooth-power", "toggle"]
+    }
     Chip { panel: "net"; fill: s.primary; ink: s.colOnPrimary; icon: s.netDev === "" ? "wifi_off" : (s.netWifi ? "wifi" : "lan"); label: s.netDev === "" ? T.t("Hors ligne") : (s.netWifi ? "Wi-Fi" : "Ethernet") }
     Chip { fill: s.tertiary; ink: s.colOnPrimary; icon: win.muted ? "volume_off" : "volume_up"; label: win.muted ? "--" : win.vol + " %" }
     Chip {
@@ -198,6 +214,7 @@ PanelWindow {
     property string icon: ""
     property string label: ""
     property string panel: ""
+    property var run: []
     anchors.verticalCenter: parent.verticalCenter
     width: chRow.implicitWidth + 12; height: 18; radius: 5
     color: fill
@@ -209,7 +226,7 @@ PanelWindow {
     }
     MouseArea {
       anchors.fill: parent
-      onClicked: { if (ch.panel !== "") win.s.togglePanel(ch.panel); else win.s.toggleMenu("home") }
+      onClicked: { if (ch.run.length > 0) Quickshell.execDetached(ch.run); else if (ch.panel !== "") win.s.togglePanel(ch.panel); else win.s.toggleMenu("home") }
     }
   }
 }

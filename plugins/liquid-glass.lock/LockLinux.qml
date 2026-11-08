@@ -223,7 +223,7 @@ Item {
   readonly property string faceStyle: faceChoice === "auto" ? style : faceChoice
   readonly property string faceName: faceChoice === "classic" ? "" : ({ ile: "Ile", ruban: "Ruban", espace: "Espace", cosmos: "Espace", foret: "Foret",
                                         mono: "Mono", sombre: "Sombre", blanc: "Blanc", jouet: "Jouet", windows: "Windows",
-                                        lain: "Lain", expressive: "Expressive" })[faceStyle] || ""
+                                        lain: "Lain", expressive: "Expressive", hud: "Hud" })[faceStyle] || ""
   readonly property var box: face.item && face.item.fieldBox ? face.item.fieldBox : null
   readonly property real fieldW: box ? box.width : Math.min(360, width - 48)
   readonly property real fieldH: box ? box.height : 36

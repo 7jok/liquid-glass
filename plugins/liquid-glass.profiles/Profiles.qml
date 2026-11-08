@@ -153,6 +153,15 @@ Item {
       ] },
     { id: "ile", name: T.t("Île"), sub: T.t("Encoche noire, huit onglets, prune"), bg: themes + "ile/backgrounds/01-ile.jpg",
       ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "space" },
+    { id: "hud", name: "7JOKS", sub: T.t("Terminal de science-fiction, démarrage animé"), bg: themes + "hud/backgrounds/01-hud.jpg",
+      ink: "#e6e6e6", sub2: "#8a8a8a", acc: "#e6e6e6", font: "Share Tech Mono", mock: "space", key: "hud_tone",
+      tones: [
+        { id: "blanc", name: T.t("Blanc"), acc: "#e6e6e6" },
+        { id: "cyan", name: "Cyan", acc: "#aacfd1" },
+        { id: "ambre", name: T.t("Ambre"), acc: "#ffb43c" },
+        { id: "vert", name: T.t("Vert"), acc: "#5cff8a" },
+        { id: "rouge", name: T.t("Rouge"), acc: "#ff5a5a" }
+      ] },
     { id: "cosmos", name: "Cosmos", sub: T.t("Terre, Lune et satellites"), bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
       ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "space", key: "cosmos_tone",
       tones: [

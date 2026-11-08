@@ -39,7 +39,7 @@ Item {
   // Tous sauf lain partagent les mêmes composants (Ex*), habillés par une « peau »
   // (palette, polices, arrondis, bordures, ombres) et un jeu de widgets.
   readonly property var styles: ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                                 "ruban", "espace", "cosmos", "ile", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                                 "ruban", "espace", "cosmos", "ile", "hud", "gouts", "debian", "fedora", "mint", "kali", "arch"]
   readonly property string style: styles.indexOf(String(opt("style", "blanc"))) >= 0 ? String(opt("style", "blanc")) : "blanc"
   readonly property bool ex: true
   // Familles de bureau : « ex » = barre en îlots + widgets (blanc… expressive),
@@ -61,7 +61,9 @@ Item {
   readonly property bool isCosmos: style === "cosmos"
   readonly property bool isEspace: style === "espace" || isCosmos
   readonly property bool isIle: style === "ile"
-  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle
+  // 7JOKS : bureau de terminal de science-fiction (HudDesk), démarrage animé (HudBoot).
+  readonly property bool isHud: style === "hud"
+  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle && !isHud
   // Sombre : mur de tuiles à la place de la scène musicale et des widgets.
   readonly property bool wall: style === "sombre" && opt("sombre_wall", true) !== false
   // Blanc : barre de texte en bas (dwm) ; Jouet : gros dock, pas de barre en haut.
@@ -85,6 +87,8 @@ Item {
                             ["sang", T.t("Sang"), "#ff5a6e"], ["indigo", "Indigo", "#a6b1ff"]]],
     jouet: ["jouet_tone", [["bonbon", T.t("Bonbon"), "#ff5fa2"], ["menthe", T.t("Menthe"), "#18b98f"], ["peche", T.t("Pêche"), "#ff7a45"]]],
     mono: ["mono_tone", [["noir", T.t("Noir"), "#000000"], ["papier", T.t("Papier"), "#ffffff"], ["sakura", "Sakura", "#f7a8c4"]]],
+    hud: ["hud_tone", [["blanc", T.t("Blanc"), "#e6e6e6"], ["cyan", "Cyan", "#aacfd1"], ["ambre", T.t("Ambre"), "#ffb43c"],
+                       ["vert", T.t("Vert"), "#5cff8a"], ["rouge", T.t("Rouge"), "#ff5a5a"]]],
     windows: ["windows_tone", [["clair", T.t("Clair"), "#f3f3f3"], ["sombre", T.t("Sombre"), "#202020"]]],
     cosmos: ["cosmos_tone", [["orbite", T.t("Orbite"), "#9fdcf5"], ["mousse", T.t("Mousse"), "#a8e0a4"], ["corail", T.t("Corail"), "#ffb09c"]]],
     espace: ["espace_tone", [["bleu", T.t("Bleu"), "#8fc7ff"], ["mars", "Mars", "#ff8a6b"], ["nebuleuse", T.t("Nébuleuse"), "#c58bff"]]],
@@ -139,6 +143,8 @@ Item {
                   radius: 20, border: 0, shadow: "soft", bar: "float", dark: true },
     ile:        { sans: "Inter", num: "Michroma", pixel: "Silkscreen", display: "Michroma",
                   radius: 14, border: 0, shadow: "soft", bar: "ile", dark: true },
+    hud:        { sans: "Share Tech Mono", num: "Share Tech Mono", pixel: "Silkscreen", display: "Michroma",
+                  radius: 4, border: 1, shadow: "none", bar: "hud", dark: true },
     cosmos:     { sans: "JetBrainsMono Nerd Font", num: "JetBrainsMono Nerd Font", pixel: "Silkscreen", display: "JetBrainsMono Nerd Font",
                   radius: 10, border: 1, shadow: "soft", bar: "espace", dark: true },
     espace:     { sans: "Inter", num: "Inter", pixel: "Silkscreen", display: "Inter",
@@ -269,6 +275,16 @@ Item {
       surface: "#17151b", surface_container_low: "#1b191f", surface_container: "#211f25", surface_container_high: "#26232b",
       surface_container_highest: "#322e37", on_surface: "#e0dae2", on_surface_variant: "#8a8490",
       outline: "#5e5864", outline_variant: "#35313b", error: "#e8857c" },
+    // 7JOKS : noir pur, traits de la teinte choisie.
+    hud: (function() {
+      var a = ({ blanc: "#e6e6e6", cyan: "#aacfd1", ambre: "#ffb43c", vert: "#5cff8a", rouge: "#ff5a5a" })[String(opt("hud_tone", "blanc"))] || "#e6e6e6"
+      return { primary: a, on_primary: "#000000", primary_container: "#1a1a1a", on_primary_container: a,
+        secondary: a, secondary_container: "#141414", on_secondary_container: a,
+        tertiary: a, tertiary_container: "#141414", on_tertiary_container: a,
+        surface: "#000000", surface_container_low: "#050505", surface_container: "#0a0a0a", surface_container_high: "#111111",
+        surface_container_highest: "#181818", on_surface: a, on_surface_variant: "#8a8a8a",
+        outline: "#5a5a5a", outline_variant: "#2a2a2a", error: "#ff5a5a" }
+    })(),
     // Cosmos : verre sombre sarcelle, accent choisi.
     cosmos: Object.assign({
       primary: "#9fdcf5", on_primary: "#06222e", primary_container: "#16404f", on_primary_container: "#d5f2ff",
@@ -668,6 +684,10 @@ Item {
     } else if (style === "mono") {
       act = "\"rgba(" + hex(mc("primary", "#e6e6e6"), "aa") + ")\""; inact = "rgba(" + hex(mc("outline_variant", "#2a2a2a"), "ff") + ")"
       bw = 1; gin = 6; gout = 12; shadow = darkSkin ? "rgba(000000cc)" : "rgba(00000040)"; r = 14
+    } else if (style === "hud") {
+      // 7JOKS : un trait fin de la teinte, coins presque droits, pas d'ombre, cadre serré.
+      act = "\"rgba(" + hex(mc("primary", "#e6e6e6"), "ff") + ")\""; inact = "rgba(3a3a3aff)"
+      bw = 1; gin = 4; gout = 6; r = 4; shadow = "rgba(00000000)"
     } else if (style === "foret") {
       act = "{ colors = { \"rgba(" + hex(mc("primary", "#cfe89a"), "ee") + ")\", \"rgba(" + hex(mc("tertiary", "#f4b6a6"), "ee") + ")\" }, angle = 45 }"
       inact = "rgba(" + hex(mc("outline_variant", "#434a36"), "aa") + ")"; bw = 2; gin = 6; gout = 12; shadow = "rgba(0a0c06aa)"; r = 14
@@ -1319,6 +1339,10 @@ Item {
   Variants {
     model: svc.isIle ? svc.mainScreen : []
     delegate: Component { IleNotch { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isHud ? svc.mainScreen : []
+    delegate: Component { HudDesk { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
     model: svc.isCosmos ? svc.mainScreen : []

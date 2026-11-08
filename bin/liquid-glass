@@ -1292,9 +1292,9 @@ PROFILE_DIR = CONF_DIR / "profiles"
 LINUX_THEME = "lain"   # thème de repli du style « expressive » (couleurs tirées du fond)
 # Styles du bureau Linux et leur thème Omarchy (terminaux, bordures, fonds).
 LINUX_STYLES = ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                "ruban", "espace", "cosmos", "ile", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                "ruban", "espace", "cosmos", "ile", "hud", "gouts", "debian", "fedora", "mint", "kali", "arch"]
 LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "violet-crepuscule", "violet-lavande", "violet-prune", "violet-ete", "violet-automne", "violet-hiver", "violet-printemps", "windows", "windows-sombre", "mono", "mono-papier",
-                "mono-sakura", "foret", "ruban", "espace", "cosmos", "ile", "debian", "fedora", "mint", "kali", "arch"]
+                "mono-sakura", "foret", "ruban", "espace", "cosmos", "ile", "hud", "debian", "fedora", "mint", "kali", "arch"]
 VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose", "minuit": "violet", "crepuscule": "violet-crepuscule", "lavande": "violet-lavande", "prune": "violet-prune", "ete": "violet-ete", "automne": "violet-automne", "hiver": "violet-hiver", "printemps": "violet-printemps"}
 # Teintes de chaque style (un seul style, plusieurs couleurs) : clé de [linux] et valeurs.
 STYLE_TONES = {
@@ -1308,6 +1308,7 @@ STYLE_TONES = {
     "espace": ("espace_tone", ["bleu", "mars", "nebuleuse", "aurore", "soleil"]),
     "cosmos": ("cosmos_tone", ["orbite", "mousse", "corail"]),
     "windows": ("windows_tone", ["clair", "sombre"]),
+    "hud": ("hud_tone", ["blanc", "cyan", "ambre", "vert", "rouge"]),
     "expressive": ("scheme", ["tonal-spot", "expressive", "vibrant", "fruit-salad", "monochrome"]),
 }
 PROFILES = ("mac", "linux", "omarchy")
@@ -1322,7 +1323,7 @@ BAR_OFF_FLAG = HOME / ".local/state/omarchy/toggles/bar-off"
 
 
 def style_label(st: str) -> str:
-    return {"gouts": "Mes goûts"}.get(st, st.capitalize())
+    return {"gouts": "Mes goûts", "hud": "7JOKS"}.get(st, st.capitalize())
 
 
 def linux_style(cfg: dict | None = None) -> str:
@@ -1344,7 +1345,7 @@ def style_theme(cfg: dict | None = None) -> str:
     if st == "mono":
         t = str(cfg.get("linux", {}).get("mono_tone", "noir"))
         return "mono-" + t if t in ("papier", "sakura") else "mono"
-    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "cosmos", "ile", "debian", "fedora", "mint", "kali", "arch"):
+    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "cosmos", "ile", "hud", "debian", "fedora", "mint", "kali", "arch"):
         return st
     return LINUX_THEME
 
@@ -1362,7 +1363,7 @@ def _ensure_linux_theme_files(theme: str) -> None:
     if not any((d / "backgrounds").glob("*.jpg")):
         print("Génération des fonds (une seule fois)…")
         fam = theme.split("-")[0] if theme.startswith(("windows", "mono")) else theme
-        extra = [fam] if fam in ("windows", "mono", "foret") else (["saisons"] if theme.startswith("violet-") and theme != "violet-aube" else [])
+        extra = [fam] if fam in ("windows", "mono", "foret") else (["saisons"] if theme.startswith("violet-") and theme != "violet-aube" else (["hud"] if theme == "hud" else []))
         run("nice", "-n", "10", str(REPO / "scripts/gen-linux-wallpapers.py"), str(REPO / "themes"), *extra)
     if not any((d / "backgrounds").glob("*.jpg")):    # thèmes sans fonds générés : pris sur le web
         run("nice", "-n", "10", str(REPO / "scripts/fetch-style-wallpapers.py"), theme)
@@ -1688,6 +1689,7 @@ RICE_STYLES = {
     "debian": ("Adwaita Mono", 0.92, 8, "waves bounce fetch cpu clock cal cava timer btop life scope pipes shell"),
     "fedora": ("Adwaita Mono", 0.92, 8, "bounce waves cpu fetch clock cal cava timer btop plasma scope snow shell"),
     "mint": ("Noto Sans Mono", 0.92, 8, "leaves waves fetch cpu clock cal cava bounce timer btop scope snow shell"),
+    "hud": ("Share Tech Mono", 0.9, 6, "fetch cpu radar hex rain scope clock btop cal tunnel cava timer shell"),
     "kali": ("Share Tech Mono", 0.85, 6, "radar hex rain cpu fetch shell btop scope clock tunnel cal timer cava"),
     "arch": ("JetBrainsMono Nerd Font", 0.88, 8, "pipes fetch cpu bounce cava btop rain clock hex cal timer scope shell"),
 }

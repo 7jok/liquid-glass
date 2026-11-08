@@ -206,9 +206,12 @@ def main():
         d.mkdir(parents=True, exist_ok=True)
     if "saisons" in only:
         return seasons(root)
+    if "hud" in only:
+        return hud(root)
     if only:
         return extra(w, wd, mo, fo, only)
     extra(w, wd, mo, fo, {"windows", "mono", "foret"})
+    hud(root)
 
     # Violet nuit : ciel prune, crêtes violettes, brume lavande.
     mountains(v / "01-violet-nuit.jpg", "#4c3a8a", "#5b4699", "#47367f", "#140b28", "#7a63b8", seed=4, fog_a=0.45)
@@ -241,6 +244,22 @@ def main():
               sun=(980, 200, 80, "#ffd23f"))
     mountains(j / "02-jouet-menthe.jpg", "#e9e0ff", "#7ee8cf", "#3ddbb4", "#1b1030", "#fffdf7", seed=17, fog_a=0.6)
     seasons(root)
+
+
+def hud(root):
+    """7JOKS : noir, grille de points, nom au centre (le bureau le recouvre presque entièrement)."""
+    d = root / "hud" / "backgrounds"
+    d.mkdir(parents=True, exist_ok=True)
+    font = subprocess.run(["fc-match", "-f", "%{file}", "Michroma"], capture_output=True, text=True).stdout or "DejaVu-Sans"
+    dots = " ".join(f"point {x},{y}" for x in range(40, OUT_W, 64) for y in range(40, OUT_H, 64))
+    subprocess.run(["magick", "-size", f"{OUT_W}x{OUT_H}", "xc:#000000",
+                    "-fill", "#2a2a2a", "-draw", dots,
+                    "-fill", "none", "-stroke", "#3a3a3a", "-strokewidth", "2",
+                    "-draw", f"rectangle {OUT_W//2-520},{OUT_H//2-130} {OUT_W//2+520},{OUT_H//2+130}",
+                    "-stroke", "none", "-fill", "#d8d8d8", "-font", font, "-pointsize", "150",
+                    "-gravity", "center", "-annotate", "+0+0", "7JOKS",
+                    "-quality", "92", str(d / "01-hud.jpg")], check=True)
+    print("fond", d / "01-hud.jpg")
 
 
 def seasons(root):

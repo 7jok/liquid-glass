@@ -68,6 +68,14 @@ THEMES = {
         ansi=["#322e37", "#d98c8c", "#9cc3a5", "#d8bd8a", "#9aa8d8", "#b8a0d8", "#9cc6c6", "#c9c2cc",
               "#5e5864", "#e8a3a3", "#b4d6bb", "#e8d2a5", "#b4c0e8", "#cdb8e8", "#b4dada", "#ffffff"],
         bar_alpha=0.55, popup_alpha=0.96),
+    "hud": dict(
+        title="7JOKS — terminal de science-fiction, traits blancs sur noir", mode="dark", icons="Yaru-dark",
+        bg="#000000", bg_dark="#000000", bg_darker="#000000", bg_light="#101010",
+        fg="#e6e6e6", fg_dark="#8a8a8a", fg_light="#cfcfcf", fg_bright="#ffffff",
+        accent="#e6e6e6", selection="#2a2a2a", muted="#5a5a5a", border=("e6e6e6ff", "e6e6e6ff"), inactive="3a3a3aff",
+        ansi=["#101010", "#ff5a5a", "#5cff8a", "#ffb43c", "#aacfd1", "#c8a2ff", "#7fe0e0", "#cfcfcf",
+              "#3a3a3a", "#ff8080", "#8cffaa", "#ffcc70", "#c8e4e6", "#dcc0ff", "#a8f0f0", "#ffffff"],
+        bar_alpha=0.9, popup_alpha=0.97),
     "cosmos": dict(
         title="cosmos — Terre et Lune, verre sarcelle (ilyamiro)", mode="dark", icons="Yaru-blue-dark",
         bg="#0b1216", bg_dark="#070d10", bg_darker="#02070c", bg_light="#152127",

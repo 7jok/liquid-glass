@@ -1466,7 +1466,7 @@ Item {
           Picker {
             options: [["auto", T.t("Automatique")], ["classic", T.t("Bonbon")], ["mono", "Mono (Caelestia)"], ["foret", T.t("Forêt")],
                       ["ile", T.t("Île")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["sombre", T.t("Sombre")], ["blanc", T.t("Blanc")],
-                      ["jouet", T.t("Jouet")], ["windows", "Windows"], ["lain", "Lain"], ["expressive", "Expressive"]]
+                      ["jouet", T.t("Jouet")], ["windows", "Windows"], ["lain", "Lain"], ["expressive", "Expressive"], ["hud", "7JOKS"]]
             value: String(root.val("lock.linux_face", "auto"))
             onPicked: function(v) { root.set("lock.linux_face", v) }
           }
@@ -1670,7 +1670,7 @@ Item {
           label: T.t("Bureaux complets")
           sub: T.t("Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)")
           Seg {
-            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["gouts", T.t("Mes goûts")]]
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["hud", "7JOKS"], ["gouts", T.t("Mes goûts")]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }
@@ -1783,6 +1783,27 @@ Item {
           }
         }
         ToggleRow { visible: lp.st === "sombre"; label: T.t("Mur de tuiles"); key: "linux.sombre_wall"; def: true }
+        Row_ {
+          label: T.t("Teinte")
+          visible: lp.st === "hud"
+          sub: T.t("Couleur des traits du bureau 7JOKS")
+          Seg {
+            options: [["blanc", T.t("Blanc")], ["cyan", "Cyan"], ["ambre", T.t("Ambre")], ["vert", T.t("Vert")], ["rouge", T.t("Rouge")]]
+            value: root.val("linux.hud_tone", "blanc")
+            onPicked: function(v) { lp.pick("hud:" + v, "linux.hud_tone", v) }
+          }
+        }
+        Row_ {
+          label: T.t("Démarrage")
+          visible: lp.st === "hud"
+          sub: T.t("Lignes du noyau puis 7JOKS au milieu de l'écran")
+          Seg {
+            options: [["session", T.t("À l'ouverture")], ["toujours", T.t("À chaque rechargement")], ["jamais", T.t("Jamais")]]
+            value: root.val("linux.hud_boot", "session")
+            onPicked: function(v) { root.set("linux.hud_boot", v) }
+          }
+        }
+        ToggleRow { visible: lp.st === "hud"; label: T.t("Terminal au démarrage"); key: "linux.hud_terminal"; def: true; sub: T.t("S'ouvre dans le cadre avec la fiche 7JOKS, si le bureau est vide") }
         Row_ {
           label: T.t("Couleurs")
           visible: true

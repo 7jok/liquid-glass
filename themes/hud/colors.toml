@@ -1,0 +1,37 @@
+# Liquid Glass — 7JOKS — terminal de science-fiction, traits blancs sur noir (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#e6e6e6"
+selection = "#2a2a2a"
+muted = "#5a5a5a"
+
+background = "#000000"
+dark_background = "#000000"
+darker_background = "#000000"
+lighter_background = "#101010"
+
+foreground = "#e6e6e6"
+dark_foreground = "#8a8a8a"
+light_foreground = "#cfcfcf"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(e6e6e6ff) rgba(e6e6e6ff) 45deg"
+
+hyprland_inactive_border = "rgba(3a3a3aff)"
+
+red = "#ff5a5a"
+green = "#5cff8a"
+yellow = "#ffb43c"
+blue = "#aacfd1"
+magenta = "#c8a2ff"
+cyan = "#7fe0e0"
+orange = "#ff874b"
+brown = "#876226"
+
+bright_red = "#ff8080"
+bright_green = "#8cffaa"
+bright_yellow = "#ffcc70"
+bright_blue = "#c8e4e6"
+bright_magenta = "#dcc0ff"
+bright_cyan = "#a8f0f0"

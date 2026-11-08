@@ -11,9 +11,11 @@
 Abstrait	Abstract
 Accent, bordures, barre, dock et terminal	Accent, borders, bar, dock and terminal
 Accents du visualiseur à la couleur de l'album en cours	Visualizer accents match the current album
+ACCÈS REFUSÉ	ACCESS DENIED
 Accessibilité	Accessibility
 Accessoires	Accessories
 Accueil	Home
+À chaque rechargement	Every reload
 À côté du widget agrandi	Next to the enlarged widget
 Actions	Actions
 Activé	On
@@ -56,6 +58,7 @@ Aller au bureau	Go to desktop
 Allumé depuis 	Up for 
 Allumé · 	Up · 
 Allure	Look
+À l'ouverture	At login
 Ambre	Amber
 Ancienne présentation : la ligne à côté du titre	Old layout: line next to the title
 Animations à ressort	Spring animations
@@ -145,6 +148,7 @@ Batterie	Battery
 Batterie en haut à droite	Battery at top right
 beaucoup	a lot
 Bienvenue	Welcome
+Bienvenue, 	Welcome back, 
 Bille	Marble
 Blanc	White
 Bleu	Blue
@@ -157,6 +161,7 @@ Bluetooth et appareils	Bluetooth and devices
 Bonbon	Candy
 Bonbon : contours épais, ombres dures, arc-en-ciel	Candy: thick outlines, hard shadows, rainbow
 Bonbon (rose), menthe (vert d'eau) ou pêche (orange)	Candy (pink), mint (aqua) or peach (orange)
+Bon retour, 	Welcome back, 
 Boutons ronds	Round buttons
 Bouton vert	Green button
 Branchement et débranchement, avec le niveau	Plugging in and out, with the level
@@ -221,6 +226,7 @@ Changer la découpe	Change split
 Chaque Mot	Each Word
 Chargé	Charged
 Charge	Load
+CHÂSSIS	CHASSIS
 Chercher en orbite…	Search local orbit…
 Chiffres hauts	Tall digits
 Choisir…	Choose…
@@ -237,6 +243,7 @@ Classique	Classic
 Clavier	Keyboard
 Clavier +	Keyboard +
 Clavier −	Keyboard −
+CLAVIER	KEYBOARD
 Clavier mécanique (Mechvibes)	Mechanical keyboard (Mechvibes)
 Clavier précédent	Previous keyboard
 Clé de produit et activation	Product key and activation
@@ -274,6 +281,7 @@ Connecté — 	Connected —
 Connecté, 	Connected, 
 Connecter	Connect
 Connecté, sécurisé · 	Connected, secured · 
+CONNEXIONS	CONNECTIONS
 Console déroulante	Drop-down console
 Conteneurs	Containers
 Contrôles	Controls
@@ -288,6 +296,7 @@ Coucher	Sunset
 Couleur	Color
 Couleur d'accentuation	Accent color
 Couleur de la pochette	Cover color
+Couleur des traits du bureau 7JOKS	Line colour of the 7JOKS desktop
 # couleurs	# colors
 Couleurs	Colors
 Couleurs de la pochette	Cover colors
@@ -312,6 +321,7 @@ Définition	Resolution
 Dégagé	Clear
 Dégradé	Gradient
 Demande ce que tu veux	Ask anything
+Démarrage	Boot
 Démarrer, Paramètres	Start, Settings
 Demi-grasse	Semi-bold
 Déplacer et redimensionner	Move and resize
@@ -389,10 +399,13 @@ Encoche	Notch
 En cours	In progress
 Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)	Ink, amber, ice, blood (red) or indigo (blue violet)
 Encre	Ink
+ÉNERGIE	POWER
 En grand à côté de la pochette (bulle du widget musique)	Large next to the cover (music widget bubble)
 En haut à droite	Top right
 En haut à gauche	Top left
 En haut	Top
+EN LIGNE	ONLINE
+EN MARCHE	UPTIME
 En plus de l'OSD au-dessus du Dock	In addition to the OSD above the Dock
 Enregistré automatiquement	Saved automatically
 Enregistrement de l'écran	Screen recording
@@ -439,6 +452,8 @@ Espaces	Workspaces
 Essentiels	Essentials
 Étagère	Shelf
 Étagère vide	Shelf is empty
+ÉTAT DU RÉSEAU	NETWORK STATUS
+ÉTAT	STATE
 éteindre	shutdown
 Éteindre	Shut Down
 Éteindre…	Shut Down…
@@ -448,6 +463,7 @@ Exécuter dans le terminal	Run in terminal
 Expérience	Experience
 Explique simplement comment marche un VPN	Explain simply how a VPN works
 Expressif	Expressive
+FABRICANT	MANUFACTURER
 Fais simple.	Keep it simple.
 fastfetch dans un terminal	fastfetch in a terminal
 Fenêtre active	Active window
@@ -473,6 +489,7 @@ Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; dou
 Fermer toutes les fenêtres	Close all windows
 Fichier	File
 Fichiers	Files
+FICHIERS	FILESYSTEM
 Filtrer (ex. capture, fenêtre, son)	Filter (e.g. screenshot, window, sound)
 Filtrer les polices	Filter fonts
 Fin	End
@@ -555,6 +572,7 @@ Horloge, image et état de la musique	Clock, image and music status
 Horloge pixel	Pixel clock
 Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and lyrics hop a little on each bass hit
 Hors ligne	Offline
+HORS LIGNE	OFFLINE
 HUMID.	HUMID.
 Humidité	Humidity
 ICI	HERE
@@ -570,6 +588,7 @@ Installation	Install
 Installé le	Installed on
 Installer tous les outils	Install all tools
 Intensité du flou	Blur strength
+Interface : 	Interface: 
 Jamais	Never
 Je	Th
 Jeux	Games
@@ -613,10 +632,12 @@ Lever	Sunrise
 liaison	link
 Libre	Free
 Ligne	Line
+Lignes du noyau puis 7JOKS au milieu de l'écran	Kernel lines, then 7JOKS in the middle of the screen
  lignes	 lines
 Lilas	Lilac
 L'île s'élargit et la ligne chantée défile dedans	The island widens and the sung line scrolls inside
 Liquide	Liquid
+liquid-glass : bureau 7JOKS chargé	liquid-glass: 7JOKS desktop loaded
 Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
 Liquid Glass pour Omarchy · Arch Linux	Liquid Glass for Omarchy · Arch Linux
 Liquid Glass — style Windows	Liquid Glass — Windows style
@@ -648,6 +669,7 @@ Max 	High
 Max. 	Max. 
 Meilleur résultat	Top hit
 Mémoire	Memory
+MÉMOIRE	MEMORY
 Mémoire RAM installée	Installed RAM
 Mémoriser la largeur	Remember width
 Menthe	Mint
@@ -683,6 +705,7 @@ Mode avion	Airplane mode
 Mode clair	Light mode
 Mode d'énergie	Power mode
 Mode Jeu	Game Mode
+MODÈLE	MODEL
 Mode sombre	Dark mode
 Modifier les commandes…	Edit controls…
 Modifier les paramètres du compte	Change account settings
@@ -715,6 +738,7 @@ Mot géant	Giant word
  mots	 words
 Mousse	Moss
 Mousse (vert tilleul) ou cendre (rose poudré)	Moss (lime green) or ash (powder pink)
+moy. 	avg. 
 Moyen	Medium
 Moyenne	Medium
 Muet	Muted
@@ -777,6 +801,7 @@ Ouvrir	Open
 Ouvrir…	Open…
 Ouvrir Spotify	Open Spotify
 Page 	Page 
+PANNEAU	PANEL
 Papier	Paper
 Paramètres associés	Related settings
 Paramètres recommandés	Recommended settings
@@ -856,9 +881,13 @@ Premier quartier	First quarter
 Présentation	View
 Presse-papiers	Clipboard
 Presse-papiers…	Clipboard…
+Prêt.	Ready.
+PRINCIPAL	MAIN
 Printemps	Spring
 Proc.	CPU
+PROCESSEUR	CPU USAGE
 Processeur	Processor
+PROCESSUS	TOP PROCESSES
 Profil	Profile
 Prune	Plum
 Pseudo-mosaïque	Pseudo-tiling
@@ -981,6 +1010,7 @@ Sélectionnez un thème à appliquer	Select a theme to apply
 Sensibilité	Sensitivity
 Sept jours	Seven days
 session verrouillée	session locked
+SESSION VERROUILLÉE	SESSION LOCKED
 SILENCE	SILENCE
 Silence	Silent
 Si une application ne répond plus, sélectionnez-la dans la liste et cliquez sur Forcer à quitter.	If an app stops responding, select it in the list and click Force Quit.
@@ -997,6 +1027,7 @@ Sortir du groupe	Leave group
 Souris	Mouse
 Sous « Lecture en cours »	Under “Now Playing”
 Sous l'horloge	Under the clock
+S'ouvre dans le cadre avec la fiche 7JOKS, si le bureau est vide	Opens in the frame with the 7JOKS fetch, if the workspace is empty
 Spectre	Spectrum
 Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)	Spotify closed: the card stays with the last song, ▶ restarts it (cover wallpaper and lyrics return)
 Spotlight (loupe)	Spotlight (magnifier)
@@ -1011,13 +1042,16 @@ Sur le bureau, en grand	On the desktop, large
 Sur le fond d'écran	On the wallpaper
  » sur le web	” on the web
  » sur le Web	” on the Web
+ SUR 	 OUT OF 
 Sur secteur	Plugged in
 Suspendre maintenant	Suspend now
 Suspendre	Sleep
 Système d'exploitation 64 bits, processeur x64	64-bit operating system, x64 processor
  · système, paquets et firmware	 · system, packages and firmware
 Système	System
+SYSTÈME	SYSTEM
    ·   Tab : basculer   ·   ↵ : ouvrir   ·   ⌃W : fermer   ·   glisser sur un bureau : déplacer	   ·   Tab: switch   ·   ↵: open   ·   ⌃W: close   ·   drag onto a desktop: move
+TÂCHES	TASKS
 Taille de la batterie	Battery size
 Taille de la météo	Weather size
 Taille de l'horloge	Clock size
@@ -1025,6 +1059,7 @@ Taille des paroles	Lyrics size
 Taille du calendrier	Calendar size
 Taille réelle	Actual Size
 Taille	Size
+Tape ton mot de passe puis Entrée	Type your password, then Enter
 Tape un nom	Type a name
 Tapez « > » pour les commandes	Type “>” for commands
 Teinte du bureau	Desktop tint
@@ -1032,9 +1067,12 @@ Teinte du bureau	Desktop tint
 Teinte	Tint
 Teinté	Tinted
 Tel qu'à l'installation	As installed
+TEMP.	TEMP
+Terminal au démarrage	Terminal at boot
 Terminal avec Claude Code (omarchy-agent)	Terminal with Claude Code (omarchy-agent)
 Terminal avec Claude Code	Terminal with Claude Code
 Terminal (clair)	Terminal (light)
+Terminal de science-fiction, démarrage animé	Sci-fi terminal, animated boot
 Terminal (sombre)	Terminal (dark)
 Terminal	Terminal
 Terminaux	Terminals
@@ -1049,6 +1087,7 @@ Thème sombre	Dark theme
 Thème	Theme
 Tiens bon !	Hang in there!
 Total	Total
+TOTAL  ↓ 	TOTAL  ↓ 
 Touche /	Key /
 Toucher pour cliquer	Tap to click
 ⌘ = touche Super	⌘ = Super key
@@ -1071,6 +1110,7 @@ Toutes les autres	All the others
 Toutes les fenêtres	All windows
 Tout ramener au premier plan	Bring All to Front
 Tout sélectionner	Select All
+TRAFIC RÉSEAU	NETWORK TRAFFIC
 Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran	Transparent like macOS Tahoe: text turns dark or white depending on the wallpaper
 Transparente	Transparent
 Travail	Work
@@ -1087,6 +1127,7 @@ un peu	a little
 Utilisateurs et groupes	Users and groups
 utilisateur	user
 Utilisation	Usage
+UTILISÉE 	USING 
 Utilisé par une application	Used by an app
 Utiliser	Use
  utilisés	 used
@@ -1098,6 +1139,7 @@ Veille	Sleep
 Vent	Wind
 Vérification	Authenticating
 vérification	checking
+vérification…	checking…
 Vérification…	Checking…
 VÉRIFICATION	CHECKING
 VÉRIFICATION…	CHECKING…
@@ -1115,6 +1157,7 @@ verrou	lock
 Vers le groupe $1	To group $1
 Vert	Green
 Vide	Empty
+VIDE	EMPTY
 Vidéo de fond	Background video
 Vidéo	Video
 Vif	Vivid
@@ -1135,6 +1178,7 @@ Votre photo	Your photo
 Voulez-vous éteindre cet ordinateur ?	Do you want to shut down this computer?
 Voulez-vous forcer « 	Do you want to force “
 Vous pouvez ouvrir cette fenêtre en appuyant sur Option + Commande + Échap.	You can open this window by pressing Option + Command + Esc.
+VUE DU MONDE	WORLD VIEW
 Widget Calendrier	Calendar widget
 Widget flottant	Floating widget
 Widget musique	Music widget

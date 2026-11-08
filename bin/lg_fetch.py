@@ -39,6 +39,7 @@ STYLES = {
     "cosmos": ("box", "blue", ["earth", "earthrise", "aldrin", "saturn"], "COSMOS"),
     "ile": ("tree", "white", ["riders", "vitruve", "wave"], "ILE"),
     "gouts": ("tree", "magenta", ["starry", "wave", "tux", "earth"], "OMARCHY"),
+    "hud": ("box", "white", ["earth", "tux"], "7JOKS"),
 }
 LABELS = {
     "fr": {"os": "OS", "host": "Hôte", "kernel": "Noyau", "uptime": "Allumé", "packages": "Paquets", "shell": "Shell",
@@ -270,6 +271,9 @@ def choose(style: str, cols: int, rows: int, mode: str = "") -> tuple[dict, str]
     room = cols - (34 if density == "mini" else 50)
     if style in BUILTIN:
         return (builtin_logo(style) if room >= 34 else {"type": "none"}), density
+    if style == "hud":          # 7JOKS : toujours le nom en grandes lettres, au-dessus de la fiche
+        logo = banner_logo(word, cols - 4, color) if cols >= 40 else None
+        return (logo or {"type": "none"}), "short" if rows >= 30 else "mini"
     cw, ch = cell_size()
     mode = mode or random.choice(["image"] * 6 + ["dots"] * 3 + ["color", "text"])
     if mode == "text" and rows >= 26 and cols >= 50:

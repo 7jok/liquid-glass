@@ -357,12 +357,69 @@ Item {
     target: Hyprland
     function onRawEvent(event) {
       var name = event ? String(event.name) : ""
+      if (/^(openwindow|changefloatingmode|movewindow|fullscreen|activewindow)/.test(name)) titleGuard.restart()
       if (name === "configreloaded") root.refresh()
       // Hyprland's window and workspace lists do not follow fullscreen on
       // their own.
       else if (name === "fullscreen") {
         Hyprland.refreshWorkspaces()
         Hyprland.refreshToplevels()
+      }
+    }
+  }
+
+  // Barres de titre sous la barre des menus : une fenêtre flottante agrandie au glisser
+  // peut monter sous la barre du haut, qui prend alors les clics des boutons rouge,
+  // jaune et vert. On la redescend juste sous la barre (et on la raccourcit si besoin).
+  property var fullscreenShown: null
+  Timer { id: titleGuard; interval: 350; onTriggered: if (!titleProc.running) titleProc.running = true }
+  Timer { interval: 2000; repeat: true; running: true; onTriggered: if (!titleProc.running) titleProc.running = true }
+  Process {
+    id: titleProc
+    command: ["sh", "-c", "hyprctl -j monitors; echo '@@'; hyprctl -j clients"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var parts = text.split("@@")
+        if (parts.length < 2) return
+        var mons, clients
+        try { mons = JSON.parse(parts[0]); clients = JSON.parse(parts[1]) } catch (e) { return }
+        // Plein écran sur un bureau affiché : on cache la barre du haut comme macOS (sinon
+        // Hyprland la garde par-dessus la fenêtre et elle prend les clics du haut). Le
+        // marqueur dit que c'est nous qui l'avons cachée : on ne la rallume que dans ce cas.
+        var fs = false
+        for (var a = 0; a < clients.length; a++) {
+          var w = clients[a]
+          if (!(Number(w.fullscreen) & 2)) continue
+          for (var b = 0; b < mons.length; b++)
+            if (mons[b].activeWorkspace && w.workspace && w.workspace.id === mons[b].activeWorkspace.id) fs = true
+        }
+        if (fs !== root.fullscreenShown) {
+          root.fullscreenShown = fs
+          var dir = Quickshell.env("HOME") + "/.local/state/omarchy/toggles"
+          var mark = Quickshell.env("HOME") + "/.cache/liquid-glass/bar-off-fullscreen"
+          Quickshell.execDetached(["sh", "-c", fs
+            ? '[ -f "$1/bar-off" ] || { mkdir -p "$1" "${2%/*}" && touch "$1/bar-off" "$2"; }'
+            : '[ -f "$2" ] && rm -f "$1/bar-off" "$2"; true', "sh", dir, mark])
+        }
+        var bar = 28, gap = 6
+        for (var i = 0; i < clients.length; i++) {
+          var c = clients[i]
+          if (!c.floating || c.fullscreen || !c.mapped || c.hidden) continue
+          if (!Array.isArray(c.tags) || !c.tags.some(function(g) { return String(g).replace(/\*$/, "") === "liquid-glass-titlebar" })) continue
+          var m = null
+          for (var j = 0; j < mons.length; j++) if (mons[j].id === c.monitor) m = mons[j]
+          if (!m || !m.activeWorkspace || c.workspace.id !== m.activeWorkspace.id) continue
+          var k = Number(m.scale) || 1
+          var top = m.y + (m.reserved ? m.reserved[1] : 0)
+          if (top <= m.y || c.at[1] >= top + bar) continue
+          var y = top + bar + gap
+          var bottom = m.y + Math.round(m.height / k) - (m.reserved ? m.reserved[3] : 0) - gap
+          var t = "window = \"address:" + c.address + "\""
+          // Redimensionner recentre la fenêtre : on raccourcit d'abord, puis on la place.
+          var resize = y + c.size[1] > bottom ? "hl.dsp.window.resize({ x = " + c.size[0] + ", y = " + Math.max(200, bottom - y) + ", " + t + " })" : ""
+          var move = "hl.dsp.window.move({ x = " + c.at[0] + ", y = " + y + ", " + t + " })"
+          Quickshell.execDetached(["sh", "-c", '[ -n "$1" ] && hyprctl dispatch "$1" >/dev/null && sleep 0.2; hyprctl dispatch "$2" >/dev/null', "sh", resize, move])
+        }
       }
     }
   }

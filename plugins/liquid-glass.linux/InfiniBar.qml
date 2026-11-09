@@ -21,7 +21,8 @@ PanelWindow {
   readonly property string ico: "Material Symbols Rounded"
 
   color: "transparent"
-  anchors { bottom: true; left: true; right: true }
+  readonly property bool atBottom: !s || s.barAt("bottom") === "bottom"
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
   implicitHeight: Math.round(40 * k)
   exclusiveZone: implicitHeight
   WlrLayershell.layer: WlrLayer.Top
@@ -118,7 +119,7 @@ PanelWindow {
           Text {
             anchors.verticalCenter: parent.verticalCenter
             text: bar.hms(bar.recording ? bar.recSecs : 0)
-            font.family: "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(12 * bar.k); color: bar.ink
+            font.family: bar.s && bar.s.userFont ? bar.s.userFont : "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(12 * bar.k); color: bar.ink
           }
         }
         MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: bar.toggleRec() }
@@ -135,7 +136,7 @@ PanelWindow {
         // Position (en coordonnées de la toile) et zoom quand il n'est pas à 100 %.
         text: bar.desk ? (Math.abs(bar.desk.zoom - 1) > 0.001 ? Math.round(bar.desk.zoom * 100) + " %  ·  " : "")
                          + Math.round(-bar.desk.px) + ", " + Math.round(-bar.desk.py) : ""
-        font.family: "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(11 * bar.k); color: bar.ink
+        font.family: bar.s && bar.s.userFont ? bar.s.userFont : "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(11 * bar.k); color: bar.ink
         rightPadding: Math.round(6 * bar.k)
       }
     }

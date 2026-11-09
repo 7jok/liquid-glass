@@ -152,6 +152,7 @@ Archive.zip	Archive.zip
 Arrière-plan	Background
 Arrondi des cartes	Card radius
 Arrondi des fenêtres	Window radius
+Arrondi du cadre	Frame corner radius
 Arrête complètement le visualiseur (et cava) si désactivé	Stops the visualizer (and cava) when off
 Arrêter	Shut down
 Associé	Paired
@@ -206,7 +207,9 @@ Barre	Bar
 Barre de titre avec feux tricolores	Title bar with traffic lights
 Barre des menus	Menu bar
 Barre des tâches, menu Démarrer, Paramètres, comme Windows 11	Taskbar, Start menu, Settings, like Windows 11
+Barre en capitales	Bar in capitals
 Barre texte, bords durs	Text bar, hard edges
+Barre, menus et widgets du style	The style's bar, menus and widgets
 Barres	Bars
 Basculer clair / sombre	Toggle light / dark
 Batterie	Battery
@@ -228,6 +231,7 @@ Bon retour, 	Welcome back,
 Bonbon	Candy
 Bonbon (rose), menthe (vert d'eau) ou pêche (orange)	Candy (pink), mint (aqua) or peach (orange)
 Bonbon : contours épais, ombres dures, arc-en-ciel	Candy: thick outlines, hard shadows, rainbow
+Bordure des cartes	Card border
 Bouton Claude	Claude button
 Bouton vert	Green button
 Boutons ronds	Round buttons
@@ -254,6 +258,7 @@ Bureaux complets	Full desktops
 Bureaux dans le panneau	Workspaces in the panel
 CHÂSSIS	CHASSIS
 CLAVIER	KEYBOARD
+COMME UN VIEUX TERMINAL	LIKE AN OLD TERMINAL
 CONNEXIONS	CONNECTIONS
 CUPS n'est pas installé	CUPS is not installed
 Cadenas au déverrouillage	Padlock on unlock
@@ -350,11 +355,13 @@ Coins actifs	Hot corners
 Coins d'écran arrondis	Rounded screen corners
 Coller	Paste
 Coller l'élément	Paste Item
+Collée au bord	Edge to edge
 Colonne	Column
 Commande	Command
 Commandes	Commands
 Comme Siri dans macOS 27 : « Rechercher ou demander » dans Spotlight	Like Siri in macOS 27: “Search or Ask” in Spotlight
 Comme la dalle d'un MacBook ; les clics passent au travers	Like a MacBook screen; clicks pass through
+Compacte	Compact
 Complet	Full
 Compresser	Compress
 Compte local	Local account
@@ -404,6 +411,7 @@ Couvert	Overcast
 Crème	Cream
 Créer un alias	Make Alias
 Crépuscule	Dusk
+D'origine	Original
 Dans l'île dynamique	In the Dynamic Island
 Dans la barre	In the bar
 Dans la barre (de gauche à droite)	In the bar (left to right)
@@ -442,7 +450,9 @@ Double-clic : retour au centre	Double-click: back to center
 Douce	Soft
 Du fond	From wallpaper
 Du style	From style
+Du trèfle à la fleur	From clover to flower
 Dupliquer	Duplicate
+Dure	Hard
 Dynamiques	Dynamic
 Début	Home
 Déconnecter	Disconnect
@@ -488,6 +498,7 @@ En cours	In progress
 En déplaçant l'horloge et la carte musique	When moving the clock and music card
 En grand à côté de la pochette (bulle du widget musique)	Large next to the cover (music widget bubble)
 En haut	Top
+En haut de chaque tuile	At the top of each tile
 En haut à droite	Top right
 En haut à gauche	Top left
 En plus de l'OSD au-dessus du Dock	In addition to the OSD above the Dock
@@ -520,6 +531,7 @@ Envoyer à la console déroulante	Send to drop-down console
 Espace	Space
 Espace 	Space 
 Espace entre fenêtres	Gap between windows
+Espace entre les tuiles	Space between tiles
 Espace précédent	Previous workspace
 Espace précédent (molette)	Previous workspace (wheel)
 Espace suivant	Next workspace
@@ -559,6 +571,7 @@ Fermer la session de « 	Log out “
 Fermer les terminaux	Close terminals
 Fermer toutes les fenêtres	Close all windows
 Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir	Close, minimize to Dock, zoom — on all floating apps; double-click the bar: zoom
+Festons de l'horloge	Clock scallops
 Fiche système	System card
 Fichier	File
 Fichiers	Files
@@ -591,6 +604,7 @@ Fonds d'écran	Wallpapers
 Forcer à quitter	Force Quit
 Forcer à quitter les applications	Force Quit Applications
 Forcer à quitter…	Force Quit…
+Forme de la barre	Bar shape
 Forte pluie	Heavy rain
 Forêt	Forest
 Français	French
@@ -619,7 +633,9 @@ Globe	Globe
 Goutte	Drop
 Graisse	Weight
 Grand	Large
+Grande	Large
 Grande heure	Big clock
+Grands chiffres	Big numbers
 Grands chiffres en blocs façon tty-clock, à droite	Big block digits like tty-clock, on the right
 Graphisme	Graphics
 Grasse	Bold
@@ -635,6 +651,7 @@ HUMID.	HUMID.
 Halo sur les basses	Glow on bass
 Haut	Top
 Hauteur	Height
+Hauteur du panneau	Panel height
 Heure et langue	Time and language
 Heure par heure	Hour by hour
 Heures sur minutes, au centre de la toile	Hours over minutes, in the middle of the canvas
@@ -653,6 +670,7 @@ Horloge pixel	Pixel clock
 Horloge sur la toile	Clock on the canvas
 Horloge à planètes	Planet clock
 Horloge, image et état de la musique	Clock, image and music status
+Horloges et titres	Clocks and titles
 Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and lyrics hop a little on each bass hit
 Hors ligne	Offline
 Humidité	Humidity
@@ -711,11 +729,13 @@ Langue de l'interface	Interface language
 Langue et région	Language & Region
 Langues préférées	Preferred languages
 Lavande	Lavender
+Le bord noir autour des fenêtres	The black border around windows
 Le bouton Claude de la barre des menus	The Claude button in the menu bar
 Le café d'abord.	Coffee first.
 Le compteur vient de démarrer. Reviens dans quelques minutes.	The counter just started. Come back in a few minutes.
 Le contenu suit le mouvement de la molette	Content follows the wheel
 Le contenu suit le mouvement des doigts	Content follows your fingers
+Le fond d'écran passe à travers	The wallpaper shows through
 Le menu tout à gauche	The menu at far left
 Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma	The panel and menu of GNOME, Cinnamon, Xfce or Plasma
 Lecteur	Player
@@ -741,6 +761,7 @@ Liquid Glass — style Windows	Liquid Glass — Windows style
 Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
 Liquide	Liquid
 Lire les informations	Get Info
+Liseré lumineux	Glowing edge
 Liste des fenêtres	Window list
 Logiciel libre, rien à activer	Free software, nothing to activate
 Logo de la barre	Bar logo
@@ -876,6 +897,7 @@ Nombre	Count
 Nombre de barres	Number of bars
 Non connecté	Not connected
 Non connecté (	Not connected (
+Normal	Normal
 Normale	Normal
 Notes	Notes
 Nouveau dossier	New Folder
@@ -889,8 +911,10 @@ Nuit (violet profond), aube (lilas clair) ou rose pastel	Night (deep violet), da
 Numérique	Digital
 Nébuleuse	Nebula
 Off : le fond normal reste, seul le widget s'affiche	Off: the normal wallpaper stays, only the widget shows
+Ombre des cartes	Card shadow
 Opacité	Opacity
 Opacité de la barre	Bar opacity
+Opacité des tuiles	Tile opacity
 Opacité du verre	Glass opacity
 Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément.	Glass opacity, font and terminal: the theme is rebuilt (≈1 s). The rest applies instantly.
 Options de connexion	Sign-in options
@@ -967,6 +991,7 @@ Personnalisation	Personalization
 Personnel	Personal
 Petit	Small
 Petit à petit.	Little by little.
+Petite	Small
 Petits rectangles, comme Xfce	Small rectangles, like Xfce
 Phase de la Lune	Moon phase
 Phrase	Sentence
@@ -1003,6 +1028,9 @@ Pomme	Apple
 Portugais	Portuguese
 Position ; se déplace aussi au doigt	Position; also moves with your finger
 Position dans la barre	Position in the bar
+Position de la barre	Bar position
+Position du dock	Dock position
+Position du panneau	Panel position
 Position à l'écran	Position on Screen
 Posé sur la toile, il suit le glisser et le zoom	On the canvas, it follows panning and zoom
 Pour ce thème	For this theme
@@ -1212,10 +1240,13 @@ Tableau de bord par le haut	Dashboard from the top edge
 Tags	Tags
 Taille	Size
 Taille de l'horloge	Clock size
+Taille de la barre	Bar size
+Taille de la barre des tâches	Taskbar size
 Taille de la batterie	Battery size
 Taille de la météo	Weather size
 Taille des paroles	Lyrics size
 Taille du calendrier	Calendar size
+Taille du dock	Dock size
 Taille du pointeur	Pointer size
 Taille réelle	Actual Size
 Tape ton mot de passe puis Entrée	Type your password, then Enter
@@ -1456,6 +1487,7 @@ vérification…	checking…
 Émojis	Emoji
 Émojis et symboles	Emoji & Symbols
 Épaisse	Thick
+Épaisseur du cadre	Frame thickness
 Épinglé	Pinned
 Équilibré	Balanced
 Étagère	Shelf
@@ -1467,6 +1499,7 @@ vérification…	checking…
 Été	Summer
 Île	Island
 Île dynamique	Dynamic Island
+Îlot flottant	Floating island
 à installer	to install
 éteindre	shutdown
 ↩ question de suite  ·  ⎋ retour	↩ follow-up  ·  ⎋ back

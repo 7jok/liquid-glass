@@ -19,7 +19,7 @@ PanelWindow {
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   mask: Region {}
 
-  readonly property string font: "Rubik"
+  readonly property string font: s && s.userFont ? s.userFont : "Rubik"
   property date now: new Date()
   Timer { interval: 10000; repeat: true; running: true; onTriggered: win.now = new Date() }
   // Biais commun à tous les blocs.

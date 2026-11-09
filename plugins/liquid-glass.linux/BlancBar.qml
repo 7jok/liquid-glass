@@ -14,7 +14,8 @@ PanelWindow {
   property var service: null
   readonly property var s: service
 
-  anchors { bottom: true; left: true; right: true }
+  readonly property bool atBottom: s.barAt("bottom") === "bottom"
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
   implicitHeight: 24
   exclusiveZone: 24
   color: s.surfaceMid
@@ -22,7 +23,7 @@ PanelWindow {
   WlrLayershell.namespace: "liquid-glass-linux-bar"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-  readonly property string font: "JetBrainsMono Nerd Font"
+  readonly property string font: s && s.userFont ? s.userFont : "JetBrainsMono Nerd Font"
   readonly property color ink: s.colOnSurface
   readonly property color dim: s.colOnSurfaceVariant
   readonly property var monitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
@@ -156,6 +157,7 @@ PanelWindow {
       id: tx
       anchors.centerIn: parent; anchors.verticalCenterOffset: 1
       text: cl.label; font.family: win.font; font.pixelSize: 11
+      font.capitalization: win.bo("upper", false) ? Font.AllUppercase : Font.MixedCase
       font.weight: cl.bold ? Font.Bold : Font.Normal
       color: cl.on || cma.containsMouse ? win.s.surfaceMid : (cl.dimmed ? win.s.outline : win.ink)
     }

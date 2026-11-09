@@ -20,15 +20,16 @@ PanelWindow {
 
   readonly property int barH: 30
   color: "transparent"
-  anchors { top: true; left: true; right: true }
-  margins { top: s.testing ? 40 : 6; left: 8; right: 8 }
+  readonly property bool atBottom: s.barAt("top") === "bottom"
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
+  margins { top: atBottom ? 0 : (s.testing ? 40 : 6); bottom: atBottom ? 6 : 0; left: 8; right: 8 }
   implicitHeight: barH
   exclusiveZone: barH + 4
   WlrLayershell.layer: WlrLayer.Top
   WlrLayershell.namespace: "liquid-glass-foret-bar"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-  readonly property string font: "JetBrainsMono Nerd Font"
+  readonly property string font: s && s.userFont ? s.userFont : "JetBrainsMono Nerd Font"
   readonly property color chip: s.alpha(s.surface, 0.92)
   readonly property color chip2: s.alpha(s.surfaceHigh, 0.95)
   readonly property color ink: s.colOnSurface

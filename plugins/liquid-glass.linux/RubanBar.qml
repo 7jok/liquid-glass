@@ -22,7 +22,7 @@ PanelWindow {
   WlrLayershell.namespace: "liquid-glass-linux-bar"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-  readonly property string font: "Rubik"
+  readonly property string font: s && s.userFont ? s.userFont : "Rubik"
   readonly property var monitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
   readonly property int activeWs: monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : 1
   readonly property var occupied: {

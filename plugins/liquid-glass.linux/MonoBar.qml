@@ -17,8 +17,9 @@ Scope {
   property var screen: null
   readonly property var s: service
   readonly property int barW: 44
-  readonly property int frame: 8
-  readonly property int cornerR: 18
+  // Réglages propres à Mono : épaisseur du cadre noir et arrondi de ses coins.
+  readonly property int frame: Math.round(Number(s.opt("mono_frame", 8)))
+  readonly property int cornerR: Math.round(Number(s.opt("mono_corner", 18)))
   readonly property color black: s.monoFrame
 
   // ------------------------------------------------------------ cadre
@@ -146,7 +147,7 @@ Scope {
               color: ws.active ? s.primary : (ws.used ? s.colOnSurfaceVariant : s.outlineVariant)
               Behavior on width { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
               Behavior on height { NumberAnimation { duration: 220; easing.type: Easing.OutBack } }
-              Text { visible: ws.active; anchors.centerIn: parent; text: ws.num; font.family: "Rubik"; font.pixelSize: 11; font.weight: Font.Bold; color: s.colOnPrimary }
+              Text { visible: ws.active; anchors.centerIn: parent; text: ws.num; font.family: s.userFont || "Rubik"; font.pixelSize: 11; font.weight: Font.Bold; color: s.colOnPrimary }
             }
             MouseArea { anchors.fill: parent; onClicked: Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + ws.num + "\" })"]) }
           }
@@ -216,8 +217,8 @@ Scope {
       // Heure empilée
       Column {
         anchors.horizontalCenter: parent.horizontalCenter
-        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatTime(bar.now, "HH"); font.family: "Rubik"; font.pixelSize: 13; font.weight: Font.Medium; color: s.colOnSurface }
-        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatTime(bar.now, "mm"); font.family: "Rubik"; font.pixelSize: 13; font.weight: Font.Medium; color: s.colOnSurface }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatTime(bar.now, "HH"); font.family: s.userFont || "Rubik"; font.pixelSize: 13; font.weight: Font.Medium; color: s.colOnSurface }
+        Text { anchors.horizontalCenter: parent.horizontalCenter; text: Qt.formatTime(bar.now, "mm"); font.family: s.userFont || "Rubik"; font.pixelSize: 13; font.weight: Font.Medium; color: s.colOnSurface }
         MouseArea { width: 30; height: 34; x: -8; y: 0; onClicked: s.togglePanel("dashboard") }
       }
       // État

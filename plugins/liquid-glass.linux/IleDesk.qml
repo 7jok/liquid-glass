@@ -68,7 +68,7 @@ PanelWindow {
     visible: win.editing
     x: win.guideX + 12; y: win.guideY - 22
     text: Math.round(win.guideX) + " × " + Math.round(win.guideY)
-    color: win.ink; font.family: "Michroma"; font.pixelSize: 10
+    color: win.ink; font.family: win.s.displayFont; font.pixelSize: 10
   }
 
   function place(it, key, dx, dy) {
@@ -147,7 +147,7 @@ PanelWindow {
       anchors { right: parent.right; rightMargin: 16; top: parent.top; topMargin: 14; left: art.right; leftMargin: 14 }
       horizontalAlignment: Text.AlignRight
       text: win.s.trackTitle
-      color: win.ink; font.family: "Michroma"; font.pixelSize: 14
+      color: win.ink; font.family: win.s.displayFont; font.pixelSize: 14
       wrapMode: Text.WordWrap; maximumLineCount: 2; elide: Text.ElideRight
       textFormat: Text.PlainText
     }
@@ -155,7 +155,7 @@ PanelWindow {
       anchors { right: parent.right; rightMargin: 16; bottom: spectrum.top; bottomMargin: 6; left: art.right; leftMargin: 14 }
       horizontalAlignment: Text.AlignRight
       text: win.s.trackArtist
-      color: win.sub; font.family: "Michroma"; font.pixelSize: 8; elide: Text.ElideRight
+      color: win.sub; font.family: win.s.displayFont; font.pixelSize: 8; elide: Text.ElideRight
       textFormat: Text.PlainText
     }
     Row {

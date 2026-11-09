@@ -32,7 +32,7 @@ PanelWindow {
   readonly property bool toy: st === "jouet"
   readonly property bool monoStyle: st === "mono"
   readonly property int cols: st === "foret" ? 6 : 5
-  readonly property string font: st === "foret" || st === "blanc" || st === "sombre" ? "JetBrainsMono Nerd Font" : s.sansFont
+  readonly property string font: s.userFont ? s.userFont : (st === "foret" || st === "blanc" || st === "sombre" ? "JetBrainsMono Nerd Font" : s.sansFont)
   readonly property color panelBg: monoStyle ? s.monoFrame : (toy ? s.surfaceMid : s.alpha(s.surfaceMid, st === "violet" || st === "expressive" ? 0.94 : 0.98))
   readonly property color ink: monoStyle ? s.colOnSurface : s.colOnSurface
   readonly property color sub: monoStyle ? s.colOnSurfaceVariant : s.colOnSurfaceVariant

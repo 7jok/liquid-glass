@@ -29,7 +29,7 @@ PanelWindow {
   WlrLayershell.namespace: "liquid-glass-foret-panel"
   WlrLayershell.keyboardFocus: s.kbd(false)
 
-  readonly property string font: "JetBrainsMono Nerd Font"
+  readonly property string font: s && s.userFont ? s.userFont : "JetBrainsMono Nerd Font"
   readonly property color bg: s.alpha(s.surface, 0.94)
   readonly property color card: s.alpha(s.surfaceHigh, 0.55)
   readonly property color ink: s.colOnSurface

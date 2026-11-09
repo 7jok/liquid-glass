@@ -95,7 +95,7 @@ PanelWindow {
         readonly property int secs: win.now.getHours() * 3600 + win.now.getMinutes() * 60 + win.now.getSeconds()
         Cookie {
           anchors.fill: parent
-          lobes: 10; depth: 0.06
+          lobes: Math.round(Number(win.s.opt("expressive_lobes", 10))); depth: 0.06
           // Réglage « Cookie qui tourne » : un feston par minute.
           spin: win.s.opt("expressive_spin", false) === true ? (clock.secs % 60) / 60 * Math.PI / 5 : 0
           color: win.s.secondaryContainer

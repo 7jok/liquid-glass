@@ -20,7 +20,7 @@ PanelWindow {
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
   mask: Region {}
 
-  readonly property string font: "JetBrainsMono Nerd Font"
+  readonly property string font: s && s.userFont ? s.userFont : "JetBrainsMono Nerd Font"
   readonly property color ink: s.colOnSurface
   readonly property color paper: s.surfaceMid
   property date now: new Date()

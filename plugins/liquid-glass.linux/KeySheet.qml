@@ -27,7 +27,7 @@ PanelWindow {
   readonly property bool toy: st === "jouet"
   readonly property bool monoStyle: st === "mono"
   // Jouet : police pixel seulement pour le titre (illisible en petit : « Ctrl » → « Otrl »).
-  readonly property string font: ["blanc", "sombre", "foret"].indexOf(st) >= 0 ? "JetBrainsMono Nerd Font" : (toy ? "Rubik" : s.sansFont)
+  readonly property string font: s.userFont ? s.userFont : (["blanc", "sombre", "foret"].indexOf(st) >= 0 ? "JetBrainsMono Nerd Font" : (toy ? "Rubik" : s.sansFont))
   readonly property string titleFont: toy ? s.sansFont : font
   readonly property color panelBg: monoStyle ? s.monoFrame : (toy ? s.surfaceMid : s.alpha(s.surfaceMid, 0.97))
   readonly property color ink: s.colOnSurface

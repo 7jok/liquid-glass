@@ -33,7 +33,7 @@ PanelWindow {
   readonly property color acc: s.primary
   readonly property color inkAcc: s.colOnPrimary
   readonly property color line: s.outlineVariant
-  readonly property string font: "Rubik"
+  readonly property string font: s && s.userFont ? s.userFont : "Rubik"
   readonly property string mono: "JetBrainsMono Nerd Font"
   readonly property int barW: 44
   readonly property int frame: 8

@@ -17,7 +17,8 @@ PanelWindow {
   readonly property var s: service
   readonly property var bt: Bluetooth.defaultAdapter
 
-  anchors { top: true; left: true; right: true }
+  readonly property bool atBottom: s.barAt("top") === "bottom"
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
   implicitHeight: 28
   exclusiveZone: 28
   color: s.alpha(s.surface, 0.62)

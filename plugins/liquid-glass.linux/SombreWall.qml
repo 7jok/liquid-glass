@@ -40,8 +40,8 @@ PanelWindow {
   }
 
   // Grille 12 × 6.
-  readonly property int pad: 14
-  readonly property int gap: 10
+  readonly property int pad: Math.round(Number(s.opt("sombre_gap", 10)) * 1.4)
+  readonly property int gap: Math.round(Number(s.opt("sombre_gap", 10)))
   readonly property real cw: (width - 2 * pad + gap) / 12
   readonly property real ch: (height - 2 * pad + gap) / 6
 
@@ -340,11 +340,12 @@ PanelWindow {
     height: h * win.ch - win.gap
     radius: 2
     clip: true
-    color: win.s.alpha(win.s.surface, 0.72)
+    // Réglages propres à Sombre : opacité des tuiles, liseré, espacement.
+    color: win.s.alpha(win.s.surface, Number(win.s.opt("sombre_tile_alpha", 0.72)))
     border.width: 1
     border.color: win.s.alpha(win.acc, 0.3)
     // Liseré lumineux du haut, comme une fenêtre active.
-    Rectangle { width: parent.width; height: 2; color: win.s.alpha(win.acc, 0.8) }
+    Rectangle { visible: win.s.opt("sombre_glow", true) !== false; width: parent.width; height: 2; color: win.s.alpha(win.acc, 0.8) }
     Text {
       visible: tl.label !== ""
       x: 14; y: 9; text: tl.label

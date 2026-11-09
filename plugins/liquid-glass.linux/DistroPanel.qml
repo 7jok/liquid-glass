@@ -20,8 +20,8 @@ PanelWindow {
   readonly property string lay: d.layout
   readonly property bool gnome: lay === "gnome"
   readonly property bool plasma: lay === "plasma"
-  readonly property bool bottomBar: d.bottom === true
-  readonly property int barH: d.barH
+  readonly property bool bottomBar: s.barAt(d.bottom === true ? "bottom" : "top") === "bottom"
+  readonly property int barH: Math.round(Number(s.opt(s.style + "_panel_h", d.barH)))
 
   anchors { top: !bottomBar; bottom: bottomBar; left: true; right: true }
   margins { left: plasma ? 8 : 0; right: plasma ? 8 : 0; bottom: plasma ? 6 : 0 }

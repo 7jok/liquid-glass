@@ -35,7 +35,7 @@ PanelWindow {
   readonly property color cardBg: dark ? Qt.rgba(1, 1, 1, 0.05) : Qt.rgba(1, 1, 1, 0.7)
   readonly property color line: dark ? Qt.rgba(1, 1, 1, 0.08) : Qt.rgba(0, 0, 0, 0.07)
   readonly property color hover: dark ? Qt.rgba(1, 1, 1, 0.07) : Qt.rgba(0, 0, 0, 0.04)
-  readonly property int taskbarH: 48
+  readonly property int taskbarH: ({ petite: 40, normale: 48, grande: 58 })[String(s.opt("windows_size", "normale"))] || 48
   readonly property string font: s.sansFont
   function cap(t) { t = String(t); return t.charAt(0).toUpperCase() + t.slice(1) }
 

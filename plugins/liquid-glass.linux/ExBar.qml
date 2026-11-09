@@ -20,11 +20,15 @@ PanelWindow {
   property var service: null
   readonly property var s: service
 
-  readonly property int barH: 34
-  readonly property int pillH: 26
+  // Réglages propres au style : taille, forme (îlot flottant / collée au bord), position.
+  readonly property real sz: ({ compact: 0.82, normal: 1, grand: 1.22 })[String(s.opt(s.style + "_bar_size", "normal"))] || 1
+  readonly property bool edge: String(s.opt(s.style + "_bar_shape", "float")) === "edge"
+  readonly property bool atBottom: s.barAt("top") === "bottom"
+  readonly property int barH: Math.round(34 * sz)
+  readonly property int pillH: Math.round(26 * sz)
   color: "transparent"
-  anchors { top: true; left: true; right: true }
-  margins { top: 5; left: 6; right: 6 }
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
+  margins { top: edge || atBottom ? 0 : 5; bottom: edge || !atBottom ? 0 : 5; left: edge ? 0 : 6; right: edge ? 0 : 6 }
   // Peau : « line » (blanc, sombre) = bande fine presque carrée, bordure d'encre ;
   // « chunky » (jouet) = contour épais et ombre dure ; « float » = îlot arrondi.
   readonly property string kind: s.skin && s.skin.bar ? s.skin.bar : "float"
@@ -84,7 +88,7 @@ PanelWindow {
     id: body
     width: parent.width
     height: win.barH
-    radius: win.kind === "line" ? Math.min(8, s.radius) : (win.hard ? 14 : height / 2)
+    radius: win.edge ? 0 : (win.kind === "line" ? Math.min(8, s.radius) : (win.hard ? 14 : height / 2))
     color: s.alpha(s.surface, Number(s.opt(s.style + "_bar_opacity", win.kind === "line" ? 0.97 : (s.style === "violet" ? 0.82 : 0.94))))
     border.width: win.hard ? 2.5 : 1
     border.color: win.hard ? "#1b1030" : (win.kind === "line" ? s.alpha(s.colOnSurface, s.darkSkin ? 0.35 : 0.85) : s.alpha(s.outlineVariant, 0.35))

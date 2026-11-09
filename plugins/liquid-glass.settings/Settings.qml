@@ -2044,14 +2044,38 @@ Item {
                 ["t", st + "_bar_seconds", T.t("Secondes"), "", false],
                 ["t", st + "_bar_tools", T.t("Capture et enregistrement"), T.t("Boutons à droite de la barre"), true],
                 ["t", st + "_bar_claude", T.t("Bouton Claude"), "", true],
-                ["s", st + "_bar_opacity", T.t("Opacité de la barre"), "", op, [0.4, 1, 0.01, "op"]]]
+                ["s", st + "_bar_opacity", T.t("Opacité de la barre"), "", op, [0.4, 1, 0.01, "op"]],
+                ["c", st + "_bar_size", T.t("Taille de la barre"), "", "normal", [["compact", T.t("Compacte")], ["normal", T.t("Normale")], ["grand", T.t("Grande")]]],
+                ["c", st + "_bar_shape", T.t("Forme de la barre"), "", "float", [["float", T.t("Îlot flottant")], ["edge", T.t("Collée au bord")]]]].concat(lp.position(st, "top"))
       }
       // Panneau des distributions.
       function distro(st) {
         return [["t", st + "_seconds", T.t("Secondes"), "", false],
                 ["t", st + "_date", T.t("Date à côté de l'heure"), "", true],
                 ["t", st + "_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans le panneau"), true],
-                ["t", st + "_claude", T.t("Bouton Claude"), "", true]]
+                ["t", st + "_claude", T.t("Bouton Claude"), "", true],
+                ["s", st + "_panel_h", T.t("Hauteur du panneau"), "", ({ debian: 30, fedora: 30, mint: 40, kali: 30, arch: 44 })[st] || 30, [22, 64, 1, "px"]]].concat(
+                lp.position(st, ({ mint: "bottom", arch: "bottom" })[st] || "top", T.t("Position du panneau")))
+      }
+      // Allure, pour tous les styles : polices, et pour ceux qui ont des cartes, bordure et ombre.
+      readonly property var fontChoices: [["", T.t("D'origine")], ["Inter", "Inter"], ["Google Sans Flex", "Google Sans"], ["Rubik", "Rubik"],
+        ["Noto Sans", "Noto Sans"], ["Adwaita Sans", "Adwaita"], ["JetBrainsMono Nerd Font", "JetBrains Mono"], ["IBM Plex Mono", "IBM Plex Mono"],
+        ["Fira Code", "Fira Code"], ["Share Tech Mono", "Share Tech"], ["Pixelify Sans", "Pixelify"], ["VT323", "VT323"]]
+      readonly property var displayChoices: [["", T.t("D'origine")], ["Bebas Neue", "Bebas Neue"], ["Unbounded", "Unbounded"], ["Syncopate", "Syncopate"],
+        ["Michroma", "Michroma"], ["Rubik", "Rubik"], ["Google Sans Flex", "Google Sans"], ["Silkscreen", "Silkscreen"],
+        ["Press Start 2P", "Press Start"], ["VT323", "VT323"], ["JetBrainsMono Nerd Font", "JetBrains Mono"]]
+      readonly property var cardSkins: ({ jouet: [3, "hard"], violet: [0, "soft"], expressive: [0, "soft"], gouts: [0, "soft"],
+                                          espace: [1, "soft"], foret: [1, "soft"], ruban: [2, "hard"] })
+      function allure(st) {
+        var r = [["f", st + "_font", T.t("Police"), T.t("Barre, menus et widgets du style"), "", lp.fontChoices],
+                 ["f", st + "_display", T.t("Grands chiffres"), T.t("Horloges et titres"), "", lp.displayChoices]]
+        var c = lp.cardSkins[st]
+        if (c) r = r.concat([["c", st + "_border", T.t("Bordure des cartes"), "", String(c[0]), [["0", T.t("Aucune")], ["1", T.t("Fine")], ["2", T.t("Moyenne")], ["3", T.t("Épaisse")]]],
+                             ["c", st + "_shadow", T.t("Ombre des cartes"), "", c[1], [["none", T.t("Aucune")], ["soft", T.t("Douce")], ["hard", T.t("Dure")]]]])
+        return r
+      }
+      function position(st, def, label) {
+        return [["c", st + "_position", label || T.t("Position de la barre"), "", def, [["top", T.t("En haut")], ["bottom", T.t("En bas")]]]]
       }
       function cards(st, l) {
         return l.map(function(c) { return ["t", st + "_card_" + c[0], T.t("Carte : ") + c[1], "", true] })
@@ -2062,38 +2086,46 @@ Item {
                  ["t", "infini_viz", T.t("Visualiseur du bas"), T.t("Sur toute la largeur, sous la barre"), true],
                  ["s", "infini_zoom_speed", T.t("Vitesse du zoom"), "", 1.08, [1.02, 1.25, 0.01, "pct"]],
                  ["t", "infini_dblclick", T.t("Double-clic : retour au centre"), T.t("Et zoom à 100 %"), true],
-                 ["t", "infini_pos", T.t("Position dans la barre"), T.t("Coordonnées et zoom, clic pour revenir"), true]],
+                 ["t", "infini_pos", T.t("Position dans la barre"), T.t("Coordonnées et zoom, clic pour revenir"), true]].concat(lp.position("infini", "bottom")),
         windows: [["c", "windows_align", T.t("Alignement de la barre des tâches"), "", "center", [["center", T.t("Centre")], ["left", T.t("Gauche")]]],
                   ["t", "windows_weather", T.t("Météo dans la barre"), T.t("À gauche (pas avec l'alignement à gauche)"), true],
                   ["t", "windows_search", T.t("Rechercher"), T.t("La pilule de recherche à côté de Démarrer"), true],
                   ["t", "windows_taskview", T.t("Vue des tâches"), "", true],
-                  ["t", "windows_icons", T.t("Icônes du bureau"), T.t("Ce PC, Corbeille, Documents…"), true]],
+                  ["t", "windows_icons", T.t("Icônes du bureau"), T.t("Ce PC, Corbeille, Documents…"), true],
+                  ["c", "windows_size", T.t("Taille de la barre des tâches"), "", "normale", [["petite", T.t("Petite")], ["normale", T.t("Normale")], ["grande", T.t("Grande")]]]],
         hud: [["t", "hud_globe", T.t("Globe"), T.t("Vue du monde en fil de fer, à droite"), true],
               ["t", "hud_files", T.t("Dossiers"), T.t("En bas à gauche"), true],
               ["t", "hud_keyboard", T.t("Clavier"), T.t("En bas à droite, les touches s'allument"), true]],
         cosmos: [["s", "cosmos_speed", T.t("Vitesse du système solaire"), "", 1, [0.25, 3, 0.05, "x"]],
                  ["t", "cosmos_drift", T.t("Caméra automatique"), T.t("Repart seule après une minute sans action"), true],
                  ["t", "cosmos_notifs", T.t("Satellites de notifications"), "", true],
-                 ["t", "cosmos_weather", T.t("Satellites météo"), T.t("Prévision des prochaines heures autour de la Terre"), true]],
+                 ["t", "cosmos_weather", T.t("Satellites météo"), T.t("Prévision des prochaines heures autour de la Terre"), true]].concat(lp.position("cosmos", "top")),
         ile: [["t", "ile_dock", T.t("Dock"), "", true],
               ["t", "ile_dock_autohide", T.t("Masquer le dock"), T.t("Il apparaît quand la souris touche le bas"), true],
               ["t", "ile_snap", T.t("Aimanter à la grille"), T.t("En déplaçant l'horloge et la carte musique"), true],
               ["t", "ile_weather", T.t("Météo dans l'encoche"), "", true]],
         mono: [["t", "mono_title", T.t("Titre de la fenêtre"), T.t("À la verticale dans la barre"), true],
                ["t", "mono_edge", T.t("Tableau de bord par le haut"), T.t("La souris posée au milieu du bord haut l'ouvre"), true],
-               ["t", "mono_unlock", T.t("Cadenas au déverrouillage"), "", true]],
+               ["t", "mono_unlock", T.t("Cadenas au déverrouillage"), "", true],
+               ["s", "mono_frame", T.t("Épaisseur du cadre"), T.t("Le bord noir autour des fenêtres"), 8, [0, 28, 1, "px"]],
+               ["s", "mono_corner", T.t("Arrondi du cadre"), "", 18, [0, 48, 1, "px"]]],
         blanc: [["t", "blanc_fetch", T.t("Fiche système"), "", true], ["t", "blanc_track", T.t("Morceau en cours"), "", true],
                 ["t", "blanc_clock", T.t("Grande heure"), "", true],
                 ["t", "blanc_bar_title", T.t("Titre de la fenêtre dans la barre"), "", true],
                 ["t", "blanc_bar_track", T.t("Morceau dans la barre"), "", true],
                 ["t", "blanc_bar_res", T.t("cpu / ram dans la barre"), T.t("Un clic ouvre btop"), true],
                 ["t", "blanc_bar_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans la barre"), true],
-                ["t", "blanc_bar_seconds", T.t("Secondes"), "", false]],
+                ["t", "blanc_bar_seconds", T.t("Secondes"), "", false],
+                ["t", "blanc_bar_upper", T.t("Barre en capitales"), T.t("COMME UN VIEUX TERMINAL"), false]].concat(lp.position("blanc", "bottom")),
         sombre: [["t", "sombre_anim", T.t("Tuiles animées"), T.t("Spectre, blobs et anneau suivent la musique (coupé : moins de processeur)"), true],
-                 ["t", "sombre_word", T.t("Paroles en géant"), T.t("Sinon l'heure dans la grande tuile"), true]].concat(lp.exBar("sombre", 0.97)),
+                 ["t", "sombre_word", T.t("Paroles en géant"), T.t("Sinon l'heure dans la grande tuile"), true],
+                 ["s", "sombre_tile_alpha", T.t("Opacité des tuiles"), T.t("Le fond d'écran passe à travers"), 0.72, [0.2, 1, 0.01, "op"]],
+                 ["t", "sombre_glow", T.t("Liseré lumineux"), T.t("En haut de chaque tuile"), true],
+                 ["s", "sombre_gap", T.t("Espace entre les tuiles"), "", 10, [0, 30, 1, "px"]]].concat(lp.exBar("sombre", 0.97)),
         violet: [["t", "violet_card_moon", T.t("Phase de la Lune"), T.t("Carte en bas à gauche"), true],
                  ["t", "violet_card_quote", T.t("Citation"), T.t("Carte en bas à droite"), true]].concat(lp.exBar("violet", 0.82)),
-        expressive: [["t", "expressive_spin", T.t("Horloge cookie qui tourne"), T.t("Les festons avancent d'un cran par minute"), false]].concat(lp.exBar("expressive", 0.94)),
+        expressive: [["t", "expressive_spin", T.t("Horloge cookie qui tourne"), T.t("Les festons avancent d'un cran par minute"), false],
+                     ["s", "expressive_lobes", T.t("Festons de l'horloge"), T.t("Du trèfle à la fleur"), 10, [4, 16, 1, "n"]]].concat(lp.exBar("expressive", 0.94)),
         jouet: [["t", "jouet_magnify", T.t("Grossir au survol"), T.t("Les autocollants du dock rebondissent sous la souris"), true],
                 ["t", "jouet_tilt", T.t("Autocollants penchés"), T.t("Sinon tout est bien droit"), true],
                 ["t", "jouet_rainbow", T.t("Bureaux arc-en-ciel"), T.t("Sinon la couleur du thème"), true],
@@ -2102,7 +2134,9 @@ Item {
                 ["t", "jouet_seconds", T.t("Secondes"), "", false],
                 ["t", "jouet_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans le dock"), true],
                 ["t", "jouet_battery", T.t("Batterie"), "", true],
-                ["t", "jouet_claude", T.t("Bouton Claude"), "", true]],
+                ["t", "jouet_claude", T.t("Bouton Claude"), "", true],
+                ["c", "jouet_size", T.t("Taille du dock"), "", "normal", [["petit", T.t("Petit")], ["normal", T.t("Normal")], ["grand", T.t("Grand")]]]].concat(
+                lp.position("jouet", "bottom", T.t("Position du dock"))),
         gouts: [["b", "", T.t("Thème Omarchy"), T.t("Mes goûts reprend un thème Omarchy installé"), "", T.t("Suivant  ⌃⌘T"), ["liquid-glass", "profile", "tone"]],
                 ["t", "gouts_planets", T.t("Horloge à planètes"), T.t("En bas à droite du bureau"), true]].concat(lp.exBar("gouts", 0.94)),
         debian: [["t", "debian_label", T.t("Mot « Activités »"), T.t("À côté du logo, comme GNOME"), true]].concat(lp.distro("debian")),
@@ -2114,16 +2148,16 @@ Item {
         arch: [["t", "arch_launchers", T.t("Tâches épinglées"), "", true], ["t", "arch_tasks", T.t("Liste des fenêtres"), "", true]].concat(lp.distro("arch")),
         // Cartes en plus (Linux.qml extraCards) des styles qui en ont.
         espace: [["t", "espace_lyrics", T.t("Paroles dans le ciel"), "", true], ["t", "espace_planets", T.t("Horloge à planètes"), "", true],
-                 ["t", "espace_activity", T.t("Activité du processeur"), T.t("Une case par minute, en haut à droite"), true]].concat(
+                 ["t", "espace_activity", T.t("Activité du processeur"), T.t("Une case par minute, en haut à droite"), true]].concat(lp.position("espace", "top"), 
                  lp.cards("espace", [["weather", T.t("Météo")], ["moon", T.t("Phase de la Lune")], ["calendar", T.t("Calendrier")], ["gauges", T.t("Jauges système")]])),
         foret: [["t", "foret_seconds", T.t("Secondes"), "", true], ["t", "foret_weather", T.t("Météo dans la barre"), "", true],
-                ["t", "foret_media", T.t("Morceau dans la barre"), T.t("Pochette, temps et commandes"), true]].concat(
+                ["t", "foret_media", T.t("Morceau dans la barre"), T.t("Pochette, temps et commandes"), true]].concat(lp.position("foret", "top"), 
                 lp.cards("foret", [["clock", T.t("Horloge")], ["weather", T.t("Météo")], ["calendar", T.t("Calendrier")], ["todo", T.t("À faire")], ["music", T.t("Lecteur")]])),
         ruban: [["t", "ruban_date", T.t("Date en filigrane"), "", true], ["t", "ruban_music", T.t("Bande musique"), "", true],
                 ["t", "ruban_weather", T.t("Bande météo"), "", true], ["t", "ruban_battery", T.t("Bloc batterie"), "", true]].concat(
                 lp.cards("ruban", [["calendar", T.t("Calendrier")], ["gauges", T.t("Jauges système")], ["quote", T.t("Citation")]]))
       })
-      readonly property var ownRows: own[lp.st] || []
+      readonly property var ownRows: (own[lp.st] || []).concat(lp.allure(lp.st))
       SectionTitle { visible: lp.ownRows.length > 0; text: T.t("Propre à ") + (root.styleNames[lp.st] || lp.st) }
       Group {
         visible: lp.ownRows.length > 0
@@ -2146,13 +2180,22 @@ Item {
               step: orow.modelData[0] === "s" ? orow.modelData[5][2] : 0.1; def: Number(orow.modelData[4]) || 0
               fmt: function(v) {
                 var f = orow.modelData[0] === "s" ? orow.modelData[5][3] : ""
-                return f === "pct" ? "+" + Math.round((v - 1) * 100) + " %" : (f === "op" ? Math.round(v * 100) + " %" : "×" + Number(v).toFixed(2))
+                return f === "pct" ? "+" + Math.round((v - 1) * 100) + " %" : f === "op" ? Math.round(v * 100) + " %"
+                     : f === "px" ? Math.round(v) + " px" : f === "n" ? String(Math.round(v)) : "×" + Number(v).toFixed(2)
               }
             }
             Row_ {
               visible: orow.modelData[0] === "c"; label: orow.modelData[2]; sub: orow.modelData[3]
               Seg {
                 options: orow.modelData[0] === "c" ? orow.modelData[5] : []
+                value: String(root.val(orow.key, orow.modelData[4]))
+                onPicked: function(v) { root.set(orow.key, v) }
+              }
+            }
+            Row_ {
+              visible: orow.modelData[0] === "f"; label: orow.modelData[2]; sub: orow.modelData[3]
+              Chips {
+                options: orow.modelData[0] === "f" ? orow.modelData[5] : []
                 value: String(root.val(orow.key, orow.modelData[4]))
                 onPicked: function(v) { root.set(orow.key, v) }
               }

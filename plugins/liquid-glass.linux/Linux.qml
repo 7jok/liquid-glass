@@ -193,14 +193,20 @@ Item {
   readonly property string roundFont: "Google Sans Flex"
   readonly property var roundAxes: ({ "wght": 1000, "ROND": 100, "opsz": 144 })
   readonly property var skin: skins[style] || skins.blanc
-  readonly property string sansFont: skin.sans
-  readonly property string numFont: skin.num
+  // Réglages propres au style (Réglages → Propre à <style> → Allure) : police du
+  // texte, police des grands chiffres, bordure et ombre des cartes.
+  readonly property string userFont: String(opt(style + "_font", "") || "")
+  readonly property string userDisplay: String(opt(style + "_display", "") || "")
+  readonly property string sansFont: userFont || skin.sans
+  readonly property string numFont: userDisplay || skin.num
   readonly property string pixelFont: skin.pixel
-  readonly property string displayFont: skin.display
+  readonly property string displayFont: userDisplay || skin.display
+  // Position de la barre du style : "top" | "bottom" (défaut propre à chaque style).
+  function barAt(def) { return String(opt(style + "_position", def)) === "bottom" ? "bottom" : "top" }
   readonly property string iconFont: "Material Symbols Rounded"
   readonly property int radius: Number(opt("radius", skin.radius))
-  readonly property int borderW: skin.border
-  readonly property string shadowMode: skin.shadow
+  readonly property int borderW: Number(opt(style + "_border", skin.border))
+  readonly property string shadowMode: String(opt(style + "_shadow", skin.shadow))
   readonly property bool darkSkin: style === "violet" ? ["nuit", "minuit", "crepuscule", "prune", "automne"].indexOf(vtone) >= 0 : (style === "windows" ? wtone === "sombre" : (style === "mono" ? mtone === "noir" : (style === "gouts" ? themeMode !== "light" : skin.dark)))
   // Windows : mode clair (défaut, comme une installation neuve) ou sombre.
   readonly property string wtone: String(opt("windows_tone", "clair")) === "sombre" ? "sombre" : "clair"

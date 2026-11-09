@@ -13,9 +13,10 @@ PanelWindow {
   property var service: null
   readonly property var s: service
 
-  anchors { bottom: true; left: true; right: true }
-  implicitHeight: 92
-  exclusiveZone: 86
+  readonly property bool atBottom: s.barAt("bottom") === "bottom"
+  anchors { top: !atBottom; bottom: atBottom; left: true; right: true }
+  implicitHeight: Math.round(92 * jsz)
+  exclusiveZone: Math.round(86 * jsz)
   color: "transparent"
   mask: Region { item: body }
   WlrLayershell.layer: WlrLayer.Top
@@ -23,7 +24,7 @@ PanelWindow {
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
   readonly property color line: s.outline
-  readonly property string font: "Rubik"
+  readonly property string font: s && s.userFont ? s.userFont : "Rubik"
   readonly property var monitor: screen ? Hyprland.monitorFor(screen) : Hyprland.focusedMonitor
   readonly property int activeWs: monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : 1
   readonly property var occupied: {
@@ -40,15 +41,19 @@ PanelWindow {
   // Réglages propres à Jouet (Réglages → Propre à Jouet).
   function jo(k, d) { return s.opt("jouet_" + k, d === undefined ? true : d) !== false }
   readonly property real tk: jo("tilt") ? 1 : 0     // autocollants penchés
+  readonly property real jsz: ({ petit: 0.8, normal: 1, grand: 1.22 })[String(s.opt("jouet_size", "normal"))] || 1
 
   Rectangle {
-    x: body.x + 6; y: body.y + 6; width: body.width; height: body.height
+    x: body.x + 6 * win.jsz; y: body.y + 6 * win.jsz; width: body.width; height: body.height
     radius: body.radius; color: win.line
+    scale: win.jsz
   }
   Rectangle {
     id: body
     anchors.horizontalCenter: parent.horizontalCenter
-    y: 8
+    // Taille du dock (Réglages → Propre à Jouet) : mise à l'échelle autour du centre.
+    y: (win.height - 72) / 2 - 2
+    scale: win.jsz
     width: dock.width + 24; height: 72
     radius: 24
     color: s.surfaceMid

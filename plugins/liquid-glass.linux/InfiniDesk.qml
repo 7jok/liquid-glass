@@ -244,13 +244,13 @@ Scope {
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           text: Qt.formatTime(desk.now, "HH")
-          font.family: "Bebas Neue"; font.pixelSize: Math.round(190 * root.k)
+          font.family: root.s ? root.s.displayFont : "Bebas Neue"; font.pixelSize: Math.round(190 * root.k)
           color: Qt.rgba(1, 1, 1, 0.9)
         }
         Text {
           anchors.horizontalCenter: parent.horizontalCenter
           text: Qt.formatTime(desk.now, "mm")
-          font.family: "Bebas Neue"; font.pixelSize: Math.round(190 * root.k)
+          font.family: root.s ? root.s.displayFont : "Bebas Neue"; font.pixelSize: Math.round(190 * root.k)
           color: Qt.rgba(1, 1, 1, 0.42)
         }
       }

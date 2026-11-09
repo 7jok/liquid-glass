@@ -16,7 +16,7 @@ PanelWindow {
   property var service: null
   readonly property var s: service
 
-  readonly property int barH: 48
+  readonly property int barH: ({ petite: 40, normale: 48, grande: 58 })[String(s.opt("windows_size", "normale"))] || 48
   color: "transparent"
   anchors { bottom: true; left: true; right: true }
   implicitHeight: barH

@@ -40,6 +40,7 @@ STYLES = {
     "ile": ("tree", "white", ["riders", "vitruve", "wave"], "ILE"),
     "gouts": ("tree", "magenta", ["starry", "wave", "tux", "earth"], "OMARCHY"),
     "hud": ("box", "white", ["earth", "tux"], "7JOKS"),
+    "infini": ("tree", "magenta", ["starry", "fuji", "wave"], "INFINI"),
 }
 LABELS = {
     "fr": {"os": "OS", "host": "Hôte", "kernel": "Noyau", "uptime": "Allumé", "packages": "Paquets", "shell": "Shell",

@@ -39,7 +39,7 @@ Item {
   // Tous sauf lain partagent les mêmes composants (Ex*), habillés par une « peau »
   // (palette, polices, arrondis, bordures, ombres) et un jeu de widgets.
   readonly property var styles: ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                                 "ruban", "espace", "cosmos", "ile", "hud", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                                 "ruban", "espace", "cosmos", "ile", "hud", "infini", "gouts", "debian", "fedora", "mint", "kali", "arch"]
   readonly property string style: styles.indexOf(String(opt("style", "blanc"))) >= 0 ? String(opt("style", "blanc")) : "blanc"
   readonly property bool ex: true
   // Familles de bureau : « ex » = barre en îlots + widgets (blanc… expressive),
@@ -63,7 +63,9 @@ Item {
   readonly property bool isIle: style === "ile"
   // 7JOKS : bureau de terminal de science-fiction (HudDesk), démarrage animé (HudBoot).
   readonly property bool isHud: style === "hud"
-  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle && !isHud
+  // Infini : toile sans bord qu'on fait glisser (InfiniDesk), cerisiers, visualiseur rose.
+  readonly property bool isInfini: style === "infini"
+  readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle && !isHud && !isInfini
   // Sombre : mur de tuiles à la place de la scène musicale et des widgets.
   readonly property bool wall: style === "sombre" && opt("sombre_wall", true) !== false
   // Blanc : barre de texte en bas (dwm) ; Jouet : gros dock, pas de barre en haut.
@@ -87,6 +89,7 @@ Item {
                             ["sang", T.t("Sang"), "#ff5a6e"], ["indigo", "Indigo", "#a6b1ff"]]],
     jouet: ["jouet_tone", [["bonbon", T.t("Bonbon"), "#ff5fa2"], ["menthe", T.t("Menthe"), "#18b98f"], ["peche", T.t("Pêche"), "#ff7a45"]]],
     mono: ["mono_tone", [["noir", T.t("Noir"), "#000000"], ["papier", T.t("Papier"), "#ffffff"], ["sakura", "Sakura", "#f7a8c4"]]],
+    infini: ["infini_tone", [["sakura", "Sakura", "#e8a3b4"], ["lilas", T.t("Lilas"), "#c9b3f0"], ["menthe", T.t("Menthe"), "#9fdcc4"], ["peche", T.t("Pêche"), "#f5b896"]]],
     hud: ["hud_tone", [["blanc", T.t("Blanc"), "#e6e6e6"], ["cyan", "Cyan", "#aacfd1"], ["ambre", T.t("Ambre"), "#ffb43c"],
                        ["vert", T.t("Vert"), "#5cff8a"], ["rouge", T.t("Rouge"), "#ff5a5a"]]],
     windows: ["windows_tone", [["clair", T.t("Clair"), "#f3f3f3"], ["sombre", T.t("Sombre"), "#202020"]]],
@@ -143,6 +146,8 @@ Item {
                   radius: 20, border: 0, shadow: "soft", bar: "float", dark: true },
     ile:        { sans: "Inter", num: "Michroma", pixel: "Silkscreen", display: "Michroma",
                   radius: 14, border: 0, shadow: "soft", bar: "ile", dark: true },
+    infini:     { sans: "Inter", num: "Bebas Neue", pixel: "Silkscreen", display: "Bebas Neue",
+                  radius: 14, border: 1, shadow: "soft", bar: "infini", dark: true },
     hud:        { sans: "Share Tech Mono", num: "Share Tech Mono", pixel: "Silkscreen", display: "Michroma",
                   radius: 4, border: 1, shadow: "none", bar: "hud", dark: true },
     cosmos:     { sans: "JetBrainsMono Nerd Font", num: "JetBrainsMono Nerd Font", pixel: "Silkscreen", display: "JetBrainsMono Nerd Font",
@@ -275,6 +280,16 @@ Item {
       surface: "#17151b", surface_container_low: "#1b191f", surface_container: "#211f25", surface_container_high: "#26232b",
       surface_container_highest: "#322e37", on_surface: "#e0dae2", on_surface_variant: "#8a8490",
       outline: "#5e5864", outline_variant: "#35313b", error: "#e8857c" },
+    // Infini : verre fumé brun-rose, accent de la teinte (sakura par défaut).
+    infini: (function() {
+      var a = ({ sakura: "#e8a3b4", lilas: "#c9b3f0", menthe: "#9fdcc4", peche: "#f5b896" })[String(opt("infini_tone", "sakura"))] || "#e8a3b4"
+      return { primary: a, on_primary: "#2a1218", primary_container: "#4a3439", on_primary_container: "#ffe0e7",
+        secondary: "#c4a9af", secondary_container: "#3a2e31", on_secondary_container: "#f0dfe3",
+        tertiary: "#d8b4a0", tertiary_container: "#45352c", on_tertiary_container: "#f6e2d6",
+        surface: "#1c1718", surface_container_low: "#211b1c", surface_container: "#2a2324", surface_container_high: "#332b2d",
+        surface_container_highest: "#3d3436", on_surface: "#ece2e4", on_surface_variant: "#a8999c",
+        outline: "#6e5f62", outline_variant: "#4a3f42", error: "#ff8a8f" }
+    })(),
     // 7JOKS : noir pur, traits de la teinte choisie.
     hud: (function() {
       var a = ({ blanc: "#e6e6e6", cyan: "#aacfd1", ambre: "#ffb43c", vert: "#5cff8a", rouge: "#ff5a5a" })[String(opt("hud_tone", "blanc"))] || "#e6e6e6"
@@ -684,6 +699,10 @@ Item {
     } else if (style === "mono") {
       act = "\"rgba(" + hex(mc("primary", "#e6e6e6"), "aa") + ")\""; inact = "rgba(" + hex(mc("outline_variant", "#2a2a2a"), "ff") + ")"
       bw = 1; gin = 6; gout = 12; shadow = darkSkin ? "rgba(000000cc)" : "rgba(00000040)"; r = 14
+    } else if (style === "infini") {
+      // Infini : liseré rose fin, coins arrondis, ombre douce (les fenêtres flottent sur la toile).
+      act = "\"rgba(" + hex(mc("primary", "#e8a3b4"), "cc") + ")\""; inact = "rgba(" + hex(mc("outline_variant", "#4a3f42"), "aa") + ")"
+      bw = 1; gin = 6; gout = 14; r = 12; shadow = "rgba(0a0607aa)"
     } else if (style === "hud") {
       // 7JOKS : un trait fin de la teinte, coins presque droits, pas d'ombre, cadre serré.
       act = "\"rgba(" + hex(mc("primary", "#e6e6e6"), "ff") + ")\""; inact = "rgba(3a3a3aff)"
@@ -1339,6 +1358,10 @@ Item {
   Variants {
     model: svc.isIle ? svc.mainScreen : []
     delegate: Component { IleNotch { required property var modelData; screen: modelData; service: svc } }
+  }
+  Variants {
+    model: svc.isInfini ? svc.mainScreen : []
+    delegate: Component { InfiniDesk { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
     model: svc.isHud ? svc.mainScreen : []

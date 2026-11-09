@@ -214,13 +214,15 @@ Item {
   function isVideo(p) { return /\.(mp4|webm|mkv|mov)$/i.test(String(p || "")) }
   // Catégorie d'un fond : préfixe du nom pour la collection (liquid-glass wallpapers),
   // « dyn » pour les vidéos, « mac » pour le reste (fonds du thème, vos images).
-  readonly property var bgCats: [["all", T.t("Tous")], ["mac", "Mac"], ["dyn", T.t("Dynamiques")], ["anime", "Anime"], ["ascii", "ASCII"],
-                                 ["minimal", "Minimal"], ["abstract", T.t("Abstrait")], ["fruit", T.t("Fruits")], ["genere", T.t("Générés")]]
+  readonly property var bgCats: [["all", T.t("Tous")], ["mac", "Mac"], ["dyn", T.t("Dynamiques")], ["anime", "Anime"], ["edit", "Edit"],
+                                 ["basket", "Basket"], ["voiture", T.t("Voitures")], ["ville", T.t("Villes")], ["sakura", T.t("Cerisiers")],
+                                 ["ascii", "ASCII"], ["minimal", "Minimal"], ["abstract", T.t("Abstrait")], ["fruit", T.t("Fruits")], ["genere", T.t("Générés")]]
+  readonly property var bgCollection: bgCats.slice(3).map(function(c) { return c[0] })
   property string bgFilter: "all"
   function bgCat(p) {
     if (root.isVideo(p)) return "dyn"
     var pre = String(p).split("/").pop().split("-")[0]
-    return ["anime", "ascii", "minimal", "abstract", "fruit", "genere"].indexOf(pre) !== -1 ? pre : "mac"
+    return root.bgCollection.indexOf(pre) !== -1 ? pre : "mac"
   }
   function bgCount(c) { return c === "all" ? backgrounds.length : backgrounds.filter(function(p) { return root.bgCat(p) === c }).length }
   readonly property var shownBackgrounds: {
@@ -1466,7 +1468,7 @@ Item {
           Picker {
             options: [["auto", T.t("Automatique")], ["classic", T.t("Bonbon")], ["mono", "Mono (Caelestia)"], ["foret", T.t("Forêt")],
                       ["ile", T.t("Île")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["sombre", T.t("Sombre")], ["blanc", T.t("Blanc")],
-                      ["jouet", T.t("Jouet")], ["windows", "Windows"], ["lain", "Lain"], ["expressive", "Expressive"], ["hud", "7JOKS"]]
+                      ["jouet", T.t("Jouet")], ["windows", "Windows"], ["lain", "Lain"], ["expressive", "Expressive"], ["hud", "7JOKS"], ["infini", T.t("Infini")]]
             value: String(root.val("lock.linux_face", "auto"))
             onPicked: function(v) { root.set("lock.linux_face", v) }
           }
@@ -1670,7 +1672,7 @@ Item {
           label: T.t("Bureaux complets")
           sub: T.t("Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)")
           Seg {
-            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["hud", "7JOKS"], ["gouts", T.t("Mes goûts")]]
+            options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["hud", "7JOKS"], ["infini", T.t("Infini")], ["gouts", T.t("Mes goûts")]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
           }
@@ -1783,6 +1785,18 @@ Item {
           }
         }
         ToggleRow { visible: lp.st === "sombre"; label: T.t("Mur de tuiles"); key: "linux.sombre_wall"; def: true }
+        Row_ {
+          label: T.t("Teinte")
+          visible: lp.st === "infini"
+          sub: T.t("Couleur du visualiseur et des liserés")
+          Seg {
+            options: [["sakura", "Sakura"], ["lilas", T.t("Lilas")], ["menthe", T.t("Menthe")], ["peche", T.t("Pêche")]]
+            value: root.val("linux.infini_tone", "sakura")
+            onPicked: function(v) { lp.pick("infini:" + v, "linux.infini_tone", v) }
+          }
+        }
+        ToggleRow { visible: lp.st === "infini"; label: T.t("Fenêtres flottantes"); key: "linux.infini_float"; def: true; sub: T.t("Pour qu'elles suivent la toile quand on la fait glisser") }
+        ToggleRow { visible: lp.st === "infini"; label: T.t("Étoiles filantes"); key: "linux.infini_stars"; def: true }
         Row_ {
           label: T.t("Teinte")
           visible: lp.st === "hud"

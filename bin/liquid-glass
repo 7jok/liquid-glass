@@ -914,6 +914,37 @@ WALL_QUERIES = [
     ("fruit", "fruit minimalism", "100", 8),
     ("fruit", "fruits", "100", 6),
     ("fruit", "lemon", "100", 3),
+    # Basket : joueurs, terrains, ballons (photos et illustrations).
+    ("basket", "basketball", "100", 10),
+    ("basket", "basketball court", "100", 6),
+    ("basket", "nba", "101", 8),
+    ("basket", "michael jordan", "101", 5),
+    ("basket", "kobe bryant", "101", 5),
+    ("basket", "lebron james", "101", 4),
+    ("basket", "stephen curry", "101", 3),
+    ("basket", "streetball", "101", 3),
+    ("basket", "slam dunk anime", "010", 4),
+    # Edit : esthétique « edit » des vidéos (sombre, néon, glitch, phonk, y2k).
+    ("edit", "dark aesthetic", "100", 8),
+    ("edit", "phonk", "110", 5),
+    ("edit", "glitch art", "100", 5),
+    ("edit", "neon aesthetic", "100", 6),
+    ("edit", "retrowave", "100", 5),
+    ("edit", "vaporwave", "100", 4),
+    ("edit", "y2k aesthetic", "100", 4),
+    ("edit", "cyberpunk", "110", 6),
+    ("edit", "anime edit", "010", 6),
+    ("edit", "red black aesthetic", "100", 4),
+    # Voitures, ville la nuit, cerisiers.
+    ("voiture", "jdm", "100", 6),
+    ("voiture", "nissan skyline", "100", 4),
+    ("voiture", "porsche 911", "100", 4),
+    ("voiture", "car night city", "100", 4),
+    ("ville", "tokyo night", "100", 6),
+    ("ville", "rainy city night", "100", 5),
+    ("ville", "neon street", "100", 4),
+    ("sakura", "cherry blossom dark", "100", 6),
+    ("sakura", "sakura anime", "010", 5),
 ]
 
 
@@ -1292,9 +1323,9 @@ PROFILE_DIR = CONF_DIR / "profiles"
 LINUX_THEME = "lain"   # thème de repli du style « expressive » (couleurs tirées du fond)
 # Styles du bureau Linux et leur thème Omarchy (terminaux, bordures, fonds).
 LINUX_STYLES = ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
-                "ruban", "espace", "cosmos", "ile", "hud", "gouts", "debian", "fedora", "mint", "kali", "arch"]
+                "ruban", "espace", "cosmos", "ile", "hud", "infini", "gouts", "debian", "fedora", "mint", "kali", "arch"]
 LINUX_THEMES = ["lain", "blanc", "sombre", "jouet", "violet", "violet-aube", "rose", "violet-crepuscule", "violet-lavande", "violet-prune", "violet-ete", "violet-automne", "violet-hiver", "violet-printemps", "windows", "windows-sombre", "mono", "mono-papier",
-                "mono-sakura", "foret", "ruban", "espace", "cosmos", "ile", "hud", "debian", "fedora", "mint", "kali", "arch"]
+                "mono-sakura", "foret", "ruban", "espace", "cosmos", "ile", "hud", "infini", "debian", "fedora", "mint", "kali", "arch"]
 VIOLET_TONES = {"nuit": "violet", "aube": "violet-aube", "rose": "rose", "minuit": "violet", "crepuscule": "violet-crepuscule", "lavande": "violet-lavande", "prune": "violet-prune", "ete": "violet-ete", "automne": "violet-automne", "hiver": "violet-hiver", "printemps": "violet-printemps"}
 # Teintes de chaque style (un seul style, plusieurs couleurs) : clé de [linux] et valeurs.
 STYLE_TONES = {
@@ -1309,6 +1340,7 @@ STYLE_TONES = {
     "cosmos": ("cosmos_tone", ["orbite", "mousse", "corail"]),
     "windows": ("windows_tone", ["clair", "sombre"]),
     "hud": ("hud_tone", ["blanc", "cyan", "ambre", "vert", "rouge"]),
+    "infini": ("infini_tone", ["sakura", "lilas", "menthe", "peche"]),
     "expressive": ("scheme", ["tonal-spot", "expressive", "vibrant", "fruit-salad", "monochrome"]),
 }
 PROFILES = ("mac", "linux", "omarchy")
@@ -1345,7 +1377,7 @@ def style_theme(cfg: dict | None = None) -> str:
     if st == "mono":
         t = str(cfg.get("linux", {}).get("mono_tone", "noir"))
         return "mono-" + t if t in ("papier", "sakura") else "mono"
-    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "cosmos", "ile", "hud", "debian", "fedora", "mint", "kali", "arch"):
+    if st in ("blanc", "sombre", "jouet", "foret", "ruban", "espace", "cosmos", "ile", "hud", "infini", "debian", "fedora", "mint", "kali", "arch"):
         return st
     return LINUX_THEME
 
@@ -1689,6 +1721,7 @@ RICE_STYLES = {
     "debian": ("Adwaita Mono", 0.92, 8, "waves bounce fetch cpu clock cal cava timer btop life scope pipes shell"),
     "fedora": ("Adwaita Mono", 0.92, 8, "bounce waves cpu fetch clock cal cava timer btop plasma scope snow shell"),
     "mint": ("Noto Sans Mono", 0.92, 8, "leaves waves fetch cpu clock cal cava bounce timer btop scope snow shell"),
+    "infini": ("JetBrainsMono Nerd Font", 0.72, 12, "cava fetch btop clock stars petals cpu cal scope timer waves cover shell"),
     "hud": ("Share Tech Mono", 0.9, 6, "fetch cpu radar hex rain scope clock btop cal tunnel cava timer shell"),
     "kali": ("Share Tech Mono", 0.85, 6, "radar hex rain cpu fetch shell btop scope clock tunnel cal timer cava"),
     "arch": ("JetBrainsMono Nerd Font", 0.88, 8, "pipes fetch cpu bounce cava btop rain clock hex cal timer scope shell"),

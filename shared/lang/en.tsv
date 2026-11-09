@@ -178,6 +178,7 @@ Bureau Linux	Linux desktop
 Bureau Linux ⇄ Mac (profil)	Linux ⇄ Mac desktop (profile)
 Bureau Mac actif	Mac desktop active
 Bureau précédent · suivant	Previous · next desktop
+Bureau sans bord à faire glisser, cerisiers	Borderless desktop you drag around, cherry blossoms
 Bureautique	Office
 Bureaux (1 2 3…)	Workspaces (1 2 3…)
 Bureaux complets	Full desktops
@@ -213,6 +214,7 @@ Centre	Center
 Centre de contrôle	Control Center
 Centrer	Center
 Ce PC	This PC
+Cerisiers	Cherry blossoms
 Cet aide-mémoire	This cheat sheet
 Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)	Each with its own bar, launcher (⌘Space) and settings (⌘⌥Space)
 Changer…	Change…
@@ -297,6 +299,7 @@ Couleur	Color
 Couleur d'accentuation	Accent color
 Couleur de la pochette	Cover color
 Couleur des traits du bureau 7JOKS	Line colour of the 7JOKS desktop
+Couleur du visualiseur et des liserés	Colour of the visualiser and borders
 # couleurs	# colors
 Couleurs	Colors
 Couleurs de la pochette	Cover colors
@@ -459,6 +462,7 @@ Essentiels	Essentials
 Éteindre…	Shut Down…
 Été	Summer
 Étire les chiffres pour remplir l'espace, comme iOS 26	Stretches digits to fill the space, like iOS 26
+Étoiles filantes	Shooting stars
 Exécuter dans le terminal	Run in terminal
 Expérience	Experience
 Explique simplement comment marche un VPN	Explain simply how a VPN works
@@ -473,6 +477,7 @@ Fenêtre précédente du groupe	Previous group window
 Fenêtre précédente	Previous window
 Fenêtres & bureaux	Windows & desktops
 Fenêtres flottantes comme sur Mac	Floating windows like on Mac
+Fenêtres flottantes	Floating windows
 Fenêtres inactives	Inactive windows
 Fenêtre suivante du groupe	Next group window
 Fenêtre suivante	Next window
@@ -582,6 +587,7 @@ Ignorer en tapant au clavier	Ignore while typing
 Île	Island
 Imprimer…	Print…
 Indicateur des agents Omarchy	Omarchy agents indicator
+Infini	Infinite
 Informations détaillées	Detailed information
 Informations	Information
 Installation	Install
@@ -875,6 +881,7 @@ Position à l'écran	Position on Screen
 Position ; se déplace aussi au doigt	Position; also moves with your finger
 Pourcentage de la batterie	Battery percentage
 Pour ce thème	For this theme
+Pour qu'elles suivent la toile quand on la fait glisser	So they follow the canvas when you drag it
 Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation.	To undo everything: ~/.config-backup-<date>/restore.sh restores the state before install.
 Premier croissant	Waxing crescent
 Premier quartier	First quarter
@@ -1163,12 +1170,14 @@ Vidéo	Video
 Vif	Vivid
 Ville de la météo	Weather city
 Ville introuvable	City not found
+Villes	Cities
 Visualiseur audio	Audio visualizer
 Visualiseur cava	Cava visualizer
 Visualiseur	Visualizer
 Vitesse de défilement	Scroll speed
 Vitesse du pointeur	Pointer speed
 Vive	Vivid
+Voitures	Cars
 Volume dans l'île	Volume in the island
 Volume de sortie	Output volume
 Volume du micro	Microphone volume

@@ -68,6 +68,14 @@ THEMES = {
         ansi=["#322e37", "#d98c8c", "#9cc3a5", "#d8bd8a", "#9aa8d8", "#b8a0d8", "#9cc6c6", "#c9c2cc",
               "#5e5864", "#e8a3a3", "#b4d6bb", "#e8d2a5", "#b4c0e8", "#cdb8e8", "#b4dada", "#ffffff"],
         bar_alpha=0.55, popup_alpha=0.96),
+    "infini": dict(
+        title="infini — cerisiers la nuit, verre fumé rose (bureau infini)", mode="dark", icons="Yaru-magenta-dark",
+        bg="#1c1718", bg_dark="#141011", bg_darker="#0d0a0b", bg_light="#2a2324",
+        fg="#ece2e4", fg_dark="#a8999c", fg_light="#d9cbce", fg_bright="#ffffff",
+        accent="#e8a3b4", selection="#4a3439", muted="#6e5f62", border=("e8a3b4aa", "c48b99aa"), inactive="3a3033ff",
+        ansi=["#2a2324", "#e8838f", "#a8d8b0", "#ecc99a", "#a9b8e8", "#e8a3b4", "#9cd4d0", "#d9cbce",
+              "#4a3f42", "#f0a2ab", "#c0e4c6", "#f2dab4", "#c2cff0", "#f2c0cc", "#b8e2de", "#ffffff"],
+        bar_alpha=0.4, popup_alpha=0.92),
     "hud": dict(
         title="7JOKS — terminal de science-fiction, traits blancs sur noir", mode="dark", icons="Yaru-dark",
         bg="#000000", bg_dark="#000000", bg_darker="#000000", bg_light="#101010",

@@ -153,6 +153,14 @@ Item {
       ] },
     { id: "ile", name: T.t("Île"), sub: T.t("Encoche noire, huit onglets, prune"), bg: themes + "ile/backgrounds/01-ile.jpg",
       ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "space" },
+    { id: "infini", name: T.t("Infini"), sub: T.t("Bureau sans bord à faire glisser, cerisiers"), bg: themes + "infini/backgrounds/01-infini.jpg",
+      ink: "#ece2e4", sub2: "#a8999c", acc: "#e8a3b4", font: "Bebas Neue", mock: "space", key: "infini_tone",
+      tones: [
+        { id: "sakura", name: "Sakura", acc: "#e8a3b4" },
+        { id: "lilas", name: T.t("Lilas"), acc: "#c9b3f0" },
+        { id: "menthe", name: T.t("Menthe"), acc: "#9fdcc4" },
+        { id: "peche", name: T.t("Pêche"), acc: "#f5b896" }
+      ] },
     { id: "hud", name: "7JOKS", sub: T.t("Terminal de science-fiction, démarrage animé"), bg: themes + "hud/backgrounds/01-hud.jpg",
       ink: "#e6e6e6", sub2: "#8a8a8a", acc: "#e6e6e6", font: "Share Tech Mono", mock: "space", key: "hud_tone",
       tones: [

@@ -45,11 +45,12 @@ STYLES = {
     "arch": ["arch linux", "blue dark minimal", "dark blue mountains", "blue geometric dark"],
     "foret": ["forest lake", "mountain lake sunset", "pine forest", "misty forest", "camping night"],
     "ile": ["chainsaw man manga", "manga girl sketch", "monochrome anime girl", "manga panel white background", "anime line art", "black and white anime girl"],
+    "infini": ["cherry blossom dark", "sakura night", "dark cherry blossom branch", "pink flowers dark", "sakura dark aesthetic", "cherry blossom night"],
     "lain": ["serial experiments lain", "cyberpunk anime", "retro anime aesthetic", "glitch art"],
 }
 
 
-NEED_FIRST = {"espace", "ruban", "mono-papier", "mono-sakura", "debian", "fedora", "mint", "kali", "arch"}
+NEED_FIRST = {"infini", "espace", "ruban", "mono-papier", "mono-sakura", "debian", "fedora", "mint", "kali", "arch"}
 
 
 def get(url, timeout=30):

@@ -1,0 +1,37 @@
+# Liquid Glass — infini — cerisiers la nuit, verre fumé rose (bureau infini) (profil Linux, ⌘⇧Espace).
+# Généré par scripts/gen-linux-themes.py.
+mode = "dark"
+
+accent = "#e8a3b4"
+selection = "#4a3439"
+muted = "#6e5f62"
+
+background = "#1c1718"
+dark_background = "#141011"
+darker_background = "#0d0a0b"
+lighter_background = "#2a2324"
+
+foreground = "#ece2e4"
+dark_foreground = "#a8999c"
+light_foreground = "#d9cbce"
+bright_foreground = "#ffffff"
+
+hyprland_active_border = "rgba(e8a3b4aa) rgba(c48b99aa) 45deg"
+
+hyprland_inactive_border = "rgba(3a3033ff)"
+
+red = "#e8838f"
+green = "#a8d8b0"
+yellow = "#ecc99a"
+blue = "#a9b8e8"
+magenta = "#e8a3b4"
+cyan = "#9cd4d0"
+orange = "#eaa694"
+brown = "#8b765f"
+
+bright_red = "#f0a2ab"
+bright_green = "#c0e4c6"
+bright_yellow = "#f2dab4"
+bright_blue = "#c2cff0"
+bright_magenta = "#f2c0cc"
+bright_cyan = "#b8e2de"

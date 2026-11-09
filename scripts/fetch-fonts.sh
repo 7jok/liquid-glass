@@ -27,6 +27,8 @@ fetch Unbounded.ttf "https://raw.githubusercontent.com/google/fonts/main/ofl/unb
 # Polices à chasse fixe des terminaux animés (une par style, voir liquid-glass rice).
 G="https://raw.githubusercontent.com/google/fonts/main/ofl"
 fetch Michroma-Regular.ttf "$G/michroma/Michroma-Regular.ttf"
+# Horloge empilée étroite du style Infini.
+fetch BebasNeue-Regular.ttf "$G/bebasneue/BebasNeue-Regular.ttf"
 fetch VT323-Regular.ttf "$G/vt323/VT323-Regular.ttf"
 fetch SpaceMono-Regular.ttf "$G/spacemono/SpaceMono-Regular.ttf"
 fetch SpaceMono-Bold.ttf "$G/spacemono/SpaceMono-Bold.ttf"

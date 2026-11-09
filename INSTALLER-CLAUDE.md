@@ -2,7 +2,7 @@
 
 Ce fichier est à donner à Claude Code sur un PC où **Omarchy** vient d'être installé.
 Il reproduit à l'identique les ajouts du PC d'origine : interfaces (profil Mac et bureau
-Linux avec ses 18 styles), thèmes, fonds d'écran, écrans de verrouillage, raccourcis,
+Linux avec ses 20 styles, dont 7JOKS et Infini), thèmes, fonds d'écran, écrans de verrouillage, raccourcis,
 réglages, fond actuel et photo du compte. Il n'installe **pas** toutes les applications
 de l'ancien PC, seulement ce dont Liquid Glass a besoin.
 

@@ -134,7 +134,7 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         // Position (en coordonnées de la toile) et zoom quand il n'est pas à 100 %.
         text: bar.desk ? (Math.abs(bar.desk.zoom - 1) > 0.001 ? Math.round(bar.desk.zoom * 100) + " %  ·  " : "")
-                         + Math.round(-bar.desk.px / bar.desk.zoom) + ", " + Math.round(-bar.desk.py / bar.desk.zoom) : ""
+                         + Math.round(-bar.desk.px) + ", " + Math.round(-bar.desk.py) : ""
         font.family: "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(11 * bar.k); color: bar.ink
         rightPadding: Math.round(6 * bar.k)
       }

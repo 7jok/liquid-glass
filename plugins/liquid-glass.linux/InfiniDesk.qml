@@ -34,32 +34,33 @@ Scope {
   property var addrs: []          // fenêtres flottantes du bureau actif
   property bool listed: false     // addrs est à jour
   property bool dragging: false
-  // Zoom de la toile (⌘ + molette / deux doigts, ⌘⌃Z, ⌘⌃⇧Z, ⌘⌃⌥Z) : la toile et les
-  // fenêtres se rapprochent ou s'éloignent autour du pointeur (les fenêtres sont
-  // déplacées et redimensionnées, leur contenu se remet en page).
+  // Zoom de la toile (⌘ + molette / deux doigts, ⌘⌃Z, ⌘⌃⇧Z, ⌘⌃⌥Z) : seul le bureau
+  // (horloge, cadre, visualiseur…) se rapproche ou s'éloigne autour du pointeur ;
+  // les fenêtres ne bougent pas et gardent leur taille.
   property real zoom: 1
-  // Réglages du thème : le zoom redimensionne aussi les fenêtres ; pas du zoom (molette).
-  readonly property bool zoomWindows: !s || s.opt("infini_zoom_windows", true) !== false
   readonly property real wheelStep: Number(s ? s.opt("infini_zoom_speed", 1.08) : 1.08)
-  property real sentZ: 1
   readonly property real zoomMin: 0.3
   readonly property real zoomMax: 2.5
-  readonly property bool atHome: Math.abs(px) < 1 && Math.abs(py) < 1 && Math.abs(zoom - 1) < 0.001
+  // Position affichée de la toile (glisser + zoom) ; px/py = glisser seul (fenêtres).
+  property real vx: 0
+  property real vy: 0
+  readonly property bool atHome: Math.abs(px) < 1 && Math.abs(py) < 1 && Math.abs(vx) < 1 && Math.abs(vy) < 1 && Math.abs(zoom - 1) < 0.001
 
   function pan(dx, dy) {
     if (dx === 0 && dy === 0) return
     px += dx; py += dy
+    vx += dx; vy += dy
     flushT.start()
   }
-  // Zoom de facteur f autour du point (cx, cy) de l'écran (coordonnées locales).
+  // Zoom de facteur f autour du point (cx, cy) de l'écran (coordonnées locales) :
+  // ne change que l'affichage de la toile, jamais les fenêtres.
   function zoomAt(f, cx, cy) {
     var z = Math.max(zoomMin, Math.min(zoomMax, zoom * f))
     if (Math.abs(z - zoom) < 0.0001) return
     var g = z / zoom
-    px = cx - (cx - px) * g
-    py = cy - (cy - py) * g
+    vx = cx - (cx - vx) * g
+    vy = cy - (cy - vy) * g
     zoom = z
-    flushT.start()
   }
   // Zoom au clavier ou à ⌘ + molette : autour du pointeur (cursorpos), sinon du centre.
   property real zoomPending: 1
@@ -83,7 +84,7 @@ Scope {
       }
     }
   }
-  function home() { if (Math.abs(zoom - 1) > 0.001) zoomAt(1 / zoom, sw / 2, sh / 2); pan(-px, -py) }
+  function home() { zoom = 1; vx = 0; vy = 0; px = 0; py = 0; flushT.start() }
   // Bureau affiché sur l'écran de la toile (pas forcément l'écran actif).
   function wsOf(json) {
     try {
@@ -130,10 +131,9 @@ Scope {
   }
   // Au plus ~30 envois par seconde, un seul à la fois.
   Timer { id: flushT; interval: 33; onTriggered: root.flush() }
-  Process { id: moveP; onExited: if (Math.round(root.px - root.sentX) !== 0 || Math.round(root.py - root.sentY) !== 0 || Math.abs(root.zoom - root.sentZ) > 0.0001) flushT.start() }
+  Process { id: moveP; onExited: if (Math.round(root.px - root.sentX) !== 0 || Math.round(root.py - root.sentY) !== 0) flushT.start() }
   function flush() {
-    if (moveP.running || listP.running || zoomP.running) { flushT.start(); return }
-    if (Math.abs(zoom - sentZ) > 0.0001) { zoomP.running = true; return }
+    if (moveP.running || listP.running) { flushT.start(); return }
     if (!listed) { listP.running = true; return }
     var dx = Math.round(px - sentX), dy = Math.round(py - sentY)
     if (addrs.length === 0) { sentX = px; sentY = py; return }
@@ -142,35 +142,6 @@ Scope {
     sentX += dx; sentY += dy
     moveP.command = ["hyprctl", "--batch", b.join(" ; ")]
     moveP.running = true
-  }
-  // Zoom : géométrie actuelle des fenêtres -> position sur la toile (avec l'état déjà
-  // appliqué), puis nouvelle position et taille avec le zoom et la vue voulus.
-  Process {
-    id: zoomP
-    command: ["sh", "-c", "hyprctl -j monitors; echo '@@'; hyprctl -j clients"]
-    stdout: StdioCollector {
-      onStreamFinished: {
-        var p = text.split("@@"), ws = -1, cl = []
-        ws = root.wsOf(p[0])
-        try { cl = JSON.parse(p[1]) } catch (e) {}
-        var ox = root.screen ? root.screen.x : 0, oy = root.screen ? root.screen.y : 0
-        var z0 = root.sentZ, x0 = root.sentX, y0 = root.sentY, z1 = root.zoom, x1 = root.px, y1 = root.py
-        var b = []
-        for (var i = 0; i < cl.length; i++) {
-          var c = cl[i]
-          if (!c.workspace || c.workspace.id !== ws || c.workspace.id < 0 || c.pinned || (c.fullscreen || 0) > 0 || !c.floating) continue
-          if (!root.zoomWindows) continue
-          var cx = (c.at[0] - ox - x0) / z0, cy = (c.at[1] - oy - y0) / z0
-          var w = Math.max(80, Math.round(c.size[0] / z0 * z1)), h = Math.max(60, Math.round(c.size[1] / z0 * z1))
-          var t = "window = \"address:" + c.address + "\""
-          b.push("dispatch hl.dsp.window.resize({ x = " + w + ", y = " + h + ", relative = false, " + t + " })")
-          b.push("dispatch hl.dsp.window.move({ x = " + Math.round(ox + x1 + cx * z1) + ", y = " + Math.round(oy + y1 + cy * z1) + ", " + t + " })")
-        }
-        root.sentZ = z1; root.sentX = x1; root.sentY = y1
-        if (b.length) { moveP.command = ["hyprctl", "--batch", b.join(" ; ")]; moveP.running = true }
-        else flushT.start()
-      }
-    }
   }
   // Un autre bureau, une nouvelle fenêtre : la liste est refaite au prochain glisser.
   Connections {
@@ -259,7 +230,7 @@ Scope {
     // ---------------- la toile : tout ce qui suit le glisser
     Item {
       id: world
-      x: root.px; y: root.py
+      x: root.vx; y: root.vy
       width: root.sw; height: root.sh
       scale: root.zoom
       transformOrigin: Item.TopLeft

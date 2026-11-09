@@ -2039,7 +2039,6 @@ Item {
         infini: [["t", "infini_clock", T.t("Horloge sur la toile"), T.t("Heures sur minutes, au centre de la toile"), true],
                  ["t", "infini_frame", T.t("Cadre du visualiseur"), T.t("Posé sur la toile, il suit le glisser et le zoom"), true],
                  ["t", "infini_viz", T.t("Visualiseur du bas"), T.t("Sur toute la largeur, sous la barre"), true],
-                 ["t", "infini_zoom_windows", T.t("Zoomer aussi les fenêtres"), T.t("⌘ + molette, ⌘ + pincer, ⌘⌃Z / ⌘⌃⇧Z : les fenêtres rapetissent avec la toile"), true],
                  ["s", "infini_zoom_speed", T.t("Vitesse du zoom"), "", 1.08, [1.02, 1.25, 0.01, "pct"]],
                  ["t", "infini_dblclick", T.t("Double-clic : retour au centre"), T.t("Et zoom à 100 %"), true],
                  ["t", "infini_pos", T.t("Position dans la barre"), T.t("Coordonnées et zoom, clic pour revenir"), true]],

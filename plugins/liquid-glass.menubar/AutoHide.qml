@@ -19,9 +19,11 @@ Item {
 
   readonly property string home: Quickshell.env("HOME")
   property string mode: "never"
+  // Profil Mac seulement : les bureaux Linux / Omarchy n'ont rien à voir avec cette barre.
+  property string profile: ""
   // Plusieurs écrans : une instance du widget par barre, mais un seul drapeau
   // `bar-off` : seule celle du premier écran s'en occupe.
-  readonly property bool active: mode === "always"
+  readonly property bool active: mode === "always" && profile === "mac"
     && (!screen || Quickshell.screens.length === 0 || screen.name === Quickshell.screens[0].name)
   property bool revealed: false
   property bool applied: false        // dernier état écrit : barre cachée ?
@@ -35,7 +37,11 @@ Item {
     printErrors: false
     onFileChanged: reload()
     onLoaded: {
-      try { var m = JSON.parse(text()).menubar || {}; ah.mode = String(m.autohide || "never") } catch (e) {}
+      try {
+        var c = JSON.parse(text()), m = c.menubar || {}
+        ah.mode = String(m.autohide || "never")
+        ah.profile = String((c.profile && c.profile.active) || "mac")
+      } catch (e) {}
     }
   }
 
@@ -48,15 +54,18 @@ Item {
       // Deux relances : la surveillance du dossier par la barre peut rater la première.
       + "; omarchy-shell -q omarchy.bar syncHidden; sleep 0.5; omarchy-shell -q omarchy.bar syncHidden"])
   }
-  onWantHiddenChanged: write(wantHidden)
+  // Sortie du profil Mac : on ne touche plus au drapeau (le profil Linux cache la barre).
+  onWantHiddenChanged: if (profile === "mac") write(wantHidden); else applied = false
   Component.onCompleted: {
     // Au démarrage, partir d'un état connu, mais seulement si le masquage auto
     // est actif : sinon on ne touche pas à une barre masquée à la main.
     if (wantHidden) { applied = false; write(true) }
   }
   // Profil Linux ou plugin retiré : on rend la barre.
-  Component.onDestruction: if (applied) Quickshell.execDetached(["sh", "-c",
-    "rm -f \"$HOME/.local/state/omarchy/toggles/bar-off\"; omarchy-shell -q omarchy.bar syncHidden"])
+  // Seulement si on est encore sur le profil Mac (sinon la barre Mac réapparaissait sur Linux).
+  Component.onDestruction: if (applied && profile === "mac") Quickshell.execDetached(["sh", "-c",
+    "sleep 0.5; grep -q '\"active\": *\"mac\"' \"$HOME/.config/liquid-glass/config.json\" || exit 0; "
+    + "rm -f \"$HOME/.local/state/omarchy/toggles/bar-off\"; omarchy-shell -q omarchy.bar syncHidden"])
 
   // Bord chaud : 2 px en haut de l'écran, seulement quand la barre est rangée.
   PanelWindow {

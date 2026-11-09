@@ -17,6 +17,13 @@ Panel {
   moduleName: "liquid-glass.menubar"
   ipcTarget: "liquid-glass.menubar"
 
+  // Masquer / afficher automatiquement la barre (Réglages → Barre des menus).
+  AutoHide {
+    bar: root.bar
+    menuOpen: root.opened
+    screen: root.QsWindow.window ? root.QsWindow.window.screen : null
+  }
+
   readonly property string uiFont: "Inter"
   readonly property color tint: root.bar ? root.bar.barForeground : Commons.Color.foreground
 

@@ -116,6 +116,7 @@ Allumé depuis 	Up for
 Allumé · 	Up · 
 Allure	Look
 Ambre	Amber
+Amenez la souris tout en haut de l'écran pour la faire apparaître	Move the pointer to the top of the screen to show it
 Ancienne présentation : la ligne à côté du titre	Old layout: line next to the title
 Anglais (R.-U.)	English (UK)
 Anglais (É.-U.)	English (US)
@@ -399,6 +400,7 @@ Di	Su
 Discrète	Subtle
 Disponible	Available
 Disposition des widgets	Widget layout
+Disposition du clavier	Keyboard layout
 Disposition précédente	Previous layout
 Disposition suivante	Next layout
 Disque	Disk
@@ -423,6 +425,7 @@ Définir comme fond d'écran	Set Desktop Picture
 Définition	Resolution
 Dégagé	Clear
 Dégradé	Gradient
+Déjà dans l'île quand elle change (⌃Espace)	Already shown in the island when it changes (⌃Space)
 Démarrage	Boot
 Démarrer, Paramètres	Start, Settings
 Départ	Home
@@ -465,6 +468,7 @@ Encre	Ink
 Encre, ambre, glace, sang (rouge) ou indigo (bleu violet)	Ink, amber, ice, blood (red) or indigo (blue violet)
 Enregistrement	Recording
 Enregistrement de l'écran	Screen recording
+Enregistrement, Ne pas déranger, veille… (apparaissent au survol de la barre)	Recording, Do Not Disturb, idle… (shown when hovering the bar)
 Enregistrement…	Recording…
 Enregistrer	Save
 Enregistrer l'écran	Record screen
@@ -614,6 +618,7 @@ Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and 
 Hors ligne	Offline
 Humidité	Humidity
 ICI	HERE
+Icône quand des mises à jour Omarchy sont disponibles	Icon when Omarchy updates are available
 Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
 Ignorer en tapant au clavier	Ignore while typing
 Image 	Image 
@@ -621,6 +626,7 @@ Images	Pictures
 Imprimantes et scanners	Printers & Scanners
 Imprimer…	Print…
 Indicateur des agents Omarchy	Omarchy agents indicator
+Indicateurs Omarchy	Omarchy indicators
 Infini	Infinite
 Informations	Information
 Informations détaillées	Detailed information
@@ -710,6 +716,7 @@ Masquer	Hide
 Masquer 	Hide 
 Masquer automatiquement	Hide automatically
 Masquer automatiquement le Dock	Automatically hide the Dock
+Masquer la barre automatiquement	Automatically hide the menu bar
 Masquer les autres	Hide Others
 Masquée	Hidden
 Material 3, couleurs du fond	Material 3, wallpaper colors
@@ -1157,6 +1164,7 @@ Touche /	Key /
 Toucher pour cliquer	Tap to click
 Touchez avec un doigt pour cliquer	Tap with one finger to click
 Touchez le lecteur d'empreintes ou saisissez le mot de passe	Touch the fingerprint reader or enter your password
+Toujours	Always
 Toujours au premier plan	Always on Top
 Toujours au-dessus	Always on top
 Toujours visible	Always visible

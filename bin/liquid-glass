@@ -852,7 +852,10 @@ BAR_ITEMS = {
     "battery": ("liquid-glass.power", "right", "omarchy.network"),
     "wifi": ("omarchy.network", "right", "liquid-glass.search"),
     "spotlight": ("liquid-glass.search", "right", "liquid-glass.control"),
-    "shortcuts": ("liquid-glass.shortcuts", "right", "omarchy.indicators"),
+    "shortcuts": ("liquid-glass.shortcuts", "right", "liquid-glass.power"),
+    "indicators": ("omarchy.indicators", "right", "liquid-glass.power"),
+    "keyboard": ("omarchy.keyboard-layout", "right", "liquid-glass.power"),
+    "updates": ("omarchy.system-update", "right", "liquid-glass.power"),
 }
 
 

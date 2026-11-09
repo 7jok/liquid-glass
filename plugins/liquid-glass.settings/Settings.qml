@@ -1054,6 +1054,17 @@ Item {
       }
       Group {
         Row_ {
+          label: T.t("Masquer la barre automatiquement")
+          sub: T.t("Amenez la souris tout en haut de l'écran pour la faire apparaître")
+          Seg {
+            options: [["never", T.t("Jamais")], ["always", T.t("Toujours")]]
+            value: String(root.val("menubar.autohide", "never"))
+            onPicked: function(v) { root.set("menubar.autohide", v) }
+          }
+        }
+      }
+      Group {
+        Row_ {
           label: T.t("Fond de la barre")
           sub: T.t("Transparente comme macOS Tahoe : le texte devient sombre ou blanc selon le fond d'écran")
           Seg {
@@ -1082,6 +1093,9 @@ Item {
         BarRow { label: T.t("Bureaux (1 2 3…)"); item: "workspaces"; sub: T.t("Pas sur macOS : Mission Control (⌘↑) les remplace") }
         BarRow { label: T.t("Morceau en cours"); item: "nowplaying"; sub: T.t("Pochette et titre à droite (déjà dans l'île)") }
         BarRow { label: "Agents"; item: "agents"; sub: T.t("Indicateur des agents Omarchy") }
+        BarRow { label: T.t("Indicateurs Omarchy"); item: "indicators"; sub: T.t("Enregistrement, Ne pas déranger, veille… (apparaissent au survol de la barre)") }
+        BarRow { label: T.t("Disposition du clavier"); item: "keyboard"; sub: T.t("Déjà dans l'île quand elle change (⌃Espace)") }
+        BarRow { label: T.t("Mises à jour"); item: "updates"; sub: T.t("Icône quand des mises à jour Omarchy sont disponibles") }
       }
       SectionTitle { text: T.t("Paroles") }
       Group {
@@ -2453,8 +2467,8 @@ Item {
     Column {
       id: labels
       x: r.icon !== 0 ? ico.x + ico.width + Style.space(10) : Style.space(14)
-      anchors.verticalCenter: r.stacked ? undefined : parent.verticalCenter
-      y: Style.space(10)
+      // Positions calculées (pas d'ancre qu'on retire en route : la position resterait figée).
+      y: r.stacked ? Style.space(10) : Math.round((r.height - implicitHeight) / 2)
       width: r.stacked ? parent.width - x - Style.space(14) : parent.width - x - slot.width - Style.space(28)
       spacing: 1
       Text { width: parent.width; textFormat: Text.PlainText; text: r.label; elide: Text.ElideRight; font.family: root.uiFont; font.pixelSize: Style.space(13); color: root.fg }
@@ -2462,9 +2476,8 @@ Item {
     }
     Item {
       id: slot
-      anchors.right: parent.right; anchors.rightMargin: Style.space(14)
-      anchors.verticalCenter: r.stacked ? undefined : parent.verticalCenter
-      y: labels.y + labels.implicitHeight + Style.space(6)
+      x: r.stacked ? labels.x : r.width - width - Style.space(14)
+      y: r.stacked ? labels.y + labels.implicitHeight + Style.space(8) : Math.round((r.height - height) / 2)
       width: childrenRect.width; height: childrenRect.height
     }
   }
@@ -2508,7 +2521,8 @@ Item {
     Rectangle {
       id: thumb
       visible: seg.idx >= 0
-      readonly property var it: seg.idx >= 0 ? segRep.itemAt(seg.idx) : null
+      // count : réévalué quand le Repeater a créé ses boutons (sinon pas de pastille au départ).
+      readonly property var it: seg.idx >= 0 && segRep.count > seg.idx ? segRep.itemAt(seg.idx) : null
       x: it ? segRow.x + it.x : 2
       width: it ? it.width : 0
       y: 2; height: seg.height - 4; radius: height / 2

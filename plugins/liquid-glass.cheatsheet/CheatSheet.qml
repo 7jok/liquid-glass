@@ -51,7 +51,8 @@ Item {
       ["⌃ ⌘ Q", T.t("Verrouiller")],
       ["⌘ ⇧ L", "Clair / sombre"],
       [T.t("⌘ ⌥ Espace"), T.t("Menu Omarchy")],
-      ["⌘ Échap", T.t("Menu système")],
+      ["⌘ Échap", T.t("Réglages")],
+      ["⌘ ⇧ Échap", T.t("Menu système")],
       ["⌘ ,", T.t("Agir sur la notification")]
     ]],
     [T.t("Musique & mosaïque"), [

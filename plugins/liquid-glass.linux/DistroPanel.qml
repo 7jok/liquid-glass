@@ -44,6 +44,9 @@ PanelWindow {
   property date now: new Date()
   Timer { interval: 1000; repeat: true; running: true; onTriggered: win.now = new Date() }
   function fr(fmt) { return win.now.toLocaleDateString(Qt.locale(T.loc), fmt) }
+  // Réglages propres à la distribution (Réglages → Propre à Debian…) : <style>_<élément>.
+  function dop(k, d) { return s.opt(s.style + "_" + k, d === undefined ? true : d) !== false }
+  readonly property string tfmt: s.opt(s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm"
   function ws(n) { Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"" + n + "\" })"]) }
   function term(cmd) { Quickshell.execDetached(["sh", "-c", cmd]) }
 
@@ -87,7 +90,7 @@ PanelWindow {
             color: win.gnome || win.s.launcherOpen ? "#ffffff" : win.s.primary
           }
           Text {
-            visible: win.d.menuLabel !== ""
+            visible: win.d.menuLabel !== "" && win.dop("label")
             anchors.verticalCenter: parent.verticalCenter
             text: win.d.menuLabel
             font.family: win.font; font.pixelSize: 13; font.weight: win.gnome ? Font.DemiBold : Font.Normal; color: win.ink
@@ -98,7 +101,7 @@ PanelWindow {
 
       // Fedora : points des bureaux façon GNOME récent, à côté du logo.
       Row {
-        visible: win.d.pills === true
+        visible: win.d.pills === true && win.dop("pills")
         anchors.verticalCenter: parent.verticalCenter
         spacing: 5
         Repeater {
@@ -116,6 +119,7 @@ PanelWindow {
       }
 
       ClaudeButton {
+        visible: win.dop("claude")
         anchors.verticalCenter: parent.verticalCenter
         s: win.s; size: win.gnome ? 22 : win.barH - 8; iconSize: win.gnome ? 15 : (win.barH - 8) * 0.68; radius: 5
       }
@@ -136,7 +140,7 @@ PanelWindow {
 
       // Xfce : petits rectangles des bureaux.
       Row {
-        visible: win.lay === "xfce"
+        visible: win.lay === "xfce" && win.dop("workspaces")
         anchors.verticalCenter: parent.verticalCenter
         spacing: 2
         leftPadding: 4; rightPadding: 4
@@ -157,7 +161,7 @@ PanelWindow {
 
     // Liste des fenêtres (Cinnamon, Xfce, Plasma).
     Item {
-      visible: !win.gnome
+      visible: !win.gnome && win.dop("tasks")
       x: left.x + left.width + 6
       width: right.x - x - 6; height: parent.height
       clip: true
@@ -213,7 +217,7 @@ PanelWindow {
       Text {
         id: gclock
         anchors.centerIn: parent
-        text: win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm")
+        text: (win.dop("date") ? win.fr("ddd d MMM") + "  " : "") + Qt.formatTime(win.now, win.tfmt)
         font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: "#ffffff"
       }
       MouseArea { id: gcm; anchors.fill: parent; hoverEnabled: true; onClicked: win.s.toggleMenu("home") }
@@ -226,7 +230,7 @@ PanelWindow {
       spacing: 6
 
       Repeater {
-        model: SystemTray.items
+        model: win.dop("tray") ? SystemTray.items : []
         delegate: Item {
           id: tray
           required property var modelData
@@ -291,11 +295,11 @@ PanelWindow {
           anchors.centerIn: parent
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: win.lay === "xfce" ? win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm") : Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm")
+            text: win.lay === "xfce" && win.dop("date") ? win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, win.tfmt) : Qt.formatTime(win.now, win.tfmt)
             font.family: win.font; font.pixelSize: win.plasma ? 13 : 12; color: win.ink
           }
           Text {
-            visible: win.bottomBar
+            visible: win.bottomBar && win.dop("date")
             anchors.horizontalCenter: parent.horizontalCenter
             text: win.fr("dd/MM/yyyy")
             font.family: win.font; font.pixelSize: 10; color: win.s.colOnSurfaceVariant

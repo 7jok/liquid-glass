@@ -280,6 +280,9 @@ if val("titlebars", true) and file_exists(TITLEBARS) then
     local window = [[window = "address:%WINDOW%"]]
     local zoom = "hyprctl dispatch 'hl.dsp.window.fullscreen({ mode = \"maximized\", action = \"toggle\", " .. window .. " })'"
 
+    -- liquid-glass-early.lua ne laisse passer que ces appels-ci (pas les × □ −
+    -- du mode bureau flottant d'Omarchy, sinon six boutons par fenêtre).
+    LG_TITLEBARS = true
     hl.config({
       plugin = {
         hyprbars = {
@@ -318,6 +321,7 @@ if val("titlebars", true) and file_exists(TITLEBARS) then
     }) do
       hl.plugin.hyprbars.add_button({ bg_color = b.color, fg_color = "rgba(00000099)", size = 12, icon = b.icon, action = b.action })
     end
+    LG_TITLEBARS = false
   end
 end
 

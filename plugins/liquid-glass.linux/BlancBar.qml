@@ -67,7 +67,11 @@ PanelWindow {
     Item { width: 8; height: 1 }
   }
 
+  // Réglages propres à Blanc (Réglages → Propre à Blanc) : blanc_bar_<élément>.
+  function bo(k, d) { return s.opt("blanc_bar_" + k, d === undefined ? true : d) !== false }
+
   Text {
+    visible: win.bo("title")
     x: left.width; y: 2
     width: right.x - left.width - 12; height: parent.height - 2
     verticalAlignment: Text.AlignVCenter; elide: Text.ElideRight
@@ -80,18 +84,19 @@ PanelWindow {
     id: right
     anchors.right: parent.right; height: parent.height
     Cell {
-      visible: s.hasTrack
+      visible: s.hasTrack && win.bo("track")
       label: (s.playing ? "♪ " : "‖ ") + (s.trackTitle.length > 26 ? s.trackTitle.slice(0, 25) + "…" : s.trackTitle)
       onClicked: s.playPause()
     }
-    Sep { visible: s.hasTrack }
+    Sep { visible: s.hasTrack && win.bo("track") }
     Cell {
+      visible: win.bo("res")
       label: "cpu " + Math.round(s.cpu * 100) + " ram " + Math.round(s.memPct * 100) + (s.temp > 0 ? " " + s.temp + "°" : "")
       onClicked: win.run("omarchy-launch-or-focus-tui btop")
     }
-    Sep {}
+    Sep { visible: win.bo("res") }
     Repeater {
-      model: SystemTray.items
+      model: win.bo("tray") ? SystemTray.items : []
       delegate: Item {
         id: tray
         required property var modelData
@@ -124,7 +129,7 @@ PanelWindow {
     }
     Sep {}
     Cell {
-      label: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd/MM") + " " + Qt.formatTime(win.now, "HH:mm")
+      label: win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd/MM") + " " + Qt.formatTime(win.now, win.bo("seconds", false) ? "HH:mm:ss" : "HH:mm")
       bold: true
       onClicked: s.toggleMenu("home")
     }

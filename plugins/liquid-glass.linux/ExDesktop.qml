@@ -96,6 +96,8 @@ PanelWindow {
         Cookie {
           anchors.fill: parent
           lobes: 10; depth: 0.06
+          // Réglage « Cookie qui tourne » : un feston par minute.
+          spin: win.s.opt("expressive_spin", false) === true ? (clock.secs % 60) / 60 * Math.PI / 5 : 0
           color: win.s.secondaryContainer
         }
         Repeater {

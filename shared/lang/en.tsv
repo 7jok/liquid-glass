@@ -186,6 +186,7 @@ Aujourd'hui	Today
 Aujourd'hui à 	Today at 
 Aurore	Aurora
 Aussi dans le Centre de contrôle	Also in Control Center
+Autocollants penchés	Tilted stickers
 Automatique	Automatic
 Automatique : celui du style de bureau	Automatic: the desktop style's one
 Automatique sur l'écran verrouillé dès qu'une empreinte est enregistrée	Automatic on the lock screen once a fingerprint is enrolled
@@ -227,8 +228,10 @@ Bon retour, 	Welcome back,
 Bonbon	Candy
 Bonbon (rose), menthe (vert d'eau) ou pêche (orange)	Candy (pink), mint (aqua) or peach (orange)
 Bonbon : contours épais, ombres dures, arc-en-ciel	Candy: thick outlines, hard shadows, rainbow
+Bouton Claude	Claude button
 Bouton vert	Green button
 Boutons ronds	Round buttons
+Boutons à droite de la barre	Buttons on the right of the bar
 Branchement et débranchement, avec le niveau	Plugging in and out, with the level
 Branché sur secteur	Plugged in
 Brouillard	Fog
@@ -246,7 +249,9 @@ Bureau sans bord à faire glisser, cerisiers	Borderless desktop you drag around,
 Bureautique	Office
 Bureaux	Desktops
 Bureaux (1 2 3…)	Workspaces (1 2 3…)
+Bureaux arc-en-ciel	Rainbow workspaces
 Bureaux complets	Full desktops
+Bureaux dans le panneau	Workspaces in the panel
 CHÂSSIS	CHASSIS
 CLAVIER	KEYBOARD
 CONNEXIONS	CONNECTIONS
@@ -266,18 +271,22 @@ Capture d'une zone	Screenshot of an area
 Capture d'écran	Screenshot
 Capture d'écran (plein écran)	Screenshot (full screen)
 Capture d'écran (zone)	Screenshot (area)
+Capture et enregistrement	Screenshot and recording
 Capture plein écran	Full-screen screenshot
 Caractéristiques de l'appareil	Device specifications
 Caractéristiques de l'appareil, renommer le PC	Device specifications, rename this PC
 Caractéristiques du système	System specifications
 Carte	Card
+Carte : 	Card: 
 Carte déplaçable ; double-clic pour le karaoké	Movable card; double-click for karaoke
+Carte en bas à droite	Card at the bottom right
+Carte en bas à gauche	Card at the bottom left
 Carte graphique	Graphics card
 Casque connecté, avec sa batterie	Headset connected, with its battery
 Ce PC	This PC
 Ce PC, Corbeille, Documents…	This PC, Recycle Bin, Documents…
 Ce bureau	This desktop
-Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘Échap → Couleurs pour le nuancier)	The style's, from the wallpaper (Material You), or your own accent (⌘Esc → Colors for the swatches)
+Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌃⌘O → Couleurs pour le nuancier)	The style's, from the wallpaper (Material You), or your own accent (⌃⌘O → Colors for the swatches)
 Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)	From the style, from the wallpaper (Material You), or your own accent (⌘⌥Space → Colors for the palette)
 Celui de Mechvibes	The Mechvibes one
 Cendre	Ash
@@ -308,6 +317,7 @@ Choisir…	Choose…
 Choisis une durée, une notification te préviendra.	Pick a duration, a notification will tell you.
 Choisissez les boutons ronds du Centre de contrôle (le mode sombre est toujours affiché). L'ordre suit cette liste.	Choose the round buttons in Control Center (dark mode is always shown). Order follows this list.
 Cinnamon, panneau en bas	Cinnamon, bottom panel
+Citation	Quote
 Clair	Light
 Clair : plus transparent · Teinté : plus opaque	Light: more transparent · Tinted: more opaque
 Clair ou sombre, comme dans Windows	Light or dark, like in Windows
@@ -399,6 +409,7 @@ Dans la barre	In the bar
 Dans la barre (de gauche à droite)	In the bar (left to right)
 Date de modification	Date Modified
 Date en filigrane	Watermark date
+Date à côté de l'heure	Date next to the time
 De transparent à teinté, sur tout le système	From clear to tinted, system-wide
 Demande ce que tu veux	Ask anything
 Demander	Ask
@@ -469,6 +480,7 @@ Empreinte ou mot de passe	Fingerprint or password
 Empreintes digitales	Fingerprints
 En bas	Bottom
 En bas à droite	Bottom right
+En bas à droite du bureau	Bottom right of the desktop
 En bas à droite, les touches s'allument	Bottom right, keys light up
 En bas à gauche	Bottom left
 En charge	Charging
@@ -635,6 +647,7 @@ Horloge	Clock
 Horloge 24 heures	24-hour clock
 Horloge bonbon	Candy clock
 Horloge cookie	Cookie clock
+Horloge cookie qui tourne	Spinning cookie clock
 Horloge empilée, brume	Stacked clock, mist
 Horloge pixel	Pixel clock
 Horloge sur la toile	Clock on the canvas
@@ -646,6 +659,7 @@ Humidité	Humidity
 ICI	HERE
 Icône quand des mises à jour Omarchy sont disponibles	Icon when Omarchy updates are available
 Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
+Icônes des applications	App icons
 Icônes du bureau	Desktop icons
 Ignorer en tapant au clavier	Ignore while typing
 Il apparaît quand la souris touche le bas	It appears when the pointer touches the bottom
@@ -668,6 +682,7 @@ JSON compact	Compact JSON
 JSON lisible	Pretty JSON
 Jamais	Never
 Japonais	Japanese
+Jauges système	System gauges
 Jaune	Yellow
 Je	Th
 Jeux	Games
@@ -710,6 +725,7 @@ Lecture en cours	Now Playing
 Lecture en cours sur le bureau	Now Playing on the desktop
 Lente	Slow
 Les autocollants du dock rebondissent sous la souris	Dock stickers bounce under the pointer
+Les festons avancent d'un cran par minute	The scallops move one notch per minute
 Les notifications sont silencieuses	Notifications are silent
 Les paroles s'afficheront ici	Lyrics will appear here
 Les réponses passent par le CLI « claude » déjà connecté à votre compte ; rien d'autre n'est envoyé.	Answers go through the “claude” CLI already signed in to your account; nothing else is sent.
@@ -725,6 +741,7 @@ Liquid Glass — style Windows	Liquid Glass — Windows style
 Liquid Glass, Dock, menus	Liquid Glass, Dock, menus
 Liquide	Liquid
 Lire les informations	Get Info
+Liste des fenêtres	Window list
 Logiciel libre, rien à activer	Free software, nothing to activate
 Logo de la barre	Bar logo
 Lu	Mo
@@ -818,6 +835,8 @@ Mot de passe	Password
 Mot de passe de session	Login password
 Mot géant	Giant word
 Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien	Giant sung word in the center, full line, in the player card, or nothing
+Mot « Activités »	“Activities” label
+Mot « Menu »	“Menu” label
 Mousse	Moss
 Mousse (vert tilleul) ou cendre (rose poudré)	Moss (lime green) or ash (powder pink)
 Moyen	Medium
@@ -849,6 +868,7 @@ Noir (cadre noir), papier (tout blanc, brume) ou sakura (prune et rose)	Black (b
 Noir profond, blanc cassé, jour en kanji	Deep black, off-white, day in kanji
 Nom	Name
 Nom complet	Full name
+Nom de l'app et titre, à gauche de la barre	App name and title, on the left of the bar
 Nom de l'appareil	Device name
 Nom de l'ordinateur	Computer name
 Nom du compte	Account name
@@ -870,6 +890,7 @@ Numérique	Digital
 Nébuleuse	Nebula
 Off : le fond normal reste, seul le widget s'affiche	Off: the normal wallpaper stays, only the widget shows
 Opacité	Opacity
+Opacité de la barre	Bar opacity
 Opacité du verre	Glass opacity
 Opacité du verre, police et terminal : le thème est régénéré (≈1 s). Le reste s'applique instantanément.	Glass opacity, font and terminal: the theme is rebuilt (≈1 s). The rest applies instantly.
 Options de connexion	Sign-in options
@@ -912,6 +933,7 @@ Pare-feu Gufw	Gufw firewall
 Paroles	Lyrics
 Paroles bureau	Desktop lyrics
 Paroles dans le ciel	Lyrics in the sky
+Paroles en géant	Giant lyrics
 Paroles en karaoké	Karaoke lyrics
 Paroles karaoké	Karaoke lyrics
 Paroles sur le bureau	Lyrics on the desktop
@@ -936,6 +958,7 @@ Pastille 2 (sous Concentration)	Dot 2 (under Focus)
 Pastille 3	Dot 3
 Pastilles	Dots
 Pavé	Touchpad
+Pendant la lecture, comme un disque	While playing, like a record
 Pendant la musique	During music
 Pense du jour	Thought of the day
 Performances	Performance
@@ -944,6 +967,8 @@ Personnalisation	Personalization
 Personnel	Personal
 Petit	Small
 Petit à petit.	Little by little.
+Petits rectangles, comme Xfce	Small rectangles, like Xfce
+Phase de la Lune	Moon phase
 Phrase	Sentence
 Pipette	Eyedropper
 Placer dans la Corbeille	Move to Trash
@@ -963,11 +988,14 @@ Plus d'infos…	More Info…
 Plus lumineux	Brighter
 Plutôt dégagé	Mostly clear
 Pochette	Cover
+Pochette dans le dock	Cover art in the dock
 Pochette et titre à droite (déjà dans l'île)	Cover and title on the right (already in the island)
 Pochette et égaliseur aux couleurs de la pochette	Cover and equalizer in cover colors
 Pochette floue	Blurred cover
+Pochette qui tourne	Spinning cover art
 Pochette, temps et commandes	Cover, time and controls
 Pointez dans un coin de l'écran pour déclencher l'action (pas en plein écran). ⌘F3 affiche aussi le bureau.	Point to a screen corner to trigger the action (not in full screen). ⌘F3 also shows the desktop.
+Points des bureaux	Workspace dots
 Police	Font
 Police de l'horloge	Clock font
 Police de l'interface	Interface font
@@ -988,6 +1016,7 @@ Presse-papiers…	Clipboard…
 Printemps	Spring
 Proc.	CPU
 Processeur	Processor
+Processeur, mémoire, température	CPU, memory, temperature
 Profil	Profile
 Propre à 	Only for 
 Prune	Plum
@@ -1004,6 +1033,7 @@ Pur	Pure
 Pur (gris neutres) ou crème (papier chaud)	Pure (neutral greys) or cream (warm paper)
 Pêche	Peach
 QUE LANCER ?	WHAT TO LAUNCH?
+Quand le mur Sombre est coupé	When the Sombre wall is off
 Quart bas droit	Bottom right quarter
 Quart bas gauche	Bottom left quarter
 Quart haut droit	Top right quarter
@@ -1129,6 +1159,9 @@ Sensibilité	Sensitivity
 Sept jours	Seven days
 Si une application ne répond plus, sélectionnez-la dans la liste et cliquez sur Forcer à quitter.	If an app stops responding, select it in the list and click Force Quit.
 Silence	Silent
+Sinon l'heure dans la grande tuile	Otherwise the time in the big tile
+Sinon la couleur du thème	Otherwise the theme's color
+Sinon tout est bien droit	Otherwise everything stays straight
 Sois fier de toi.	Be proud of yourself.
 Soleil	Sun
 Sombre	Dark
@@ -1147,6 +1180,7 @@ Souris	Mouse
 Sous l'horloge	Under the clock
 Sous « Lecture en cours »	Under “Now Playing”
 Spectre	Spectrum
+Spectre, blobs et anneau suivent la musique (coupé : moins de processeur)	Spectrum, blobs and ring follow the music (off: less CPU)
 Spotify fermé : la carte reste avec la dernière chanson, ▶ la relance (fond pochette et paroles reviennent)	Spotify closed: the card stays with the last song, ▶ restarts it (cover wallpaper and lyrics return)
 Spotlight (loupe)	Spotlight (magnifier)
 Stockage	Storage
@@ -1211,6 +1245,7 @@ Thème de contraste foncé	Dark contrast theme
 Thème sombre	Dark theme
 Tiens bon !	Hang in there!
 Titre de la fenêtre	Window title
+Titre de la fenêtre dans la barre	Window title in the bar
 Total	Total
 Touch ID et mot de passe	Touch ID & Password
 Touche /	Key /
@@ -1246,12 +1281,14 @@ Trier par type	Sort by Kind
 Très grand	Very large
 Très grasse	Extra bold
 Très légère	Extra light
+Tuiles animées	Animated tiles
 Type	Kind
 Type du système	System type
 TÂCHES	TASKS
 Tâches épinglées	Pinned tasks
 Téléchargements	Downloads
 UTILISÉE 	USING 
+Un clic ouvre btop	A click opens btop
 Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift.	A focus mode silences notifications. Sleep also turns on Night Shift.
 Un pas après l'autre.	One step at a time.
 Une case par minute, en haut à droite	One cell per minute, top right
@@ -1333,6 +1370,9 @@ Widgets sur le bureau	Widgets on the desktop
 Wikipédia	Wikipedia
 Wiktionnaire	Wiktionary
 Xfce, menu des outils	Xfce, tools menu
+Zone de notification, dans la barre	System tray, in the bar
+Zone de notification, dans le dock	System tray, in the dock
+Zone de notification, dans le panneau	System tray, in the panel
 Zoom arrière	Zoom Out
 Zoom avant	Zoom In
 Zoom et glissement très lents de l'image	Very slow zoom and pan of the image
@@ -1345,6 +1385,7 @@ bruine	drizzle
 cava en bas du fond d'écran pendant la lecture	cava at the bottom of the wallpaper during playback
 ciel dégagé	clear sky
 couvert	overcast
+cpu / ram dans la barre	cpu / ram in the bar
 dossier sans titre	untitled folder
 en attente d'identification_	waiting for identification_
 en charge	charging
@@ -1372,6 +1413,8 @@ verrou	lock
 vérification	checking
 vérification…	checking…
 À chaque rechargement	Every reload
+À côté du logo, comme GNOME	Next to the logo, like GNOME
+À côté du logo, comme GNOME récent	Next to the logo, like recent GNOME
 À côté du widget agrandi	Next to the enlarged widget
 À droite	Right
 À faire	To do

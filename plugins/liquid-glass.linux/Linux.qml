@@ -1340,7 +1340,7 @@ Item {
 
   // Styles blanc / sombre / jouet / violet / expressive (end4-pC, Serpantinum, rices TikTok)
   Variants {
-    model: svc.style === "gouts" && svc.showWidgets ? svc.mainScreen : []
+    model: svc.style === "gouts" && svc.showWidgets && svc.opt("gouts_planets", true) !== false ? svc.mainScreen : []
     delegate: Component { GoutsDesk { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
@@ -1356,6 +1356,8 @@ Item {
     delegate: Component { LiveWall { required property var modelData; screen: modelData; service: svc } }
   }
   // Widgets en plus, par style (fractions de l'écran ; chaque carte se déplace à la souris).
+  // Chacune se masque dans Réglages → Propre à <style> : <style>_card_<id> = false.
+  readonly property var extraShown: (extraCards[style] || []).filter(function(c) { return opt(style + "_card_" + c[0], true) !== false })
   readonly property var extraCards: ({
     espace: [["weather", 0.025, 0.09], ["moon", 0.025, 0.33], ["calendar", 0.025, 0.5], ["gauges", 0.79, 0.27]],
     foret: [["clock", 0.04, 0.12], ["weather", 0.04, 0.36], ["calendar", 0.8, 0.12], ["todo", 0.8, 0.46], ["music", 0.4, 0.84]],
@@ -1363,8 +1365,8 @@ Item {
     violet: [["moon", 0.03, 0.8], ["quote", 0.8, 0.8]]
   })
   Variants {
-    model: svc.showWidgets && svc.extraCards[svc.style] && !svc.testingNoExtras ? svc.mainScreen : []
-    delegate: Component { DeskExtras { required property var modelData; screen: modelData; service: svc; cards: svc.extraCards[svc.style] } }
+    model: svc.showWidgets && svc.extraShown.length > 0 && !svc.testingNoExtras ? svc.mainScreen : []
+    delegate: Component { DeskExtras { required property var modelData; screen: modelData; service: svc; cards: svc.extraShown } }
   }
   Variants {
     model: svc.isIle ? svc.screens : []

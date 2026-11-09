@@ -2035,6 +2035,27 @@ Item {
       // ---------------- réglages propres au thème (chacun a les siens)
       // [type, clé, libellé, sous-titre, défaut, extra] ; type : t (interrupteur), s (curseur
       // [de, à, pas, format]), b (bouton : commande). Les clés sont lues par le style.
+      // Barre en îlots commune à Sombre, Violet, Expressive et Mes goûts : chacun garde ses choix.
+      function exBar(st, op) {
+        return [["t", st + "_bar_title", T.t("Fenêtre active"), T.t("Nom de l'app et titre, à gauche de la barre"), true],
+                ["t", st + "_bar_res", T.t("Jauges système"), st === "sombre" ? T.t("Quand le mur Sombre est coupé") : T.t("Processeur, mémoire, température"), true],
+                ["t", st + "_bar_track", T.t("Morceau dans la barre"), "", true],
+                ["t", st + "_bar_weather", T.t("Météo dans la barre"), "", true],
+                ["t", st + "_bar_seconds", T.t("Secondes"), "", false],
+                ["t", st + "_bar_tools", T.t("Capture et enregistrement"), T.t("Boutons à droite de la barre"), true],
+                ["t", st + "_bar_claude", T.t("Bouton Claude"), "", true],
+                ["s", st + "_bar_opacity", T.t("Opacité de la barre"), "", op, [0.4, 1, 0.01, "op"]]]
+      }
+      // Panneau des distributions.
+      function distro(st) {
+        return [["t", st + "_seconds", T.t("Secondes"), "", false],
+                ["t", st + "_date", T.t("Date à côté de l'heure"), "", true],
+                ["t", st + "_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans le panneau"), true],
+                ["t", st + "_claude", T.t("Bouton Claude"), "", true]]
+      }
+      function cards(st, l) {
+        return l.map(function(c) { return ["t", st + "_card_" + c[0], T.t("Carte : ") + c[1], "", true] })
+      }
       readonly property var own: ({
         infini: [["t", "infini_clock", T.t("Horloge sur la toile"), T.t("Heures sur minutes, au centre de la toile"), true],
                  ["t", "infini_frame", T.t("Cadre du visualiseur"), T.t("Posé sur la toile, il suit le glisser et le zoom"), true],
@@ -2058,24 +2079,49 @@ Item {
               ["t", "ile_dock_autohide", T.t("Masquer le dock"), T.t("Il apparaît quand la souris touche le bas"), true],
               ["t", "ile_snap", T.t("Aimanter à la grille"), T.t("En déplaçant l'horloge et la carte musique"), true],
               ["t", "ile_weather", T.t("Météo dans l'encoche"), "", true]],
-        ruban: [["t", "ruban_date", T.t("Date en filigrane"), "", true], ["t", "ruban_music", T.t("Bande musique"), "", true],
-                ["t", "ruban_weather", T.t("Bande météo"), "", true], ["t", "ruban_battery", T.t("Bloc batterie"), "", true]],
-        espace: [["t", "espace_lyrics", T.t("Paroles dans le ciel"), "", true], ["t", "espace_planets", T.t("Horloge à planètes"), "", true],
-                 ["t", "espace_activity", T.t("Activité du processeur"), T.t("Une case par minute, en haut à droite"), true]],
-        foret: [["t", "foret_seconds", T.t("Secondes"), "", true], ["t", "foret_weather", T.t("Météo dans la barre"), "", true],
-                ["t", "foret_media", T.t("Morceau dans la barre"), T.t("Pochette, temps et commandes"), true]],
         mono: [["t", "mono_title", T.t("Titre de la fenêtre"), T.t("À la verticale dans la barre"), true],
                ["t", "mono_edge", T.t("Tableau de bord par le haut"), T.t("La souris posée au milieu du bord haut l'ouvre"), true],
                ["t", "mono_unlock", T.t("Cadenas au déverrouillage"), "", true]],
         blanc: [["t", "blanc_fetch", T.t("Fiche système"), "", true], ["t", "blanc_track", T.t("Morceau en cours"), "", true],
-                ["t", "blanc_clock", T.t("Grande heure"), "", true]],
-        jouet: [["t", "jouet_magnify", T.t("Grossir au survol"), T.t("Les autocollants du dock rebondissent sous la souris"), true]],
-        gouts: [["b", "", T.t("Thème Omarchy"), T.t("Mes goûts reprend un thème Omarchy installé"), "", T.t("Suivant  ⌃⌘T"), ["liquid-glass", "profile", "tone"]]],
-        debian: [["t", "debian_seconds", T.t("Secondes"), "", false]],
-        fedora: [["t", "fedora_seconds", T.t("Secondes"), "", false]],
-        mint: [["t", "mint_seconds", T.t("Secondes"), "", false], ["t", "mint_launchers", T.t("Lanceurs du panneau"), "", true]],
-        kali: [["t", "kali_seconds", T.t("Secondes"), "", false], ["t", "kali_launchers", T.t("Lanceurs du panneau"), "", true]],
-        arch: [["t", "arch_seconds", T.t("Secondes"), "", false], ["t", "arch_launchers", T.t("Tâches épinglées"), "", true]]
+                ["t", "blanc_clock", T.t("Grande heure"), "", true],
+                ["t", "blanc_bar_title", T.t("Titre de la fenêtre dans la barre"), "", true],
+                ["t", "blanc_bar_track", T.t("Morceau dans la barre"), "", true],
+                ["t", "blanc_bar_res", T.t("cpu / ram dans la barre"), T.t("Un clic ouvre btop"), true],
+                ["t", "blanc_bar_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans la barre"), true],
+                ["t", "blanc_bar_seconds", T.t("Secondes"), "", false]],
+        sombre: [["t", "sombre_anim", T.t("Tuiles animées"), T.t("Spectre, blobs et anneau suivent la musique (coupé : moins de processeur)"), true],
+                 ["t", "sombre_word", T.t("Paroles en géant"), T.t("Sinon l'heure dans la grande tuile"), true]].concat(lp.exBar("sombre", 0.97)),
+        violet: [["t", "violet_card_moon", T.t("Phase de la Lune"), T.t("Carte en bas à gauche"), true],
+                 ["t", "violet_card_quote", T.t("Citation"), T.t("Carte en bas à droite"), true]].concat(lp.exBar("violet", 0.82)),
+        expressive: [["t", "expressive_spin", T.t("Horloge cookie qui tourne"), T.t("Les festons avancent d'un cran par minute"), false]].concat(lp.exBar("expressive", 0.94)),
+        jouet: [["t", "jouet_magnify", T.t("Grossir au survol"), T.t("Les autocollants du dock rebondissent sous la souris"), true],
+                ["t", "jouet_tilt", T.t("Autocollants penchés"), T.t("Sinon tout est bien droit"), true],
+                ["t", "jouet_rainbow", T.t("Bureaux arc-en-ciel"), T.t("Sinon la couleur du thème"), true],
+                ["t", "jouet_cover", T.t("Pochette dans le dock"), "", true],
+                ["t", "jouet_spin", T.t("Pochette qui tourne"), T.t("Pendant la lecture, comme un disque"), true],
+                ["t", "jouet_seconds", T.t("Secondes"), "", false],
+                ["t", "jouet_tray", T.t("Icônes des applications"), T.t("Zone de notification, dans le dock"), true],
+                ["t", "jouet_battery", T.t("Batterie"), "", true],
+                ["t", "jouet_claude", T.t("Bouton Claude"), "", true]],
+        gouts: [["b", "", T.t("Thème Omarchy"), T.t("Mes goûts reprend un thème Omarchy installé"), "", T.t("Suivant  ⌃⌘T"), ["liquid-glass", "profile", "tone"]],
+                ["t", "gouts_planets", T.t("Horloge à planètes"), T.t("En bas à droite du bureau"), true]].concat(lp.exBar("gouts", 0.94)),
+        debian: [["t", "debian_label", T.t("Mot « Activités »"), T.t("À côté du logo, comme GNOME"), true]].concat(lp.distro("debian")),
+        fedora: [["t", "fedora_pills", T.t("Points des bureaux"), T.t("À côté du logo, comme GNOME récent"), true]].concat(lp.distro("fedora")),
+        mint: [["t", "mint_label", T.t("Mot « Menu »"), "", true], ["t", "mint_launchers", T.t("Lanceurs du panneau"), "", true],
+               ["t", "mint_tasks", T.t("Liste des fenêtres"), "", true]].concat(lp.distro("mint")),
+        kali: [["t", "kali_launchers", T.t("Lanceurs du panneau"), "", true], ["t", "kali_workspaces", T.t("Bureaux dans le panneau"), T.t("Petits rectangles, comme Xfce"), true],
+               ["t", "kali_tasks", T.t("Liste des fenêtres"), "", true]].concat(lp.distro("kali")),
+        arch: [["t", "arch_launchers", T.t("Tâches épinglées"), "", true], ["t", "arch_tasks", T.t("Liste des fenêtres"), "", true]].concat(lp.distro("arch")),
+        // Cartes en plus (Linux.qml extraCards) des styles qui en ont.
+        espace: [["t", "espace_lyrics", T.t("Paroles dans le ciel"), "", true], ["t", "espace_planets", T.t("Horloge à planètes"), "", true],
+                 ["t", "espace_activity", T.t("Activité du processeur"), T.t("Une case par minute, en haut à droite"), true]].concat(
+                 lp.cards("espace", [["weather", T.t("Météo")], ["moon", T.t("Phase de la Lune")], ["calendar", T.t("Calendrier")], ["gauges", T.t("Jauges système")]])),
+        foret: [["t", "foret_seconds", T.t("Secondes"), "", true], ["t", "foret_weather", T.t("Météo dans la barre"), "", true],
+                ["t", "foret_media", T.t("Morceau dans la barre"), T.t("Pochette, temps et commandes"), true]].concat(
+                lp.cards("foret", [["clock", T.t("Horloge")], ["weather", T.t("Météo")], ["calendar", T.t("Calendrier")], ["todo", T.t("À faire")], ["music", T.t("Lecteur")]])),
+        ruban: [["t", "ruban_date", T.t("Date en filigrane"), "", true], ["t", "ruban_music", T.t("Bande musique"), "", true],
+                ["t", "ruban_weather", T.t("Bande météo"), "", true], ["t", "ruban_battery", T.t("Bloc batterie"), "", true]].concat(
+                lp.cards("ruban", [["calendar", T.t("Calendrier")], ["gauges", T.t("Jauges système")], ["quote", T.t("Citation")]]))
       })
       readonly property var ownRows: own[lp.st] || []
       SectionTitle { visible: lp.ownRows.length > 0; text: T.t("Propre à ") + (root.styleNames[lp.st] || lp.st) }
@@ -2098,7 +2144,10 @@ Item {
               label: orow.modelData[2]; key: orow.key
               from: orow.modelData[0] === "s" ? orow.modelData[5][0] : 0; to: orow.modelData[0] === "s" ? orow.modelData[5][1] : 1
               step: orow.modelData[0] === "s" ? orow.modelData[5][2] : 0.1; def: Number(orow.modelData[4]) || 0
-              fmt: function(v) { return orow.modelData[0] === "s" && orow.modelData[5][3] === "pct" ? "+" + Math.round((v - 1) * 100) + " %" : "×" + Number(v).toFixed(2) }
+              fmt: function(v) {
+                var f = orow.modelData[0] === "s" ? orow.modelData[5][3] : ""
+                return f === "pct" ? "+" + Math.round((v - 1) * 100) + " %" : (f === "op" ? Math.round(v * 100) + " %" : "×" + Number(v).toFixed(2))
+              }
             }
             Row_ {
               visible: orow.modelData[0] === "c"; label: orow.modelData[2]; sub: orow.modelData[3]
@@ -2287,7 +2336,7 @@ Item {
         Row_ {
           label: T.t("Couleurs")
           visible: true
-          sub: T.t("Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘Échap → Couleurs pour le nuancier)")
+          sub: T.t("Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌃⌘O → Couleurs pour le nuancier)")
           Seg {
             options: [["theme", T.t("Du style")], ["fond", T.t("Du fond")], ["perso", T.t("Perso")]]
             value: root.val("linux." + lp.st + "_colors", lp.st === "expressive" ? "fond" : "theme")

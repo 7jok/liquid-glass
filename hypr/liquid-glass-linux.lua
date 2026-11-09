@@ -59,14 +59,16 @@ o.rebind("SUPER + SHIFT + CTRL + SPACE", "Bureaux", "liquid-glass profile pick")
 -- lanceur, ses réglages et son menu d'alimentation (plugin liquid-glass.linux).
 --   ⌘Espace     lanceur du style (menu Démarrer en style Windows)
 --   ⌘⌥Espace    Réglages (les mêmes partout, page du style en tête ; Paramètres en style Windows)
---   ⌘Échap      alimentation (session caelestia, batterie forêt, menu Démarrer…)
+--   ⌘Échap      Réglages aussi (comme sur Mac)
+--   ⌘⇧Échap     alimentation (session caelestia, batterie forêt, menu Démarrer…)
 --   ⌘K          feuille des raccourcis, aux couleurs du style
 --   ⌃⌘T         teinte suivante du style (violet nuit → aube → rose, Windows clair/sombre…)
 local LG = "omarchy-shell liquid-glass.linux "
 o.rebind("SUPER + SPACE", "Lanceur du bureau", LG .. "launcher")
 o.rebind("SUPER + SHIFT + code:201", "Lanceur du bureau", LG .. "launcher")
 o.rebind("SUPER + ALT + SPACE", "Réglages", LG .. "settings")
-o.rebind("SUPER + ESCAPE", "Alimentation", LG .. "power")
+o.rebind("SUPER + ESCAPE", "Réglages", LG .. "settings")
+o.rebind("SUPER + SHIFT + ESCAPE", "Alimentation", LG .. "power")
 o.rebind("SUPER + CTRL + O", "Réglages du bureau", LG .. "menu home")
 o.rebind("SUPER + CTRL + H", "Réglages du bureau", LG .. "menu home")
 o.rebind("SUPER + CTRL + C", "Capture d'écran", "omarchy-capture-screenshot")

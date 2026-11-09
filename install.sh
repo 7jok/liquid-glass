@@ -162,6 +162,15 @@ link "$REPO/hypr/liquid-glass.lua" "$CFG/hypr/liquid-glass.lua"
 link "$REPO/hypr/liquid-glass-bindings.lua" "$CFG/hypr/liquid-glass-bindings.lua"
 link "$REPO/hypr/liquid-glass-linux.lua" "$CFG/hypr/liquid-glass-linux.lua"
 link "$REPO/hypr/liquid-glass-keys.lua" "$CFG/hypr/liquid-glass-keys.lua"
+link "$REPO/hypr/liquid-glass-early.lua" "$CFG/hypr/liquid-glass-early.lua"
+# Avant les défauts d'Omarchy : son mode bureau flottant ne double plus les feux tricolores.
+if ! grep -q 'hypr.liquid-glass-early' "$CFG/hypr/hyprland.lua"; then
+  cp "$CFG/hypr/hyprland.lua" "$CFG/hypr/hyprland.lua.bak.early.$(date +%s)"
+  if grep -q '^require("default.hypr.omarchy")' "$CFG/hypr/hyprland.lua"; then
+    sed -i 's|^require("default.hypr.omarchy")|-- Liquid Glass : avant les défauts d'"'"'Omarchy (barres de titre sans doublons).\npcall(require, "hypr.liquid-glass-early")\n\nrequire("default.hypr.omarchy")|' "$CFG/hypr/hyprland.lua"
+    ok "require anticipé ajouté à hyprland.lua"
+  fi
+fi
 if ! grep -q 'require("hypr.liquid-glass")' "$CFG/hypr/hyprland.lua"; then
   cp "$CFG/hypr/hyprland.lua" "$CFG/hypr/hyprland.lua.bak.$(date +%s)"
   printf '\n-- Liquid Glass (doit rester en dernier : passe devant le mode glassy)\nrequire("hypr.liquid-glass")\n' >> "$CFG/hypr/hyprland.lua"

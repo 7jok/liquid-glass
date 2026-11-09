@@ -39,6 +39,8 @@ PanelWindow {
   readonly property int activeWs: monitor && monitor.activeWorkspace ? monitor.activeWorkspace.id : 1
 
   function run(cmd) { Quickshell.execDetached(["sh", "-c", cmd]) }
+  // Réglages propres au style (Réglages → Propre à <style>) : <style>_bar_<élément>.
+  function bo(k, d) { var x = s.opt(s.style + "_bar_" + k, d === undefined ? true : d); return x !== false && x !== "false" }
   function dispatch(expr) { Quickshell.execDetached(["hyprctl", "dispatch", expr]) }
 
   property date now: new Date()
@@ -52,8 +54,8 @@ PanelWindow {
     interval: 400; repeat: true; running: true; triggeredOnStart: true
     onTriggered: {
       var full = body.width - 28 - center.width
-        - (left.width + (resIsl.visible || win.s.wall ? 0 : resIsl.width + 6))
-        - (right.width + (toolsIsl.visible ? 0 : toolsIsl.width + 6))
+        - (left.width + (resIsl.visible || win.s.wall || !win.bo("res") ? 0 : resIsl.width + 6))
+        - (right.width + (toolsIsl.visible || !win.bo("tools") ? 0 : toolsIsl.width + 6))
       win.compact = full >= 0 ? 0 : (full + toolsIsl.width + 6 >= 0 ? 1 : 2)
     }
   }
@@ -83,7 +85,7 @@ PanelWindow {
     width: parent.width
     height: win.barH
     radius: win.kind === "line" ? Math.min(8, s.radius) : (win.hard ? 14 : height / 2)
-    color: win.kind === "line" ? s.alpha(s.surface, 0.97) : (s.style === "violet" ? s.alpha(s.surface, 0.82) : s.alpha(s.surface, 0.94))
+    color: s.alpha(s.surface, Number(s.opt(s.style + "_bar_opacity", win.kind === "line" ? 0.97 : (s.style === "violet" ? 0.82 : 0.94))))
     border.width: win.hard ? 2.5 : 1
     border.color: win.hard ? "#1b1030" : (win.kind === "line" ? s.alpha(s.colOnSurface, s.darkSkin ? 0.35 : 0.85) : s.alpha(s.outlineVariant, 0.35))
 
@@ -102,11 +104,12 @@ PanelWindow {
         base: s.alpha(s.primary, 0.14)
         onClicked: s.toggleLauncher()
       }
-      ClaudeButton { s: win.s; size: win.pillH; mono: win.s.style === "blanc" || win.s.style === "sombre" }
+      ClaudeButton { visible: win.bo("claude"); s: win.s; size: win.pillH; mono: win.s.style === "blanc" || win.s.style === "sombre" }
 
       // Fenêtre active : classe en petit, titre dessous ; « Bureau / Espace N » sinon.
       Item {
         id: winLabel
+        visible: win.bo("title")
         readonly property var ws: Hyprland.focusedWorkspace
         readonly property var tl: Hyprland.activeToplevel
         readonly property bool empty: !tl || !ws || !tl.workspace || tl.workspace.id !== ws.id
@@ -142,7 +145,7 @@ PanelWindow {
       Island {
         id: resIsl
         // Sombre affiche déjà tout ça sur son mur ; sinon on cède la place à la date.
-        visible: !s.wall && win.compact < 2
+        visible: !s.wall && win.bo("res") && win.compact < 2
         Row {
           spacing: 10
           anchors.verticalCenter: parent.verticalCenter
@@ -164,7 +167,7 @@ PanelWindow {
 
       // Morceau en cours
       Island {
-        visible: (s.hasTrack || s.resumeMode) && !s.wall
+        visible: (s.hasTrack || s.resumeMode) && !s.wall && win.bo("track")
         Row {
           spacing: 7
           anchors.verticalCenter: parent.verticalCenter
@@ -302,7 +305,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             text: {
               var d = win.now.toLocaleDateString(Qt.locale(T.loc), "ddd dd/MM")
-              return d.charAt(0).toUpperCase() + d.slice(1) + "  •  " + Qt.formatTime(win.now, "HH:mm")
+              return d.charAt(0).toUpperCase() + d.slice(1) + "  •  " + Qt.formatTime(win.now, win.bo("seconds", false) ? "HH:mm:ss" : "HH:mm")
             }
             font.family: s.sansFont
             font.pixelSize: 12
@@ -310,7 +313,7 @@ PanelWindow {
             color: s.colOnSurface
           }
           Row {
-            visible: !!s.weather
+            visible: !!s.weather && win.bo("weather")
             spacing: 3
             anchors.verticalCenter: parent.verticalCenter
             MIcon { icon: s.weatherIcon; size: 15; fill: 1; color: s.primary; anchors.verticalCenter: parent.verticalCenter }
@@ -337,7 +340,7 @@ PanelWindow {
       Island {
         id: toolsIsl
         hpad: 3
-        visible: win.compact < 1
+        visible: win.bo("tools") && win.compact < 1
         Row {
           anchors.verticalCenter: parent.verticalCenter
           spacing: 0

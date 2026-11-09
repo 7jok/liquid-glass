@@ -86,7 +86,10 @@ o.bind("SUPER + ALT + H", "Hide other applications", "liquid-glass window hide-o
 -- ⌘⌥B : En veille (StandBy) — grande horloge + widget, rouge la nuit (touche libre).
 o.bind("SUPER + ALT + B", "StandBy", shell("liquid-glass.standby toggle"))
 
--- ⌥⌘Échap : Forcer à quitter (touche libre ; ⌘Échap reste le menu système Omarchy).
+-- ⌘Échap : Réglages Liquid Glass (comme sur les bureaux Linux) ; le menu système
+-- d'Omarchy passe sur ⌘⇧Échap. ⌥⌘Échap : Forcer à quitter.
+o.rebind("SUPER + ESCAPE", "Réglages", shell("liquid-glass.settings toggle"))
+o.bind("SUPER + SHIFT + ESCAPE", "System menu", { menu = "system" })
 o.bind("SUPER + ALT + ESCAPE", "Force quit applications", shell("shell toggle liquid-glass.forcequit"))
 
 -- Pavé tactile : 4 doigts vers le haut = Mission Control ; vers le bas = App Exposé

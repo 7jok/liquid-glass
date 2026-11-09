@@ -33,7 +33,8 @@ PanelWindow {
   property int tick: 0
   property date now: new Date()
   Timer {
-    interval: win.s.playing ? 66 : 500
+    // Réglage « Tuiles animées » coupé : 2 i/s même en musique (moins de processeur).
+    interval: win.s.playing && win.s.opt("sombre_anim", true) !== false ? 66 : 500
     running: true; repeat: true
     onTriggered: { win.tick++; if (win.tick % 8 === 0) win.now = new Date() }
   }
@@ -272,13 +273,14 @@ PanelWindow {
 
   // ---------------------------------------------------------------- mot géant
   Tile {
-    c: 0; r: 3; w: 5; h: 3; label: win.s.word !== "" ? T.t("05 PAROLES") : T.t("05 HEURE")
+    readonly property bool lyr: win.s.word !== "" && win.s.opt("sombre_word", true) !== false
+    c: 0; r: 3; w: 5; h: 3; label: lyr ? T.t("05 PAROLES") : T.t("05 HEURE")
     Text {
       id: giant
       anchors.centerIn: parent
       width: parent.width - 48; height: parent.height - 60
       horizontalAlignment: Text.AlignHCenter; verticalAlignment: Text.AlignVCenter
-      text: (win.s.word !== "" ? win.s.word : Qt.formatTime(win.now, "HH:mm")).toUpperCase()
+      text: (parent.lyr ? win.s.word : Qt.formatTime(win.now, "HH:mm")).toUpperCase()
       font.family: win.pix; font.pixelSize: 150; font.weight: Font.Bold
       fontSizeMode: Text.Fit; minimumPixelSize: 24
       color: win.acc

@@ -37,6 +37,9 @@ PanelWindow {
   property date now: new Date()
   Timer { interval: 1000; repeat: true; running: true; onTriggered: win.now = new Date() }
   function run(cmd) { Quickshell.execDetached(["sh", "-c", cmd]) }
+  // Réglages propres à Jouet (Réglages → Propre à Jouet).
+  function jo(k, d) { return s.opt("jouet_" + k, d === undefined ? true : d) !== false }
+  readonly property real tk: jo("tilt") ? 1 : 0     // autocollants penchés
 
   Rectangle {
     x: body.x + 6; y: body.y + 6; width: body.width; height: body.height
@@ -59,7 +62,8 @@ PanelWindow {
       Sticker { size: 54; fill: s.primary; icon: "apps"; iconColor: s.colOnPrimary; tilt: -5; onClicked: s.toggleLauncher() }
       Rectangle {
         anchors.verticalCenter: parent.verticalCenter
-        width: 54; height: 54; radius: 16; rotation: 4
+        visible: win.jo("claude")
+        width: 54; height: 54; radius: 16; rotation: 4 * win.tk
         color: s.surfaceHighest; border.width: 3; border.color: win.line
         ClaudeButton { anchors.centerIn: parent; s: win.s; size: 44; iconSize: 30; radius: 12 }
       }
@@ -78,7 +82,7 @@ PanelWindow {
             anchors.verticalCenter: parent.verticalCenter
             width: active ? 42 : 30; height: active ? 48 : 34
             radius: 10
-            color: active || used ? s.rainbow[index % 6] : s.surfaceHigh
+            color: active || used ? (win.jo("rainbow") ? s.rainbow[index % 6] : (active ? s.primary : s.primaryContainer)) : s.surfaceHigh
             border.width: 2.5; border.color: win.line
             scale: wma.pressed ? 0.9 : (wma.containsMouse && win.s.opt("jouet_magnify", true) !== false ? 1.1 : 1)
             Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 3 } }
@@ -98,7 +102,7 @@ PanelWindow {
       Bar_ {}
       // Pochette ronde qui tourne pendant la lecture.
       Rectangle {
-        visible: s.hasTrack
+        visible: s.hasTrack && win.jo("cover")
         anchors.verticalCenter: parent.verticalCenter
         width: 54; height: 54; radius: 27
         color: s.primaryContainer; border.width: 3; border.color: win.line
@@ -106,7 +110,7 @@ PanelWindow {
           id: disc
           anchors.centerIn: parent; width: 46; height: 46; radius: 23; color: "transparent"
           Image { anchors.fill: parent; source: s.cover; fillMode: Image.PreserveAspectCrop; asynchronous: true; cache: false; sourceSize.width: 96 }
-          RotationAnimation on rotation { from: 0; to: 360; duration: 9000; loops: Animation.Infinite; running: s.playing }
+          RotationAnimation on rotation { from: 0; to: 360; duration: 9000; loops: Animation.Infinite; running: s.playing && win.jo("spin") }
         }
         MIcon { visible: !s.playing; anchors.centerIn: parent; icon: "play_arrow"; size: 26; fill: 1; color: "white" }
         MouseArea { anchors.fill: parent; onClicked: s.playPause() }
@@ -114,18 +118,18 @@ PanelWindow {
       // Horloge autocollant.
       Rectangle {
         anchors.verticalCenter: parent.verticalCenter
-        width: clock.implicitWidth + 26; height: 50; radius: 12; rotation: -3
+        width: clock.implicitWidth + 26; height: 50; radius: 12; rotation: -3 * win.tk
         color: s.primaryContainer; border.width: 3; border.color: win.line
         Text {
           id: clock
           anchors.centerIn: parent
-          text: Qt.formatTime(win.now, "HH:mm")
+          text: Qt.formatTime(win.now, win.jo("seconds", false) ? "HH:mm:ss" : "HH:mm")
           font.family: win.font; font.pixelSize: 25; font.weight: Font.Black; color: "#1b1030"
         }
         MouseArea { anchors.fill: parent; onClicked: s.toggleMenu("home") }
       }
       Repeater {
-        model: SystemTray.items
+        model: win.jo("tray") ? SystemTray.items : []
         delegate: Item {
           id: tray
           required property var modelData
@@ -156,9 +160,9 @@ PanelWindow {
         onClicked: s.toggleMenu("home")
       }
       Rectangle {
-        visible: s.batteryPct >= 0
+        visible: s.batteryPct >= 0 && win.jo("battery")
         anchors.verticalCenter: parent.verticalCenter
-        width: 52; height: 42; radius: 12; rotation: 2
+        width: 52; height: 42; radius: 12; rotation: 2 * win.tk
         color: !s.charging && s.batteryPct <= 15 ? s.errorColor : s.rainbow[2]
         border.width: 3; border.color: win.line
         Text {
@@ -183,7 +187,7 @@ PanelWindow {
     anchors.verticalCenter: parent.verticalCenter
     width: size; height: size; radius: size * 0.3
     color: fill; border.width: 3; border.color: win.line
-    rotation: sma.containsMouse ? 0 : tilt
+    rotation: sma.containsMouse ? 0 : tilt * win.tk
     scale: sma.pressed ? 0.88 : (sma.containsMouse && win.s.opt("jouet_magnify", true) !== false ? 1.14 : 1)
     Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack; easing.overshoot: 3 } }
     Behavior on rotation { NumberAnimation { duration: 160 } }

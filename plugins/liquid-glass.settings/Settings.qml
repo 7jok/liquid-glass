@@ -95,7 +95,9 @@ Item {
     ["network", T.t("Réseau"), 0xF0318, "#0a84ff", 0],
     ["battery", T.t("Batterie"), 0xF0079, "#30d158", 0],
     ["general", T.t("Général"), 0xF0493, "#8e8e93", 1],
+    ["accessibility", T.t("Accessibilité"), 0xF02E6, "#0a84ff", 1],
     ["appearance", T.t("Apparence"), 0xF050E, "#1c1c1e", 1],
+    ["intelligence", T.t("Claude (Siri)"), 0xF0674, "#bf5af2", 1],
     ["control", T.t("Centre de contrôle"), 0xF0521, "#8e8e93", 1],
     ["desktop", T.t("Bureau et Dock"), 0xF0379, "#1c1c1e", 1],
     ["displays", T.t("Écrans"), 0xF00DF, "#0a84ff", 1],
@@ -108,12 +110,17 @@ Item {
     ["focus", T.t("Concentration"), 0xF0594, "#5e5ce6", 2],
     ["music", T.t("Musique et paroles"), 0xF075A, "#ff375f", 2],
     ["lock", T.t("Écran verrouillé"), 0xF033E, "#1c1c1e", 3],
+    ["touchid", T.t("Touch ID et mot de passe"), 0xF0237, "#ff375f", 3],
     ["users", T.t("Utilisateurs et groupes"), 0xF0849, "#0a84ff", 3],
+    ["language", T.t("Langue et région"), 0xF05CA, "#0a84ff", 3],
     ["keyboard", T.t("Clavier"), 0xF030C, "#8e8e93", 4],
     ["mouse", T.t("Souris"), 0xF037D, "#8e8e93", 4],
     ["trackpad", "Trackpad", 0xF0A2E, "#8e8e93", 4],
     ["corners", T.t("Coins actifs"), 0xF0294, "#8e8e93", 4],
-    ["about", T.t("À propos"), 0xF02FD, "#8e8e93", 5]
+    ["printers", T.t("Imprimantes et scanners"), 0xF042A, "#8e8e93", 4],
+    ["alcove", "Alcove", 0xF0402, "#1c1c1e", 5],
+    ["klack", "Klack", 0xF030C, "#ff9f0a", 5],
+    ["about", T.t("À propos"), 0xF02FD, "#8e8e93", 6]
   ]
   function pageInfo(id) { for (var i = 0; i < pages.length; i++) if (pages[i][0] === id) return pages[i]; return pages[0] }
   readonly property var filteredPages: {
@@ -214,26 +221,29 @@ Item {
   function isVideo(p) { return /\.(mp4|webm|mkv|mov)$/i.test(String(p || "")) }
   // Catégorie d'un fond : préfixe du nom pour la collection (liquid-glass wallpapers),
   // « dyn » pour les vidéos, « mac » pour le reste (fonds du thème, vos images).
-  readonly property var bgCats: [["all", T.t("Tous")], ["mac", "Mac"], ["dyn", T.t("Dynamiques")], ["anime", "Anime"], ["edit", "Edit"],
+  readonly property var bgCats: [["all", T.t("Tous")], ["macos", "macOS"], ["mac", "Mac"], ["dyn", T.t("Dynamiques")], ["anime", "Anime"], ["edit", "Edit"],
                                  ["basket", "Basket"], ["voiture", T.t("Voitures")], ["ville", T.t("Villes")], ["sakura", T.t("Cerisiers")],
                                  ["ascii", "ASCII"], ["minimal", "Minimal"], ["abstract", T.t("Abstrait")], ["fruit", T.t("Fruits")], ["genere", T.t("Générés")]]
-  readonly property var bgCollection: bgCats.slice(3).map(function(c) { return c[0] })
+  readonly property var bgCollection: bgCats.slice(4).map(function(c) { return c[0] })
   property string bgFilter: "all"
   // Les vignettes arrivent par paquets de 48 : ouvrir l'onglet ne décode pas 300 images.
   property int bgLimit: 48
   onBgFilterChanged: bgLimit = 48
   function bgCat(p) {
     if (root.isVideo(p)) return "dyn"
+    if (String(p).split("/").pop().indexOf("os-") === 0) return "macos"
     var pre = String(p).split("/").pop().split("-")[0]
     return root.bgCollection.indexOf(pre) !== -1 ? pre : "mac"
   }
   function bgCount(c) { return c === "all" ? backgrounds.length : backgrounds.filter(function(p) { return root.bgCat(p) === c }).length }
   readonly property var shownBackgrounds: {
-    if (bgFilter !== "all") return backgrounds.filter(function(p) { return root.bgCat(p) === root.bgFilter })
+    if (bgFilter !== "all") return backgrounds.filter(function(p) { return root.bgCat(p) === root.bgFilter }).sort(function(a, b) { return root.osRank(b) - root.osRank(a) })
     // Tous : Mac et Dynamiques d'abord, puis la collection par catégorie.
     var order = bgCats.map(function(c) { return c[0] })
-    return backgrounds.slice().sort(function(a, b) { return order.indexOf(root.bgCat(a)) - order.indexOf(root.bgCat(b)) })
+    return backgrounds.slice().sort(function(a, b) { return order.indexOf(root.bgCat(a)) - order.indexOf(root.bgCat(b)) || root.osRank(b) - root.osRank(a) })
   }
+  // macOS : du plus récent (27) au plus ancien (10.0).
+  function osRank(p) { var m = /\/os-(\d+(?:\.\d+)?)-/.exec(String(p)); return m ? parseFloat(m[1]) : 0 }
   function bgThumb(p) {
     if (!p) return ""
     if (String(p).indexOf("/.local/share/liquid-glass/wallpapers/") !== -1)
@@ -243,7 +253,7 @@ Item {
   }
   Process {
     id: bgProc
-    command: ["sh", "-c", "readlink -f \"$HOME/.local/state/omarchy/current/background\"; t=$(cat \"$HOME/.local/state/omarchy/current/theme.name\" 2>/dev/null); d=$(omarchy-theme-dir \"$t\" 2>/dev/null || omarchy theme dir \"$t\" 2>/dev/null); find -L \"$d/backgrounds\" \"$HOME/.config/omarchy/backgrounds/$t\" \"$HOME/Pictures/Wallpapers\" \"$HOME/Pictures\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.mp4' -o -iname '*.webm' \\) 2>/dev/null | xargs -r -d '\\n' readlink -f | sort -u | head -600"]
+    command: ["sh", "-c", "readlink -f \"$HOME/.local/state/omarchy/current/background\"; t=$(cat \"$HOME/.local/state/omarchy/current/theme.name\" 2>/dev/null); d=$(omarchy-theme-dir \"$t\" 2>/dev/null || omarchy theme dir \"$t\" 2>/dev/null); case \"$t\" in liquid-glass*) d2=\"$(omarchy-theme-dir liquid-glass 2>/dev/null)/backgrounds $(omarchy-theme-dir liquid-glass-dark 2>/dev/null)/backgrounds\";; esac; find -L \"$d/backgrounds\" $d2 \"$HOME/.config/omarchy/backgrounds/$t\" \"$HOME/Pictures/Wallpapers\" \"$HOME/Pictures\" -maxdepth 1 -type f \\( -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.png' -o -iname '*.webp' -o -iname '*.mp4' -o -iname '*.webm' \\) 2>/dev/null | xargs -r -d '\\n' readlink -f | sort -u | head -600"]
     stdout: StdioCollector {
       onStreamFinished: {
         var l = text.trim().split("\n").filter(function(x) { return x !== "" })
@@ -556,7 +566,9 @@ Item {
             general: pGeneral, appearance: pAppearance, control: pControl, desktop: pDesktop,
             displays: pDisplays, menubar: pMenubar, shortcuts: pShortcuts, wallpaper: pWallpaper, linux: pLinux,
             notifications: pNotifications, sound: pSound, focus: pFocus, music: pMusic,
-            lock: pLock, users: pUsers, keyboard: pKeys, mouse: pMouse, trackpad: pTrackpad, corners: pCorners, about: pAbout
+            lock: pLock, users: pUsers, keyboard: pKeys, mouse: pMouse, trackpad: pTrackpad, corners: pCorners, about: pAbout,
+            accessibility: pAccess, intelligence: pClaude, touchid: pTouch, language: pLanguage, printers: pPrinters,
+            alcove: pAlcove, klack: pKlack
           })[root.page] || pAppearance
           property real slide: 0
           x: slide
@@ -776,6 +788,12 @@ Item {
       }
       SectionTitle { text: T.t("Verre") }
       Group {
+        // macOS 27 : un seul curseur, du verre transparent au verre teinté.
+        SliderRow {
+          label: "Liquid Glass"; sub: T.t("De transparent à teinté, sur tout le système")
+          key: "glass.tint"; from: 0; to: 1; step: 0.05; def: 0.5
+          fmt: function(v) { return v <= 0.15 ? T.t("Transparent") : (v >= 0.85 ? T.t("Teinté") : Math.round(v * 100) + " %") }
+        }
         Row_ {
           label: T.t("Style du verre")
           sub: T.t("Clair : plus transparent · Teinté : plus opaque")
@@ -1080,21 +1098,7 @@ Item {
       }
       SectionTitle { text: T.t("Île dynamique") }
       Group {
-        ToggleRow { label: T.t("Île dynamique"); key: "island.enabled"; def: true; sub: T.t("Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes") }
-        Row_ {
-          label: T.t("Au repos")
-          visible: root.val("island.enabled", true) === true
-          Seg {
-            options: [["hidden", T.t("Masquée")], ["notch", T.t("Encoche")]]
-            value: root.val("island.idle", "hidden")
-            onPicked: function(v) { root.set("island.idle", v) }
-          }
-        }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Lecture en cours"); key: "island.music"; def: true; sub: T.t("Pochette et égaliseur aux couleurs de la pochette") }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Secteur"); key: "island.battery"; def: true; sub: T.t("Branchement et débranchement, avec le niveau") }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Appareils Bluetooth"); key: "island.bluetooth"; def: true; sub: T.t("Casque connecté, avec sa batterie") }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Concentration"); key: "island.focus"; def: true }
-        ToggleRow { visible: root.val("island.enabled", true) === true; label: T.t("Volume dans l'île"); key: "island.hud"; def: false; sub: T.t("En plus de l'OSD au-dessus du Dock") }
+        Row_ { label: T.t("Réglages de l'île (Alcove)"); icon: 0xF0402; iconColor: "#1c1c1e"; Btn { text: T.t("Ouvrir"); secondary: true; onClicked: root.go("alcove") } }
       }
       Hint { text: T.t("Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages.") }
       Hint { text: T.t("La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.") }
@@ -1270,6 +1274,27 @@ Item {
             spacing: Style.space(8)
             Btn { text: T.t("Ouvrir le dossier"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy", "theme", "bg", "install"]) } }
             Btn { text: T.t("Actualiser"); secondary: true; onClicked: root.refresh() }
+          }
+        }
+      }
+      SectionTitle { text: T.t("Bureau dynamique") }
+      Group {
+        Row_ {
+          label: T.t("Fond dynamique")
+          sub: T.t("Change au fil de la journée (aube, jour, crépuscule, nuit) ou suit le mode clair / sombre")
+          Seg {
+            options: [["", "Off"], ["golden-gate", "Golden Gate"], ["tahoe-plage", "Tahoe"], ["big-sur", "Big Sur"], ["mojave", "Mojave"]]
+            value: String(root.val("wallpaper.dynamic", ""))
+            onPicked: function(v) { root.set("wallpaper.dynamic", v); root.launch(["liquid-glass", "dynamic-wallpaper", "tick"]) }
+          }
+        }
+        Row_ {
+          visible: String(root.val("wallpaper.dynamic", "")) === ""
+          label: T.t("Autres fonds dynamiques")
+          Seg {
+            options: [["golden-gate-abstrait", T.t("Vagues 27")], ["sequoia", "Sequoia"], ["sonoma", "Sonoma"], ["catalina", "Catalina"]]
+            value: String(root.val("wallpaper.dynamic", ""))
+            onPicked: function(v) { root.set("wallpaper.dynamic", v); root.launch(["liquid-glass", "dynamic-wallpaper", "tick"]) }
           }
         }
       }
@@ -1641,6 +1666,292 @@ Item {
             text: T.t("Changer…"); secondary: true
             onClicked: root.run(["sh", "-c", "f=$(zenity --file-selection --title='Photo du compte' --file-filter='Images | *.png *.jpg *.jpeg *.webp') && magick \"$f\" -resize 256x256^ -gravity center -extent 256x256 \"$HOME/.face.png\" && mv \"$HOME/.face.png\" \"$HOME/.face\""])
           }
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------- Accessibilité
+  Component {
+    id: pAccess
+    Column {
+      spacing: Style.space(14)
+      SectionTitle { text: T.t("Vue") }
+      Group {
+        Row_ {
+          label: "Zoom"; sub: T.t("⌥⌘8 pour activer, ⌥⌘ + molette pour agrandir ou réduire")
+          icon: 0xF0349; iconColor: "#0a84ff"
+          Btn { text: T.t("Activer / désactiver"); secondary: true; onClicked: { root.zoomOn = !root.zoomOn; root.launch(["hyprctl", "eval", "hl.config({ cursor = { zoom_factor = " + (root.zoomOn ? 2 : 1) + " } })"]) } }
+        }
+        SliderRow {
+          label: T.t("Taille du pointeur"); key: "access.cursor_size"; from: 24; to: 64; step: 4; def: 24
+          fmt: function(v) { return v + " px" }
+        }
+        Row_ {
+          label: T.t("Appliquer la taille du pointeur")
+          Btn { text: T.t("Appliquer"); secondary: true; onClicked: root.launch(["hyprctl", "setcursor", "MacTahoe-cursors", String(root.val("access.cursor_size", 24))]) }
+        }
+      }
+      SectionTitle { text: T.t("Affichage") }
+      Group {
+        Row_ {
+          label: T.t("Réduire la transparence"); sub: T.t("Verre teinté et plus opaque partout")
+          Switch_ { checked: Number(root.val("glass.tint", 0.5)) >= 0.99; onToggled: function(v) { root.set("glass.tint", v ? 1 : 0.5) } }
+        }
+        Row_ {
+          label: T.t("Réduire les animations"); sub: T.t("Coupe les animations à ressort des fenêtres")
+          Switch_ { checked: root.val("glass.animations", true) === false; onToggled: function(v) { root.set("glass.animations", !v) } }
+        }
+        Row_ {
+          label: T.t("Mode sombre")
+          Switch_ { checked: root.val("appearance.mode", "light") === "dark"; onToggled: function(v) { root.set("appearance.mode", v ? "dark" : "light") } }
+        }
+      }
+    }
+  }
+  property bool zoomOn: false
+
+  // ---------------------------------------------------------- Claude (à la place de Siri)
+  Component {
+    id: pClaude
+    Column {
+      spacing: Style.space(14)
+      Item {
+        width: parent.width; height: Style.space(130)
+        Column {
+          anchors.centerIn: parent; spacing: Style.space(6)
+          Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Style.space(64); height: width; radius: width * 0.24
+            gradient: Gradient {
+              GradientStop { position: 0; color: "#d97757" }
+              GradientStop { position: 1; color: "#bf5af2" }
+            }
+            Text { anchors.centerIn: parent; text: root.g(0xF0674); font.family: root.iconFont; font.pixelSize: Style.space(34); color: "white" }
+          }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("Claude"); font.family: root.uiFont; font.pixelSize: Style.space(17); font.weight: Font.Bold; color: root.fg }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: T.t("Comme Siri dans macOS 27 : « Rechercher ou demander » dans Spotlight"); font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.fg; opacity: 0.6 }
+        }
+      }
+      Group {
+        ToggleRow { label: T.t("Demander à Claude dans Spotlight"); key: "spotlight.ask"; def: true; sub: T.t("⌘Espace, tapez une question puis ⇥ ou « Demander à Claude »"); icon: 0xF0674; iconColor: "#bf5af2" }
+        Row_ {
+          label: T.t("Modèle")
+          Seg {
+            options: [["haiku", "Haiku"], ["sonnet", "Sonnet"], ["opus", "Opus"]]
+            value: root.val("spotlight.ask_model", "haiku")
+            onPicked: function(v) { root.set("spotlight.ask_model", v) }
+          }
+        }
+        Row_ {
+          label: T.t("Ouvrir Claude Code"); sub: T.t("Le bouton Claude de la barre des menus")
+          Btn { text: T.t("Ouvrir"); secondary: true; onClicked: { root.dismiss(); root.launch(["omarchy-agent", "--pick"]) } }
+        }
+      }
+      Hint { text: T.t("Les réponses passent par le CLI « claude » déjà connecté à votre compte ; rien d'autre n'est envoyé.") }
+    }
+  }
+
+  // ---------------------------------------------------------- Touch ID et mot de passe
+  Component {
+    id: pTouch
+    Column {
+      id: touchCol
+      spacing: Style.space(14)
+      property string fp: ""
+      Process {
+        running: true
+        command: ["sh", "-c", "command -v fprintd-list >/dev/null && fprintd-list \"$USER\" 2>&1 | grep -c 'finger' || echo none"]
+        stdout: StdioCollector { onStreamFinished: touchCol.fp = text.trim() }
+      }
+      Group {
+        Row_ {
+          label: T.t("Mot de passe de session"); icon: 0xF033E; iconColor: "#8e8e93"
+          Btn { text: T.t("Changer…"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-terminal-exec", "sh", "-c", "passwd; echo; read -p 'Entrée pour fermer'"]) } }
+        }
+      }
+      SectionTitle { text: "Touch ID" }
+      Group {
+        Row_ {
+          label: T.t("Empreintes digitales"); icon: 0xF0237; iconColor: "#ff375f"
+          sub: touchCol.fp === "none" ? T.t("fprintd n'est pas installé") : (Number(touchCol.fp) > 0 ? touchCol.fp + T.t(" empreinte(s) enregistrée(s)") : T.t("Aucune empreinte"))
+          Btn { text: T.t("Ajouter une empreinte…"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-terminal-exec", "sh", "-c", "fprintd-enroll; echo; read -p 'Entrée pour fermer'"]) } }
+        }
+        Row_ { label: T.t("Déverrouiller avec Touch ID"); sub: T.t("Automatique sur l'écran verrouillé dès qu'une empreinte est enregistrée"); Label_ { text: Number(touchCol.fp) > 0 ? T.t("Activé") : "—" } }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------- Langue et région
+  Component {
+    id: pLanguage
+    Column {
+      id: lang
+      spacing: Style.space(14)
+      readonly property var all: [["ch:fr", T.t("Suisse romand")], ["ch:", T.t("Suisse alémanique")], ["fr:", T.t("Français (AZERTY)")],
+        ["us:", T.t("Anglais (É.-U.)")], ["us:intl", T.t("Anglais international")], ["gb:", T.t("Anglais (R.-U.)")], ["de:", T.t("Allemand")],
+        ["es:", T.t("Espagnol")], ["it:", T.t("Italien")], ["pt:", T.t("Portugais")], ["ru:", T.t("Russe")], ["ara:", T.t("Arabe")], ["jp:", T.t("Japonais")]]
+      readonly property var layouts: { var l = root.val("language.layouts", []); return l && l.length ? l : ["ch:fr"] }
+      function label(code) { for (var i = 0; i < all.length; i++) if (all[i][0] === code || all[i][0] === code + ":") return all[i][1]; return code }
+      function setLayouts(l) { root.set("language.layouts", l) }
+      SectionTitle { text: T.t("Langues préférées") }
+      Group {
+        Row_ {
+          label: T.t("Langue de l'interface"); icon: 0xF05CA; iconColor: "#0a84ff"
+          Seg {
+            options: [["fr", "Français"], ["en", "English"]]
+            value: root.val("linux.lang", "fr")
+            onPicked: function(v) { root.set("linux.lang", v); root.launch(["liquid-glass", "lang", v]) }
+          }
+        }
+      }
+      SectionTitle { text: T.t("Sources de saisie") }
+      Group {
+        Repeater {
+          model: lang.layouts
+          Row_ {
+            id: lr
+            required property var modelData
+            required property int index
+            label: lang.label(modelData)
+            sub: index === 0 ? T.t("Par défaut") : ""
+            icon: 0xF030C; iconColor: "#8e8e93"
+            Btn { visible: lang.layouts.length > 1; text: T.t("Retirer"); secondary: true; onClicked: { var l = lang.layouts.slice(); l.splice(lr.index, 1); lang.setLayouts(l) } }
+          }
+        }
+        Row_ {
+          label: T.t("Ajouter une source")
+          Seg {
+            options: lang.all.filter(function(x) { return lang.layouts.indexOf(x[0]) < 0 && lang.layouts.indexOf(x[0].replace(/:$/, "")) < 0 }).slice(0, 4).map(function(x) { return [x[0], x[1].split(" ")[0]] })
+            value: ""
+            onPicked: function(v) { lang.setLayouts(lang.layouts.concat([v.replace(/:$/, "")])) }
+          }
+        }
+        ToggleRow { label: T.t("Afficher la source dans l'île"); key: "island.input"; def: true; sub: T.t("⌃Espace passe à la source suivante") }
+      }
+      SectionTitle { text: T.t("Région") }
+      Group {
+        ToggleRow { label: T.t("Horloge 24 heures"); key: "menubar.clock_24h"; def: true }
+        ToggleRow { label: T.t("La semaine commence le lundi"); key: "menubar.week_monday"; def: true }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------- Imprimantes
+  Component {
+    id: pPrinters
+    Column {
+      id: prn
+      spacing: Style.space(14)
+      property var list: []
+      property bool cups: true
+      Process {
+        running: true
+        command: ["sh", "-c", "command -v lpstat >/dev/null || { echo NOCUPS; exit; }; lpstat -p 2>/dev/null | awk '$1==\"printer\"{print $2}'"]
+        stdout: StdioCollector { onStreamFinished: { var t = text.trim(); prn.cups = t !== "NOCUPS"; prn.list = prn.cups && t ? t.split("\n") : [] } }
+      }
+      Group {
+        Repeater {
+          model: prn.list
+          Row_ { required property string modelData; label: modelData; icon: 0xF042A; iconColor: "#8e8e93"; Label_ { text: T.t("Prête") } }
+        }
+        Row_ {
+          visible: prn.list.length === 0
+          label: prn.cups ? T.t("Aucune imprimante") : T.t("CUPS n'est pas installé")
+          sub: prn.cups ? "" : "sudo pacman -S cups system-config-printer"
+          icon: 0xF042A; iconColor: "#8e8e93"
+        }
+        Row_ {
+          label: T.t("Ajouter une imprimante, un scanner ou un fax…")
+          Btn { text: T.t("Ajouter…"); secondary: true; onClicked: { root.dismiss(); root.launch(["sh", "-c", "system-config-printer || xdg-open http://localhost:631"]) } }
+        }
+      }
+    }
+  }
+
+  // ---------------------------------------------------------- Alcove (île dynamique)
+  Component {
+    id: pAlcove
+    Column {
+      spacing: Style.space(14)
+      Group {
+        ToggleRow { label: T.t("Activer Alcove"); key: "island.enabled"; def: true; sub: T.t("L'encoche devient une île dynamique : survol pour agrandir, clic pour les commandes"); icon: 0xF0402; iconColor: "#1c1c1e" }
+        Row_ {
+          label: T.t("Au repos")
+          visible: root.val("island.enabled", true) === true
+          Seg {
+            options: [["hidden", T.t("Masquée")], ["notch", T.t("Encoche")]]
+            value: root.val("island.idle", "hidden")
+            onPicked: function(v) { root.set("island.idle", v) }
+          }
+        }
+      }
+      SectionTitle { text: T.t("Activités") }
+      Group {
+        ToggleRow { label: T.t("Lecture en cours"); key: "island.music"; def: true; sub: T.t("Pochette et égaliseur aux couleurs de la pochette") }
+        ToggleRow { label: T.t("Paroles"); key: "island.lyrics"; def: true; sub: T.t("L'île s'élargit et la ligne chantée défile dedans") }
+        ToggleRow { label: T.t("Batterie et secteur"); key: "island.battery"; def: true; sub: T.t("Branchement et débranchement, avec le niveau") }
+        ToggleRow { label: T.t("Appareils Bluetooth"); key: "island.bluetooth"; def: true; sub: T.t("Casque connecté, avec sa batterie") }
+        ToggleRow { label: T.t("Concentration"); key: "island.focus"; def: true }
+        ToggleRow { label: T.t("Source de saisie"); key: "island.input"; def: true; sub: T.t("⌃Espace") }
+      }
+      SectionTitle { text: "HUD" }
+      Group {
+        ToggleRow { label: T.t("Volume dans l'île"); key: "island.hud"; def: false; sub: T.t("Remplace l'OSD au-dessus du Dock") }
+      }
+      Hint { text: T.t("Molette sur l'île : volume. Balayage horizontal : morceau suivant ou précédent. Clic droit : ces réglages.") }
+    }
+  }
+
+  // ---------------------------------------------------------- Klack (sons du clavier)
+  Component {
+    id: pKlack
+    Column {
+      id: kl
+      spacing: Style.space(14)
+      property var packs: []
+      Process {
+        running: true
+        command: ["sh", "-c", "ls \"$HOME/.local/share/liquid-glass/keysounds\" 2>/dev/null"]
+        stdout: StdioCollector { onStreamFinished: kl.packs = text.trim() ? text.trim().split("\n") : [] }
+      }
+      Item {
+        width: parent.width; height: Style.space(110)
+        Column {
+          anchors.centerIn: parent; spacing: Style.space(6)
+          Rectangle {
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: Style.space(58); height: width; radius: width * 0.24
+            gradient: Gradient { GradientStop { position: 0; color: "#ffb340" } GradientStop { position: 1; color: "#ff7a1a" } }
+            Text { anchors.centerIn: parent; text: root.g(0xF030C); font.family: root.iconFont; font.pixelSize: Style.space(30); color: "white" }
+          }
+          Text { anchors.horizontalCenter: parent.horizontalCenter; text: "Klack"; font.family: root.uiFont; font.pixelSize: Style.space(17); font.weight: Font.Bold; color: root.fg }
+        }
+      }
+      Group {
+        Row_ {
+          label: T.t("Sons du clavier")
+          sub: T.t("Sans aucun accès donné aux apps : Hyprland signale seulement « une touche »")
+          Switch_ { checked: root.val("keys.sound", false) === true; onToggled: function(v) { root.set("keys.sound", v); root.launch(["liquid-glass", "keys", v ? "on" : "off"]) } }
+        }
+        SliderRow { label: "Volume"; key: "keys.sound_volume"; from: 0; to: 1; step: 0.05; def: 0.6; fmt: function(v) { return Math.round(v * 100) + " %" } }
+        ToggleRow { label: T.t("Son au relâchement"); key: "keys.sound_release"; def: true }
+        ToggleRow { label: T.t("Clics de la souris"); key: "keys.sound_mouse"; def: true }
+      }
+      SectionTitle { text: T.t("Clavier") }
+      Group {
+        Repeater {
+          model: ["auto", "creamy", "thocky", "clicky"].concat(kl.packs)
+          Row_ {
+            id: kp
+            required property string modelData
+            label: modelData === "auto" ? T.t("Celui de Mechvibes") : modelData.replace(/-/g, " ")
+            Switch_ { checked: String(root.val("keys.sound_pack", "auto")) === kp.modelData; onToggled: function(v) { if (v) root.set("keys.sound_pack", kp.modelData) } }
+          }
+        }
+        Row_ {
+          label: T.t("Écouter"); sub: T.t("Joue quelques touches avec le clavier choisi")
+          Btn { text: T.t("Essai"); secondary: true; onClicked: root.launch(["liquid-glass", "keys", "test"]) }
         }
       }
     }

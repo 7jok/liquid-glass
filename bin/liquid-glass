@@ -255,6 +255,11 @@ def render_hypr_vars(cfg: dict) -> None:
         elif not isinstance(x, bool):
             continue
         dest.append(f"{opt} = {lua(x)}")
+    # Sources de saisie (Réglages → Langue et région) : ["ch:fr", "us"] → kb_layout / kb_variant.
+    lays = [str(x) for x in cfg.get("language", {}).get("layouts", []) if re.match(r"^[a-z]{2,3}(:[A-Za-z0-9_-]*)?$", str(x))]
+    if lays:
+        top.append('kb_layout = "' + ",".join(x.split(":")[0] for x in lays) + '"')
+        top.append('kb_variant = "' + ",".join((x.split(":") + [""])[1] for x in lays) + '"')
     if top or pad:
         parts = top + ([f"touchpad = {{ {', '.join(pad)} }}"] if pad else [])
         body.append(f"  input = {{ {', '.join(parts)} }},")
@@ -454,7 +459,7 @@ def cmd_auto_tick(_args: list[str]) -> None:
 
 
 # Réglages qui ne demandent qu'un rechargement à chaud (le shell relit config.json).
-LIVE_SECTIONS = {"linux", "spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock", "control", "island", "corners", "menubar", "shortcuts"}
+LIVE_SECTIONS = {"wallpaper", "linux", "spotify", "lyrics", "visualizer", "dock", "widgets", "hotcorners", "lock", "control", "island", "corners", "menubar", "shortcuts"}
 # Clés isolées lues directement par le shell (pas de régénération du thème).
 LIVE_KEYS = {"appearance.logo", "appearance.logo_path"}
 
@@ -483,7 +488,13 @@ def cmd_set(args: list[str]) -> None:
     elif section == "keys":
         render_hypr_vars(cfg)
         run("hyprctl", "reload")
-    elif section in ("input", "windows"):
+    elif args[0] == "glass.tint":
+        # Curseur Liquid Glass de macOS 27 : de « transparent » (0) à « teinté » (1).
+        t = max(0.0, min(1.0, float(args[1])))
+        set_key("glass.style", '"clear"' if t < 0.34 else ('"standard"' if t < 0.67 else '"tinted"'))
+        set_key("glass.opacity", f"{0.7 + t * 0.6:.2f}")
+        cmd_apply([])
+    elif section in ("input", "windows", "language"):
         render_hypr_vars(cfg)
         run("hyprctl", "reload")
     elif section == "glass" and args[0].split(".", 1)[1] in ("titlebars", "blur_size", "blur_passes", "rounding", "gaps_in", "gaps_out", "animations", "window_opacity_active", "window_opacity_inactive"):
@@ -2144,6 +2155,8 @@ def write_lang(lang: str, roots: list[Path]) -> None:
         for plugin in root.glob("liquid-glass.*"):
             if (plugin / "T.js").exists():
                 (plugin / "T.js").write_text(".pragma library\n" + body)
+    # Apps à part (Finder), lancées depuis le dépôt.
+    (REPO / "apps/finder/T.js").write_text(".pragma library\n" + body)
 
 
 def cmd_lang(args: list[str]) -> None:
@@ -2157,6 +2170,77 @@ def cmd_lang(args: list[str]) -> None:
     write_lang(args[0], [CONF_DIR.parent / "omarchy/plugins"])
     apply_fastfetch(linux_style() if load().get("profile", {}).get("active") == "linux" else None)
     print("Langue : " + args[0])
+
+
+# Fonds dynamiques façon macOS : (minute de début, fichier) par moment de la journée,
+# ou "light"/"dark" pour suivre le mode clair / sombre. Fichiers os-* des deux thèmes Mac.
+DYN_WALLS = {
+    "golden-gate": [(7 * 60, "os-27-golden-gate-pont"), (19 * 60 + 30, "os-27-golden-gate-nuit")],
+    "tahoe-plage": [(6 * 60, "os-26-tahoe-plage-aube"), (9 * 60, "os-26-tahoe-plage-jour"),
+                    (17 * 60 + 30, "os-26-tahoe-plage-crepuscule"), (20 * 60 + 30, "os-26-tahoe-plage-nuit")],
+    "big-sur": [(7 * 60, "os-11-big-sur"), (19 * 60 + 30, "os-11-big-sur-nuit")],
+    "mojave": [(7 * 60, "os-10.14-mojave"), (19 * 60 + 30, "os-10.14-mojave-nuit")],
+    "catalina": [(7 * 60, "os-10.15-catalina"), (19 * 60 + 30, "os-10.15-catalina-nuit")],
+    "golden-gate-abstrait": {"light": "os-27-golden-gate", "dark": "os-27-golden-gate-sombre"},
+    "tahoe": {"light": "os-26-tahoe", "dark": "os-26-tahoe-sombre"},
+    "sequoia": {"light": "os-15-sequoia", "dark": "os-15-sequoia-sombre"},
+    "sonoma": {"light": "os-14-sonoma", "dark": "os-14-sonoma-sombre"},
+    "ventura": {"light": "os-13-ventura", "dark": "os-13-ventura-sombre"},
+    "monterey": {"light": "os-12-monterey", "dark": "os-12-monterey-sombre"},
+}
+
+
+def cmd_dynamic_wallpaper(args: list[str]) -> None:
+    """liquid-glass dynamic-wallpaper tick | list : applique le fond dynamique choisi (wallpaper.dynamic)."""
+    if args and args[0] == "list":
+        print("\n".join(DYN_WALLS))
+        return
+    cfg = load()
+    name = str(cfg.get("wallpaper", {}).get("dynamic", "") or "")
+    if not name or name not in DYN_WALLS or current_profile(cfg) != "mac":
+        return
+    spec = DYN_WALLS[name]
+    if isinstance(spec, dict):
+        stem = spec["dark" if current_theme().endswith("-dark") else "light"]
+    else:
+        now = dt.datetime.now()
+        m = now.hour * 60 + now.minute
+        stem = spec[-1][1]
+        for start, f in spec:
+            if m >= start:
+                stem = f
+    path = next((p for p in (REPO / "themes/liquid-glass/backgrounds", REPO / "themes/liquid-glass-dark/backgrounds")
+                 for p in [p / f"{stem}.jpg"] if p.exists()), None)
+    if not path:
+        return
+    link = HOME / ".local/state/omarchy/current/background"
+    if link.exists() and os.path.realpath(link) == str(path.resolve()):
+        return
+    run("omarchy", "theme", "bg", "set", str(path))
+
+
+def cmd_dock(args: list[str]) -> None:
+    """liquid-glass dock autohide on|off|toggle (⌥⌘D)."""
+    if len(args) < 2 or args[0] != "autohide" or args[1] not in ("on", "off", "toggle"):
+        sys.exit("usage : liquid-glass dock autohide on|off|toggle")
+    cur = bool(load().get("dock", {}).get("autohide", False))
+    want = (not cur) if args[1] == "toggle" else args[1] == "on"
+    cmd_set(["dock.autohide", "true" if want else "false"])
+
+
+def cmd_finder(args: list[str]) -> None:
+    """liquid-glass finder [DOSSIER] : fenêtre du Finder (apps/finder, un seul processus)."""
+    go = bool(args) and args[0] == "--go"
+    if go:
+        args = args[1:]
+    raw = args[0] if args else "~"
+    path = raw if raw in ("recents", "apps", "trash", "goto") else os.path.abspath(os.path.expanduser(raw))
+    app = REPO / "apps/finder"
+    if run("quickshell", "ipc", "-p", str(app), "call", "finder", "go" if go else "open", path).returncode == 0:
+        return
+    log = open(HOME / ".cache/liquid-glass/finder.log", "w")
+    subprocess.Popen(["quickshell", "-p", str(app)], env={**os.environ, "LG_FINDER_PATH": path},
+                     stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL, start_new_session=True)
 
 
 KEYS_UNIT = "liquid-glass-keys.service"
@@ -2207,6 +2291,9 @@ COMMANDS = {
     "bar-contrast": cmd_bar_contrast,
     "key": cmd_key,
     "window": cmd_window,
+    "finder": cmd_finder,
+    "dock": cmd_dock,
+    "dynamic-wallpaper": cmd_dynamic_wallpaper,
     "focus": cmd_focus,
     "gamemode": cmd_gamemode,
     "animated-wallpapers": cmd_animated_wallpapers,

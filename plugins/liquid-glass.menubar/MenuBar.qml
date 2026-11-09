@@ -24,8 +24,11 @@ Panel {
   readonly property var toplevel: ToplevelManager.activeToplevel
   readonly property string appId: toplevel ? (toplevel.appId || "") : ""
   readonly property var entry: appId !== "" ? DesktopEntries.heuristicLookup(appId) : null
+  // Le Finder Liquid Glass (apps/finder) est une fenêtre Quickshell.
+  readonly property bool isFinder: !toplevel || (appId === "org.quickshell" && String(toplevel.title || "").indexOf("Finder") === 0)
   readonly property string appName: {
     if (!toplevel) return "Finder"
+    if (isFinder) return "Finder"
     if (entry && entry.name) return entry.name
     if (appId === "") return toplevel.title || "Finder"
     var last = appId.split(".").pop()
@@ -36,7 +39,22 @@ Panel {
   function sh(id, verb) { return ["omarchy-shell", "shell", verb || "toggle", id] }
 
   // [titre, [[libellé, commande (argv) | null = grisé, raccourci], "" = séparateur]]
-  readonly property var menus: [
+  function finder(p) { return ["liquid-glass", "finder", "--go", p] }
+  // Menu « Aller » du Finder (navigue dans la fenêtre du Finder au premier plan).
+  readonly property var goMenu: [T.t("Aller"), [
+    [T.t("Récents"), finder("recents"), "⇧⌘F"],
+    ["Documents", finder("~/Documents"), "⇧⌘O"],
+    [T.t("Bureau"), finder("~/Desktop"), "⇧⌘D"],
+    [T.t("Téléchargements"), finder("~/Downloads"), "⌥⌘L"],
+    [T.t("Départ"), finder("~"), "⇧⌘H"],
+    [T.t("Ordinateur"), finder("/"), "⇧⌘C"],
+    ["Applications", finder("apps"), "⇧⌘A"],
+    [T.t("Utilitaires"), finder("/usr/bin"), "⇧⌘U"],
+    "",
+    [T.t("Aller au dossier…"), finder("goto"), "⇧⌘G"]
+  ]]
+  readonly property var menus: isFinder ? baseMenus.slice(0, 3).concat([goMenu]).concat(baseMenus.slice(3)) : baseMenus
+  readonly property var baseMenus: [
     [appName, [
       [T.t("Réglages…"), lg(["window", "settings"]), "⌘,"],
       "",

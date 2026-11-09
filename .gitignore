@@ -39,3 +39,7 @@ themes/violet-hiver/backgrounds/
 themes/violet-printemps/backgrounds/
 themes/hud/backgrounds/
 themes/infini/backgrounds/wh-*
+
+# Fonds officiels macOS (scripts/fetch-mac-wallpapers.py)
+themes/liquid-glass/backgrounds/os-*
+themes/liquid-glass-dark/backgrounds/os-*

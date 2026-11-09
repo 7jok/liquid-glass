@@ -26,7 +26,7 @@ Item {
     path: root.home + "/.local/state/omarchy/current/theme.name"
     watchChanges: true
     onFileChanged: reload()
-    onLoaded: root.theme = text().trim()
+    onLoaded: { root.theme = text().trim(); root.check() }
   }
 
   function minutes(hhmm, def) {
@@ -34,7 +34,10 @@ Item {
     return m ? parseInt(m[1]) * 60 + parseInt(m[2]) : minutes(def, "07:30")
   }
 
+  // Fond dynamique (Réglages → Fond d'écran → Bureau dynamique) : vérifié chaque minute.
+  Process { id: dynTick; command: ["liquid-glass", "dynamic-wallpaper", "tick"] }
   function check() {
+    if (cfg.wallpaper && cfg.wallpaper.dynamic && !dynTick.running) dynTick.running = true
     var ap = cfg.appearance || {}
     if (ap.mode !== "auto" || theme === "") return
     // Seulement nos deux thèmes : un autre thème choisi à la main est respecté.

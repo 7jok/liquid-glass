@@ -38,6 +38,58 @@ Item {
   function g(cp) { return String.fromCodePoint(cp) }
 
   property string query: ""
+
+  // ------------------------------------------------ « Rechercher ou demander » (macOS 27)
+  // Siri y répond aux questions ; ici c'est Claude (CLI « claude » déjà connecté),
+  // sans aucun outil sauf la recherche web. Réponse en continu, questions de suite.
+  property var cfg: ({})
+  FileView {
+    path: root.home + "/.config/liquid-glass/config.json"
+    watchChanges: true
+    onFileChanged: reload()
+    onLoaded: { try { root.cfg = JSON.parse(text()) } catch (e) {} }
+  }
+  readonly property bool askEnabled: !(cfg.spotlight && cfg.spotlight.ask === false)
+  readonly property string askModel: cfg.spotlight && cfg.spotlight.ask_model ? String(cfg.spotlight.ask_model) : "haiku"
+  property string askQ: ""
+  property string askText: ""
+  property bool askBusy: false
+  property int askTurns: 0
+  function looksLikeQuestion(q) {
+    return /\?\s*$/.test(q) || /^(qui|que|quoi|quel|quelle|quels|quelles|comment|pourquoi|quand|où|combien|est-ce|explique|résume|traduis|écris|aide|donne|what|who|why|how|when|where|which|can|is|are|do|does|explain|write|translate)\b/i.test(q) || q.split(/\s+/).length >= 5
+  }
+  function ask(q) {
+    q = String(q || "").trim()
+    if (q === "") return
+    var follow = askQ !== "" && askTurns > 0
+    askQ = q; askText = ""; askBusy = true; askTurns++
+    askP.running = false
+    askP.command = ["sh", "-c",
+      "d=\"$HOME/.cache/liquid-glass/ask\"; mkdir -p \"$d\"; cd \"$d\" || exit 1; m=\"$1\"; f=\"$2\"; shift 2; " +
+      "exec claude -p --model \"$m\" $f --tools WebSearch --allowedTools WebSearch --output-format stream-json --include-partial-messages --verbose " +
+      "--append-system-prompt 'Tu réponds dans Spotlight, comme Siri sur macOS 27 : réponse directe et courte (quelques phrases ou une petite liste), dans la langue de la question, en Markdown simple, sans préambule.' -- \"$1\"",
+      "sh", askModel, follow ? "--continue" : "", q]
+    askP.running = true
+    query = ""
+  }
+  function askReset() { askP.running = false; askQ = ""; askText = ""; askBusy = false; askTurns = 0 }
+  Process {
+    id: askP
+    stdout: SplitParser {
+      onRead: function(line) {
+        try {
+          var o = JSON.parse(line)
+          if (o.type === "stream_event" && o.event && o.event.type === "content_block_delta" && o.event.delta && o.event.delta.type === "text_delta")
+            root.askText += o.event.delta.text
+          else if (o.type === "result") { if (o.result) root.askText = o.result; root.askBusy = false }
+        } catch (e) {}
+      }
+    }
+    onExited: function(code) {
+      root.askBusy = false
+      if (root.askText === "") root.askText = code === 0 ? T.t("(pas de réponse)") : T.t("Claude n'a pas pu répondre (CLI « claude » introuvable ou non connecté).")
+    }
+  }
   // Mode filtré (boutons à droite de la barre, Ctrl+1…5) : "" = tout.
   property string mode: ""
   // [id, nom, glyphe, indication du champ]
@@ -228,6 +280,10 @@ Item {
       out.push({ section: T.t("Fichiers"), kind: "file", title: name, sub: dir, glyph: isDir ? 0xF024B : 0xF0214, path: clean })
     }
 
+    if (askEnabled) {
+      var askRow = { section: T.t("Demander"), kind: "ask", title: T.t("Demander à Claude : « ") + q + " »", sub: T.t("Rechercher ou demander  ·  ⇥ pour demander"), glyph: 0xF0674, q: q }
+      if (looksLikeQuestion(q)) out.unshift(askRow); else out.push(askRow)
+    }
     out.push({ section: "Web", kind: "web", title: T.t("Rechercher « ") + q + T.t(" » sur le web"), sub: "DuckDuckGo", glyph: 0xF059F, url: "https://duckduckgo.com/?q=" + encodeURIComponent(q) })
     results = out
     if (selected >= out.length) selected = 0
@@ -320,6 +376,7 @@ Item {
   function activate(i, alt) {
     var r = results[i]
     if (!r) return
+    if (r.kind === "ask") { ask(r.q); return }
     dismiss()
     remember(r)
     if (r.kind === "app") appLib.launch(r.entry.id, r.title)
@@ -353,6 +410,7 @@ Item {
 
   // --------------------------------------------------------------- ouverture
   function open(payloadJson) {
+    askReset()
     // Charge utile optionnelle : {"query": "…"} pré-remplit la recherche.
     var pre = "", m = ""
     try {
@@ -368,7 +426,7 @@ Item {
     opened = true
     Qt.callLater(function() { input.forceActiveFocus() })
   }
-  function close() { opened = false }
+  function close() { opened = false; askReset() }
   function dismiss() {
     opened = false
     if (shell && typeof shell.hide === "function") shell.hide((manifest && manifest.id) || "liquid-glass.spotlight")
@@ -468,7 +526,8 @@ Item {
             var ctrl = (ev.modifiers & Qt.ControlModifier) !== 0
             if (ctrl && ev.key >= Qt.Key_1 && ev.key <= Qt.Key_5) { root.setMode(root.modes[ev.key - Qt.Key_1][0]); ev.accepted = true }
             else if (ev.key === Qt.Key_Escape) {
-              if (root.query !== "") root.query = ""
+              if (root.askQ !== "" && root.query === "") root.askReset()
+              else if (root.query !== "") root.query = ""
               else if (root.mode !== "") root.setMode(root.mode)
               else root.dismiss()
               ev.accepted = true
@@ -476,9 +535,13 @@ Item {
             else if (ev.key === Qt.Key_Backspace && root.query === "" && root.mode !== "") { root.setMode(root.mode); ev.accepted = true }
             else if (ev.key === Qt.Key_Down) { root.move(root.emojiGrid ? root.gridCols : 1); ev.accepted = true }
             else if (ev.key === Qt.Key_Up) { root.move(root.emojiGrid ? -root.gridCols : -1); ev.accepted = true }
+            else if (ev.key === Qt.Key_Tab && root.askEnabled && root.mode === "" && root.query.trim() !== "") { root.ask(root.query); ev.accepted = true }
             else if (ev.key === Qt.Key_Tab) { root.move(1); ev.accepted = true }
             else if (ev.key === Qt.Key_Backtab) { root.move(-1); ev.accepted = true }
             else if (root.emojiGrid && root.query === "" && (ev.key === Qt.Key_Left || ev.key === Qt.Key_Right)) { root.move(ev.key === Qt.Key_Left ? -1 : 1); ev.accepted = true }
+            else if ((ev.key === Qt.Key_Return || ev.key === Qt.Key_Enter) && root.askQ !== "" && root.query.trim() !== "" && root.mode === "") {
+              root.ask(root.query); ev.accepted = true
+            }
             else if (ev.key === Qt.Key_Return || ev.key === Qt.Key_Enter) {
               root.activate(root.selected, ctrl); ev.accepted = true
             }
@@ -487,7 +550,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             visible: input.text === ""
             textFormat: Text.PlainText
-            text: root.mode !== "" ? root.modeInfo(root.mode)[1] : T.t("Recherche Spotlight")
+            text: root.mode !== "" ? root.modeInfo(root.mode)[1] : (root.askQ !== "" ? T.t("Question de suite…") : T.t("Rechercher ou demander"))
             font: input.font
             color: root.fg
             opacity: 0.38
@@ -553,6 +616,89 @@ Item {
         }
       }
 
+      // ---------------------------------------------------- réponse de Claude
+      BorderSurface {
+        id: askPanel
+        anchors.top: pill.bottom
+        anchors.topMargin: win.gap
+        visible: root.askQ !== ""
+        width: win.pillW
+        height: visible ? Math.min(askCol.implicitHeight + Style.space(28), Style.space(460)) : 0
+        radius: Style.space(22)
+        color: Commons.Color.menu.background
+        borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)
+        clip: true
+        Behavior on height { NumberAnimation { duration: Style.duration(220); easing.type: Easing.OutCubic } }
+        MouseArea { anchors.fill: parent; onClicked: input.forceActiveFocus() }
+        Flickable {
+          id: askFlick
+          anchors.fill: parent; anchors.margins: Style.space(14)
+          contentHeight: askCol.implicitHeight
+          clip: true
+          boundsBehavior: Flickable.StopAtBounds
+          onContentHeightChanged: if (contentHeight > height) contentY = contentHeight - height
+          Column {
+            id: askCol
+            width: askFlick.width
+            spacing: Style.space(10)
+            Row {
+              spacing: Style.space(10)
+              // Orbe animée (comme la bulle de Siri) pendant que Claude écrit.
+              Rectangle {
+                id: orb
+                width: Style.space(26); height: width; radius: width / 2
+                gradient: Gradient {
+                  GradientStop { position: 0; color: "#d97757" }
+                  GradientStop { position: 0.5; color: "#bf5af2" }
+                  GradientStop { position: 1; color: "#0a84ff" }
+                }
+                RotationAnimation on rotation { from: 0; to: 360; duration: 1600; loops: Animation.Infinite; running: root.askBusy && root.opened }
+                SequentialAnimation on scale {
+                  running: root.askBusy && root.opened; loops: Animation.Infinite
+                  NumberAnimation { to: 1.15; duration: 500; easing.type: Easing.InOutSine }
+                  NumberAnimation { to: 0.92; duration: 500; easing.type: Easing.InOutSine }
+                }
+                Text { anchors.centerIn: parent; text: root.g(0xF0674); font.family: root.iconFont; font.pixelSize: Style.space(14); color: "white" }
+              }
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                width: askCol.width - Style.space(40)
+                textFormat: Text.PlainText
+                text: root.askQ
+                elide: Text.ElideRight
+                font.family: root.uiFont; font.pixelSize: Style.space(13); font.weight: Font.DemiBold
+                color: root.fg; opacity: 0.7
+              }
+            }
+            Text {
+              width: askCol.width
+              text: root.askText !== "" ? root.askText : T.t("Claude réfléchit…")
+              textFormat: root.askText !== "" ? Text.MarkdownText : Text.PlainText
+              wrapMode: Text.Wrap
+              font.family: root.uiFont; font.pixelSize: Style.space(14)
+              color: root.fg
+              opacity: root.askText !== "" ? 1 : 0.5
+              onLinkActivated: function(link) { Util.execArgv(["xdg-open", link]) }
+            }
+            Row {
+              visible: !root.askBusy && root.askText !== ""
+              spacing: Style.space(8)
+              Rectangle {
+                width: cpT.implicitWidth + Style.space(20); height: Style.space(24); radius: height / 2
+                color: Qt.rgba(root.fg.r, root.fg.g, root.fg.b, cpM.containsMouse ? 0.14 : 0.08)
+                Text { id: cpT; anchors.centerIn: parent; text: T.t("Copier"); font.family: root.uiFont; font.pixelSize: Style.space(12); color: root.fg }
+                MouseArea { id: cpM; anchors.fill: parent; hoverEnabled: true; onClicked: Util.execArgv(["wl-copy", "--", root.askText]) }
+              }
+              Text {
+                anchors.verticalCenter: parent.verticalCenter
+                text: T.t("Entrée : question de suite  ·  Échap : retour à la recherche")
+                font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.fg; opacity: 0.45
+              }
+            }
+          }
+        }
+      }
+
       // ---------------------------------------------------- résultats
       BorderSurface {
         id: panel
@@ -563,7 +709,7 @@ Item {
           ? (root.emojiGrid ? Math.min(emojiView.contentHeight, Style.space(372)) + Style.space(58)
                             : Math.min(list.contentHeight, Style.space(430)) + Style.space(14))
           : 0
-        visible: height > 1
+        visible: height > 1 && root.askQ === ""
         radius: Style.space(22)
         color: Commons.Color.menu.background
         borderSpec: Border.surfaceSpec("menu", "border", Commons.Color.menu.border, 1)

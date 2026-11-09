@@ -45,6 +45,12 @@ if val("profile", "mac") == "linux" then
   return
 end
 
+-- Curseur et icônes façon macOS (MacTahoe, scripts/install-mac-icons.sh).
+do
+  local f = io.open((os.getenv("HOME") or "") .. "/.local/share/icons/MacTahoe-cursors/index.theme", "r")
+  if f then f:close(); hl.exec_cmd("hyprctl setcursor MacTahoe-cursors 24") end
+end
+
 hl.config({
   general = {
     gaps_in = val("gaps_in", 5),
@@ -60,14 +66,15 @@ hl.config({
     inactive_opacity = 1.0,
     dim_inactive = false,
 
-    -- Ombre douce et diffuse, décalée vers le bas comme sur macOS.
+    -- Ombre douce et diffuse, décalée vers le bas comme sur macOS. macOS 27 marque
+    -- davantage la fenêtre active : ombre plus large et plus dense, les autres s'effacent.
     shadow = {
       enabled = true,
-      range = 36,
+      range = 44,
       render_power = 3,
-      offset = { 0, 10 },
-      color = "rgba(00000048)",
-      color_inactive = "rgba(00000026)",
+      offset = { 0, 14 },
+      color = "rgba(00000060)",
+      color_inactive = "rgba(0000001c)",
     },
 
     -- Flou prononcé mais dosé pour un iGPU Intel UHD 620.
@@ -223,7 +230,8 @@ end
 local TITLEBARS = "/usr/lib/omarchy-hyprland-titlebars/titlebars.so"
 local BAR_TAG = "liquid-glass-titlebar"
 -- Pas de barre : vignette de capture, image dans l'image, sélecteurs du portail.
-local NO_BAR_CLASS = "^(omasnap|xdg-desktop-portal.*|hyprland-share-picker|hyprpolkitagent)$"
+-- org.quickshell : le Finder Liquid Glass dessine lui-même ses feux tricolores.
+local NO_BAR_CLASS = "^(omasnap|xdg-desktop-portal.*|hyprland-share-picker|hyprpolkitagent|org\\.quickshell)$"
 local NO_BAR_TITLE = "^(Picture.in.[Pp]icture|Incrustation vidéo)$"
 
 local function file_exists(path)
@@ -242,6 +250,7 @@ end
 
 local function wants_bar(w)
   return not (tostring(w.class or ""):match("^omasnap") or tostring(w.class or ""):match("^xdg%-desktop%-portal")
+    or tostring(w.class or "") == "org.quickshell"
     or tostring(w.title or ""):match("^Picture.in.Picture"))
 end
 
@@ -311,6 +320,9 @@ if val("titlebars", true) and file_exists(TITLEBARS) then
     end
   end
 end
+
+-- Finder Liquid Glass (apps/finder) : fenêtre flottante centrée, taille d'un Finder.
+o.window("^org\\.quickshell$", { float = true, center = true, size = { 980, 620 } })
 
 -- Souris et trackpad (Réglages → Souris / Trackpad, [input] de config.toml).
 if type(v.input) == "table" then hl.config({ input = v.input }) end

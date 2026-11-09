@@ -4,6 +4,7 @@ import QtQuick.Effects
 import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
+import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Services.UPower
 import Quickshell.Services.Pipewire
@@ -179,6 +180,28 @@ Item {
         root.flash({ kind: "focus", icon: m === "off" ? 0xF0594 : 0xF0594, title: root.focusNames[m],
                      detail: m === "off" ? "" : T.t("Activé"), color: m === "off" ? "#8e8e93" : "#5e5ce6", value: -1 })
       root.focusMode = m
+    }
+  }
+
+  // Source de saisie (⌃Espace) : bulle comme le sélecteur de langue de macOS.
+  readonly property bool showInput: ic.input !== false
+  property string lastLayout: ""
+  readonly property var layoutNames: ({ "French (Switzerland)": [T.t("Suisse romand"), "CH"], "German (Switzerland)": [T.t("Suisse alémanique"), "CH"],
+    "English (US)": [T.t("Anglais (É.-U.)"), "US"], "English (UK)": [T.t("Anglais (R.-U.)"), "GB"], "French": [T.t("Français"), "FR"],
+    "French (AZERTY)": [T.t("Français (AZERTY)"), "FR"], "German": [T.t("Allemand"), "DE"], "Spanish": [T.t("Espagnol"), "ES"],
+    "Italian": [T.t("Italien"), "IT"], "Portuguese": [T.t("Portugais"), "PT"], "Russian": [T.t("Russe"), "RU"], "Arabic": [T.t("Arabe"), "AR"],
+    "Japanese": [T.t("Japonais"), "JA"], "Korean": [T.t("Coréen"), "KO"], "English (US, intl., with dead keys)": [T.t("Anglais international"), "US"] })
+  Connections {
+    target: Hyprland
+    function onRawEvent(ev) {
+      if (ev.name !== "activelayout") return
+      var name = String(ev.data).split(",").slice(1).join(",")
+      if (name === root.lastLayout) return
+      var first = root.lastLayout === ""
+      root.lastLayout = name
+      if (first || !root.showInput) return
+      var n = root.layoutNames[name] || [name, name.slice(0, 2).toUpperCase()]
+      root.flash({ kind: "input", icon: 0xF030C, title: n[0], detail: n[1], color: "#0a84ff", value: -1 })
     }
   }
 

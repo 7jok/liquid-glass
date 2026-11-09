@@ -18,7 +18,9 @@ end
 -- ⌘Espace : Spotlight            (était : menu Omarchy → déplacé sur ⌘⌥Espace)
 -- ⌘⌥Espace : menu Omarchy        (était : grille d'apps → toujours dans le dock et Spotlight)
 rebind("SUPER + SPACE", "Spotlight", shell("shell toggle liquid-glass.spotlight"))
-rebind("SUPER + ALT + SPACE", "Omarchy menu", { menu = "root" })
+-- ⌥⌘Espace : fenêtre du Finder (comme sur Mac). Le menu Omarchy passe à ⌃⌥⌘Espace.
+rebind("SUPER + ALT + SPACE", "Finder", "liquid-glass finder")
+rebind("SUPER + CTRL + ALT + SPACE", "Omarchy menu", { menu = "root" })
 
 -- ⌘Q : quitter l'application (toutes ses fenêtres)   (était : fermer la fenêtre)
 -- ⌘W : fermer la fenêtre — inchangé.
@@ -113,3 +115,58 @@ for _, key in ipairs({ "Alt_L", "Alt_R" }) do
   hl.bind(key, function() set_alt("0") end,
     { release = true, transparent = true, non_consuming = true, ignore_mods = true, description = "Option released" })
 end
+
+
+-- ---------------------------------------------------------------------------
+-- Raccourcis d'app façon Mac : ⌘ + lettre libre → Ctrl + lettre dans l'app.
+-- (⌘C ⌘V ⌘X ⌘A sont déjà gérés par Omarchy ; ⌘W ⌘F ⌘T ⌘L ⌘P ⌘O restent à Omarchy.)
+-- ---------------------------------------------------------------------------
+local function is_terminal()
+  local w = hl.get_active_window()
+  if not w then return false end
+  for _, tag in ipairs(w.tags or {}) do
+    if tag:gsub("%*$", "") == "terminal" then return true end
+  end
+  return false
+end
+local function send(mods, key)
+  hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "down" }))
+  hl.timer(function()
+    hl.dispatch(hl.dsp.send_key_state({ mods = mods, key = key, state = "up" }))
+  end, { timeout = 50, type = "oneshot" })
+end
+-- terminal = nil : rien dans un terminal (⌃Z y suspendrait le programme).
+for _, k in ipairs({
+  { "SUPER + Z", "Annuler", "CTRL", "Z" },
+  { "SUPER + SHIFT + Z", "Rétablir", "CTRL SHIFT", "Z" },
+  { "SUPER + N", "Nouveau", "CTRL", "N", "CTRL SHIFT" },
+  { "SUPER + R", "Actualiser", "CTRL", "R" },
+  { "SUPER + B", "Gras / Favoris", "CTRL", "B" },
+  { "SUPER + U", "Souligné", "CTRL", "U" },
+  { "SUPER + D", "Dupliquer / Signet", "CTRL", "D" },
+}) do
+  o.bind(k[1], k[2], function()
+    if is_terminal() then
+      if k[5] then send(k[5], k[4]) end
+    else
+      send(k[3], k[4])
+    end
+  end)
+end
+
+-- ⌃Espace : source de saisie suivante (la bulle s'affiche dans l'île). ⌃⌘Espace : émojis.
+o.bind("CTRL + SPACE", "Source de saisie suivante", "hyprctl switchxkblayout all next")
+o.bind("SUPER + CTRL + SPACE", "Émojis et symboles", shell("shell summon liquid-glass.spotlight '{\"mode\":\"emoji\"}'"))
+
+-- ⌥⌘D : masquer / afficher le Dock.
+o.bind("SUPER + ALT + D", "Masquer / afficher le Dock", "liquid-glass dock autohide toggle")
+
+-- Zoom (Accessibilité) : ⌥⌘8 bascule, ⌥⌘ + molette agrandit / réduit.
+local zoom = 1
+local function set_zoom(z)
+  zoom = math.max(1, math.min(6, z))
+  hl.config({ cursor = { zoom_factor = zoom } })
+end
+o.bind("SUPER + ALT + code:17", "Zoom", function() set_zoom(zoom > 1 and 1 or 2) end)
+o.bind("SUPER + ALT + mouse_up", "Zoom avant", function() set_zoom(zoom + 0.25) end)
+o.bind("SUPER + ALT + mouse_down", "Zoom arrière", function() set_zoom(zoom - 0.25) end)

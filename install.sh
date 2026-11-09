@@ -109,6 +109,12 @@ mkdir -p "$REPO/themes/cosmos/backgrounds"
 ok "thèmes liés dans ~/.config/omarchy/themes"
 say "Polices du bureau Linux (Material Symbols, Google Sans Flex, Rubik)"
 "$REPO/scripts/fetch-fonts.sh" && ok "polices dans ~/.local/share/fonts/liquid-glass"
+say "Icônes et curseurs macOS (MacTahoe, sans sudo)"
+"$REPO/scripts/install-mac-icons.sh" >/dev/null 2>&1 && ok "icônes MacTahoe dans ~/.local/share/icons" || warn "icônes MacTahoe : relancer scripts/install-mac-icons.sh"
+gsettings set org.gnome.desktop.interface cursor-theme MacTahoe-cursors 2>/dev/null || true
+mkdir -p "$HOME/.local/share/applications"
+for d in "$REPO"/applications/*.desktop; do link "$d" "$HOME/.local/share/applications/$(basename "$d")"; done
+ok "Finder (liquid-glass finder) dans les applications"
 
 # ---------------------------------------------------------------- 4. commandes
 say "Commandes"
@@ -257,7 +263,7 @@ timeout 25 omarchy restart shell >/dev/null 2>&1 || warn "redémarrage du shell 
 # Fonds d'écran : hors du dépôt (droits d'auteur et poids), téléchargés en arrière-plan.
 if ((DO_WALLS)); then
   mkdir -p "$HOME/.cache/liquid-glass"
-  nohup nice -n 15 sh -c "'$HOME/.local/bin/liquid-glass' wallpapers fetch; '$REPO/scripts/fetch-style-wallpapers.py'" \
+  nohup nice -n 15 sh -c "'$REPO/scripts/fetch-mac-wallpapers.py'; '$HOME/.local/bin/liquid-glass' wallpapers fetch; '$REPO/scripts/fetch-style-wallpapers.py'" \
     >"$HOME/.cache/liquid-glass/install-fonds.log" 2>&1 &
   ok "fonds d'écran en téléchargement (~/.cache/liquid-glass/install-fonds.log)"
 fi

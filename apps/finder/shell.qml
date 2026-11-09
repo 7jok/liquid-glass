@@ -38,6 +38,8 @@ ShellRoot {
     target: "finder"
     function open(path: string): void { root.openWindow(path) }
     function count(): int { return wins.count }
+    // Présentation de la dernière fenêtre : icons | list | columns | gallery
+    function view(v: string): void { if (root.lastWin) root.lastWin.view = v }
     // Menu « Aller » de la barre : navigue dans la dernière fenêtre utilisée.
     function go(path: string): void {
       if (root.lastWin) root.lastWin.navigate(path)

@@ -319,6 +319,7 @@ Clic sur l'anneau : pause	Click the ring: pause
 Clic sur un raccourci : ouvre l'app, ou passe sur sa fenêtre si elle est déjà ouverte. Clic droit : cette page.	Click a shortcut to open the app, or switch to it if already open. Right click: this page.
 Clics de la souris	Mouse clicks
 Cliquez avec deux doigts : clic droit ; trois : clic du milieu	Click with two fingers: right click; three: middle click
+Cliquez sur un clavier pour l'ajouter	Click a keyboard to add it
 Clé de produit et activation	Product key and activation
 Code QR	QR code
 Code incorrect	Wrong code
@@ -473,7 +474,6 @@ Entrez le code	Enter PIN
 Entrez votre mot de passe	Enter your password
 Entrée	Input
 Entrée : insérer  ·  Ctrl+Entrée : copier	Enter: insert  ·  Ctrl+Enter: copy
-Entrée : question de suite  ·  Échap : retour à la recherche	Return: follow-up  ·  Esc: back to search
 Entrée pour appliquer	Enter to apply
 Entrée pour envoyer	Enter to send
 Entrée pour lancer la commande	Enter to run the command
@@ -855,7 +855,11 @@ PROCESSEUR	CPU USAGE
 PROCESSUS	TOP PROCESSES
 Page 	Page 
 Papier	Paper
+Par colonnes	as Columns
 Par défaut	Default
+Par galerie	as Gallery
+Par icônes	as Icons
+Par liste	as List
 Paramètres	Settings
 Paramètres associés	Related settings
 Paramètres recommandés	Recommended settings
@@ -902,6 +906,7 @@ Placer en haut de l'écran	Move to top of screen
 Placer une image dans ~/.face	Put an image in ~/.face
 Placer à droite de l'écran	Move to right of screen
 Placer à gauche de l'écran	Move to left of screen
+Plage de Tahoe	Tahoe Beach
 Plasma, Kickoff	Plasma, Kickoff
 Plein écran	Full screen
 Plein écran en mosaïque	Tiled full screen
@@ -1351,6 +1356,7 @@ vérification…	checking…
 Île dynamique	Dynamic Island
 à installer	to install
 éteindre	shutdown
+↩ question de suite  ·  ⎋ retour	↩ follow-up  ·  ⎋ back
 ⌃Espace	⌃Space
 ⌃Espace passe à la source suivante	⌃Space switches to the next source
 ⌘ = touche Super	⌘ = Super key

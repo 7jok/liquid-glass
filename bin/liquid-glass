@@ -2230,12 +2230,21 @@ def cmd_dock(args: list[str]) -> None:
 
 def cmd_finder(args: list[str]) -> None:
     """liquid-glass finder [DOSSIER] : fenêtre du Finder (apps/finder, un seul processus)."""
+    app = REPO / "apps/finder"
+    if args[:1] == ["--view"] and len(args) > 1:  # menu Présentation : icons|list|columns|gallery
+        run("quickshell", "ipc", "-p", str(app), "call", "finder", "view", args[1])
+        return
+    new = args[:1] == ["--new"]  # Fichier → Nouvelle fenêtre Finder
+    if new:
+        args = args[1:]
     go = bool(args) and args[0] == "--go"
     if go:
         args = args[1:]
     raw = args[0] if args else "~"
+    if raw.startswith("file://"):  # Exec=… %U des fichiers .desktop
+        from urllib.parse import unquote
+        raw = unquote(raw[7:])
     path = raw if raw in ("recents", "apps", "trash", "goto") else os.path.abspath(os.path.expanduser(raw))
-    app = REPO / "apps/finder"
     if run("quickshell", "ipc", "-p", str(app), "call", "finder", "go" if go else "open", path).returncode == 0:
         return
     log = open(HOME / ".cache/liquid-glass/finder.log", "w")

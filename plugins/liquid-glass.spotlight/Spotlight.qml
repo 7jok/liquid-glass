@@ -412,9 +412,9 @@ Item {
   function open(payloadJson) {
     askReset()
     // Charge utile optionnelle : {"query": "…"} pré-remplit la recherche.
-    var pre = "", m = ""
+    var pre = "", m = "", pl = null
     try {
-      var pl = payloadJson ? JSON.parse(payloadJson) : null
+      pl = payloadJson ? JSON.parse(payloadJson) : null
       if (pl && typeof pl.query === "string") pre = pl.query.slice(0, 200)
       if (pl && typeof pl.mode === "string" && modeInfo(pl.mode)) m = pl.mode
     } catch (e) {}
@@ -425,6 +425,8 @@ Item {
     rebuild()
     opened = true
     Qt.callLater(function() { input.forceActiveFocus() })
+    // {"ask": "…"} : pose directement la question à Claude (raccourcis, scripts).
+    if (pl && typeof pl.ask === "string" && pl.ask.trim() !== "" && askEnabled) ask(pl.ask.slice(0, 2000))
   }
   function close() { opened = false; askReset() }
   function dismiss() {
@@ -691,7 +693,7 @@ Item {
               }
               Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: T.t("Entrée : question de suite  ·  Échap : retour à la recherche")
+                text: T.t("↩ question de suite  ·  ⎋ retour")
                 font.family: root.uiFont; font.pixelSize: Style.space(11); color: root.fg; opacity: 0.45
               }
             }

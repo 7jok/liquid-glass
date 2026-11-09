@@ -65,7 +65,7 @@ Panel {
       [T.t("Quitter ") + appName, lg(["window", "quit"]), "⌘Q"]
     ]],
     [T.t("Fichier"), [
-      [T.t("Nouvelle fenêtre"), lg(["key", "new"]), "⌘N"],
+      root.isFinder ? [T.t("Nouvelle fenêtre Finder"), lg(["finder", "--new"]), "⌘N"] : [T.t("Nouvelle fenêtre"), lg(["key", "new"]), "⌘N"],
       [T.t("Ouvrir…"), lg(["key", "open"]), "⌘O"],
       "",
       [T.t("Fermer la fenêtre"), ["hyprctl", "dispatch", "hl.dsp.window.close()"], "⌘W"],
@@ -88,7 +88,13 @@ Panel {
       [T.t("Presse-papiers…"), ["omarchy-shell", "shell", "summon", "liquid-glass.spotlight", "{\"mode\":\"clipboard\"}"], ""],
       [T.t("Émojis et symboles"), sh("omarchy.emojis"), "🌐E"]
     ]],
-    [T.t("Présentation"), [
+    [T.t("Présentation"), (root.isFinder ? [
+      [T.t("Par icônes"), lg(["finder", "--view", "icons"]), "⌘1"],
+      [T.t("Par liste"), lg(["finder", "--view", "list"]), "⌘2"],
+      [T.t("Par colonnes"), lg(["finder", "--view", "columns"]), "⌘3"],
+      [T.t("Par galerie"), lg(["finder", "--view", "gallery"]), "⌘4"],
+      ""
+    ] : []).concat([
       [T.t("Zoom avant"), lg(["key", "zoomin"]), "⌘+"],
       [T.t("Zoom arrière"), lg(["key", "zoomout"]), "⌘−"],
       [T.t("Taille réelle"), lg(["key", "zoomreset"]), "⌘0"],
@@ -97,7 +103,7 @@ Panel {
       [T.t("Afficher le bureau"), lg(["show-desktop"]), "⌘F3"],
       "",
       [T.t("Passer en plein écran"), lg(["window", "fullscreen"]), "⌃⌘F"]
-    ]],
+    ])],
     [T.t("Fenêtre"), [
       [T.t("Réduire"), lg(["window", "minimize"]), "⌘M"],
       ["Zoom", lg(["window", "zoom"]), ""],

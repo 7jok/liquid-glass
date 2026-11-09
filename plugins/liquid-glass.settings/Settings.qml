@@ -1282,19 +1282,26 @@ Item {
         Row_ {
           label: T.t("Fond dynamique")
           sub: T.t("Change au fil de la journée (aube, jour, crépuscule, nuit) ou suit le mode clair / sombre")
-          Seg {
-            options: [["", "Off"], ["golden-gate", "Golden Gate"], ["tahoe-plage", "Tahoe"], ["big-sur", "Big Sur"], ["mojave", "Mojave"]]
-            value: String(root.val("wallpaper.dynamic", ""))
-            onPicked: function(v) { root.set("wallpaper.dynamic", v); root.launch(["liquid-glass", "dynamic-wallpaper", "tick"]) }
-          }
         }
-        Row_ {
-          visible: String(root.val("wallpaper.dynamic", "")) === ""
-          label: T.t("Autres fonds dynamiques")
-          Seg {
-            options: [["golden-gate-abstrait", T.t("Vagues 27")], ["sequoia", "Sequoia"], ["sonoma", "Sonoma"], ["catalina", "Catalina"]]
-            value: String(root.val("wallpaper.dynamic", ""))
-            onPicked: function(v) { root.set("wallpaper.dynamic", v); root.launch(["liquid-glass", "dynamic-wallpaper", "tick"]) }
+        Item {
+          id: dynBox
+          readonly property string cur: String(root.val("wallpaper.dynamic", ""))
+          width: parent ? parent.width : 0
+          height: dynFlow.implicitHeight + Style.space(12)
+          Flow {
+            id: dynFlow
+            x: Style.space(12); width: parent.width - Style.space(24)
+            spacing: Style.space(6)
+            Repeater {
+              model: [["", T.t("Désactivé")], ["golden-gate", "Golden Gate"], ["golden-gate-abstrait", T.t("Vagues 27")],
+                      ["tahoe-plage", T.t("Plage de Tahoe")], ["tahoe", "Tahoe"], ["sequoia", "Sequoia"], ["sonoma", "Sonoma"],
+                      ["ventura", "Ventura"], ["monterey", "Monterey"], ["big-sur", "Big Sur"], ["catalina", "Catalina"], ["mojave", "Mojave"]]
+              Btn {
+                required property var modelData
+                text: modelData[1]; secondary: dynBox.cur !== modelData[0]
+                onClicked: { root.set("wallpaper.dynamic", modelData[0]); root.launch(["liquid-glass", "dynamic-wallpaper", "tick"]) }
+              }
+            }
           }
         }
       }
@@ -1777,7 +1784,7 @@ Item {
           sub: touchCol.fp === "none" ? T.t("fprintd n'est pas installé") : (Number(touchCol.fp) > 0 ? touchCol.fp + T.t(" empreinte(s) enregistrée(s)") : T.t("Aucune empreinte"))
           Btn { text: T.t("Ajouter une empreinte…"); secondary: true; onClicked: { root.dismiss(); root.launch(["xdg-terminal-exec", "sh", "-c", "fprintd-enroll; echo; read -p 'Entrée pour fermer'"]) } }
         }
-        Row_ { label: T.t("Déverrouiller avec Touch ID"); sub: T.t("Automatique sur l'écran verrouillé dès qu'une empreinte est enregistrée"); Label_ { text: Number(touchCol.fp) > 0 ? T.t("Activé") : "—" } }
+        Row_ { label: T.t("Déverrouiller avec Touch ID"); sub: T.t("Automatique sur l'écran verrouillé dès qu'une empreinte est enregistrée"); Label_ { text: Number(touchCol.fp) > 0 ? T.t("Activé") : T.t("Désactivé") } }
       }
     }
   }
@@ -1819,12 +1826,23 @@ Item {
             Btn { visible: lang.layouts.length > 1; text: T.t("Retirer"); secondary: true; onClicked: { var l = lang.layouts.slice(); l.splice(lr.index, 1); lang.setLayouts(l) } }
           }
         }
-        Row_ {
-          label: T.t("Ajouter une source")
-          Seg {
-            options: lang.all.filter(function(x) { return lang.layouts.indexOf(x[0]) < 0 && lang.layouts.indexOf(x[0].replace(/:$/, "")) < 0 }).slice(0, 4).map(function(x) { return [x[0], x[1].split(" ")[0]] })
-            value: ""
-            onPicked: function(v) { lang.setLayouts(lang.layouts.concat([v.replace(/:$/, "")])) }
+        Row_ { label: T.t("Ajouter une source"); sub: T.t("Cliquez sur un clavier pour l'ajouter") }
+        // Toutes les dispositions restantes, en pastilles (noms complets, comme la liste de macOS).
+        Item {
+          width: parent ? parent.width : 0
+          height: addFlow.implicitHeight + Style.space(12)
+          Flow {
+            id: addFlow
+            x: Style.space(12); width: parent.width - Style.space(24)
+            spacing: Style.space(6)
+            Repeater {
+              model: lang.all.filter(function(x) { return lang.layouts.indexOf(x[0]) < 0 && lang.layouts.indexOf(x[0].replace(/:$/, "")) < 0 })
+              Btn {
+                required property var modelData
+                text: "+ " + modelData[1]; secondary: true
+                onClicked: lang.setLayouts(lang.layouts.concat([modelData[0].replace(/:$/, "")]))
+              }
+            }
           }
         }
         ToggleRow { label: T.t("Afficher la source dans l'île"); key: "island.input"; def: true; sub: T.t("⌃Espace passe à la source suivante") }

@@ -70,10 +70,12 @@ FloatingWindow {
   readonly property string titleText: place === "recents" ? T.t("Récents") : place === "apps" ? "Applications"
     : place === "trash" ? T.t("Corbeille") : place === "search" ? T.t("Recherche « ") + query + " »" : nice(cwd)
 
+  function shown(it) { return it.dir && !it.app ? nice(it.path) : it.name }
   function nice(p) {
     if (p === home) return Quickshell.env("USER") || "home"
     if (p === "/") return T.t("Macintosh HD")
     var n = String(p).split("/").pop()
+    if (String(p) !== home + "/" + n) return n   // seuls les dossiers du départ sont traduits
     return ({ Desktop: T.t("Bureau"), Downloads: T.t("Téléchargements"), Pictures: T.t("Images"), Music: T.t("Musique"),
               Videos: T.t("Vidéos"), Documents: "Documents", Public: T.t("Public") })[n] || n
   }
@@ -119,7 +121,8 @@ FloatingWindow {
     setItems(a)
   }
   function setItems(a) {
-    var k = sortKey, r = sortRev ? -1 : 1, ff = foldersFirst && place !== "recents"
+    var rec = place === "recents"   // Récents : toujours du plus récent au plus ancien
+    var k = rec ? "date" : sortKey, r = rec ? -1 : (sortRev ? -1 : 1), ff = foldersFirst && !rec
     a.sort(function(x, y) {
       if (ff && x.dir !== y.dir) return x.dir ? -1 : 1
       var c = 0
@@ -144,10 +147,12 @@ FloatingWindow {
     dfP.running = true
   }
 
-  // Récents : fichiers modifiés ces 30 derniers jours dans le dossier personnel.
+  // Récents (comme le Finder) : documents ouverts récemment (recently-used.xbel, tenu par
+  // GTK/Qt/KDE) + fichiers modifiés ces 30 derniers jours dans Bureau, Documents,
+  // Téléchargements, Images, Musique et Vidéos (pas les dépôts de code ni les fichiers cachés).
   Process {
     id: recentsP
-    command: ["sh", "-c", "find \"$HOME\" -xdev -type f -mtime -30 -not -path '*/.*' -not -path '*/node_modules/*' -not -path '*/__pycache__/*' -printf '%T@\\t%s\\t%p\\n' 2>/dev/null | sort -rn | head -150"]
+    command: ["sh", Quickshell.shellDir + "/recents.sh"]
     stdout: StdioCollector { onStreamFinished: if (w.place === "recents") w.setItems(w.parseFind(text)) }
   }
   function parseFind(text) {
@@ -182,6 +187,11 @@ FloatingWindow {
       a.push({ name: e.name, path: e.id, dir: false, size: -1, mtime: 0, ext: "app", app: e, icon: e.icon })
     }
     sortKey = "name"; setItems(a)
+  }
+  // La liste des apps se remplit en asynchrone : on reconstruit quand elle arrive.
+  Connections {
+    target: DesktopEntries.applications
+    function onValuesChanged() { if (w.place === "apps") w.buildApps() }
   }
   property string freeText: ""
   Process {
@@ -658,9 +668,9 @@ FloatingWindow {
               id: nameT
               anchors.horizontalCenter: parent.horizontalCenter
               width: Math.min(implicitWidth, gi.width - 18)
-              text: gi.modelData.name
+              text: w.shown(gi.modelData)
               horizontalAlignment: Text.AlignHCenter
-              wrapMode: Text.WrapAnywhere; maximumLineCount: 2; elide: Text.ElideMiddle
+              wrapMode: Text.Wrap; maximumLineCount: 2; elide: Text.ElideRight
               font.family: w.ui; font.pixelSize: 12
               color: gi.on ? "white" : w.ink
             }
@@ -715,7 +725,7 @@ FloatingWindow {
                 Text {
                   id: lname
                   x: 26; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 40; elide: Text.ElideMiddle
-                  text: li.modelData.name; font.family: w.ui; font.pixelSize: 13; color: li.on ? "white" : w.ink
+                  text: w.shown(li.modelData); font.family: w.ui; font.pixelSize: 13; color: li.on ? "white" : w.ink
                 }
                 Row {
                   x: Math.min(26 + lname.implicitWidth + 6, parent.width - 30); anchors.verticalCenter: parent.verticalCenter; spacing: -3
@@ -773,11 +783,12 @@ FloatingWindow {
         id: gallery
         visible: w.view === "gallery"
         anchors.fill: parent
-        readonly property var it: w.cur >= 0 && w.cur < w.items.length ? w.items[w.cur] : null
+        // Comme macOS : sans sélection, la galerie montre le premier élément.
+        readonly property var it: w.cur >= 0 && w.cur < w.items.length ? w.items[w.cur] : (w.items.length ? w.items[0] : null)
         Item {
           anchors { left: parent.left; right: parent.right; top: parent.top; bottom: strip.top; margins: 16 }
           Image {
-            anchors.fill: parent
+            anchors.fill: parent; anchors.bottomMargin: 24
             visible: !!gallery.it && w.isImage(gallery.it)
             source: visible ? "file://" + gallery.it.path : ""
             fillMode: Image.PreserveAspectFit; asynchronous: true; cache: false
@@ -796,7 +807,7 @@ FloatingWindow {
           orientation: ListView.Horizontal
           spacing: 6
           model: gallery.visible ? w.items : []
-          currentIndex: w.cur
+          currentIndex: Math.max(0, w.cur)
           highlightMoveDuration: 200
           clip: true
           delegate: Rectangle {
@@ -1220,7 +1231,7 @@ FloatingWindow {
         width: ListView.view.width; height: 22; radius: 5
         color: on ? (col.level >= w.colPaths.length - 2 ? w.accent : (w.dark ? Qt.rgba(1, 1, 1, 0.14) : Qt.rgba(0, 0, 0, 0.1))) : "transparent"
         Thumb { x: 6; anchors.verticalCenter: parent.verticalCenter; size: 16; it: cr.it }
-        Text { x: 28; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 50; elide: Text.ElideMiddle; text: cr.fileName; font.family: w.ui; font.pixelSize: 13; color: cr.on && col.level === w.colPaths.length - 1 ? "white" : w.ink }
+        Text { x: 28; anchors.verticalCenter: parent.verticalCenter; width: parent.width - 50; elide: Text.ElideMiddle; text: w.shown(cr.it); font.family: w.ui; font.pixelSize: 13; color: cr.on && col.level === w.colPaths.length - 1 ? "white" : w.ink }
         Text { visible: cr.fileIsDir; anchors.right: parent.right; anchors.rightMargin: 6; anchors.verticalCenter: parent.verticalCenter; text: "chevron_right"; font.family: w.sym; font.pixelSize: 15; color: w.ink2 }
         MouseArea {
           anchors.fill: parent
@@ -1236,7 +1247,7 @@ FloatingWindow {
   function crumbs() {
     if (place !== "") return [{ label: titleText, path: place === "trash" ? "trash" : cwd }]
     var out = [{ label: T.t("Macintosh HD"), path: "/" }], acc = ""
-    cwd.split("/").forEach(function(s) { if (!s) return; acc += "/" + s; out.push({ label: acc === home ? (Quickshell.env("USER") || s) : s, path: acc }) })
+    cwd.split("/").forEach(function(s) { if (!s) return; acc += "/" + s; out.push({ label: w.nice(acc), path: acc }) })
     return out
   }
 

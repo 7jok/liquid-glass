@@ -50,9 +50,9 @@ Item {
   }
   onWantHiddenChanged: write(wantHidden)
   Component.onCompleted: {
-    // Au démarrage, partir d'un état connu (la barre a pu rester cachée).
-    applied = !wantHidden
-    write(wantHidden)
+    // Au démarrage, partir d'un état connu, mais seulement si le masquage auto
+    // est actif : sinon on ne touche pas à une barre masquée à la main.
+    if (wantHidden) { applied = false; write(true) }
   }
   // Profil Linux ou plugin retiré : on rend la barre.
   Component.onDestruction: if (applied) Quickshell.execDetached(["sh", "-c",

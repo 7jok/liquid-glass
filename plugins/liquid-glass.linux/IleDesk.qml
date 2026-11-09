@@ -76,7 +76,8 @@ PanelWindow {
     it.x = p ? Math.min(p.x, width - it.width) : width * dx
     it.y = p ? Math.min(p.y, height - it.height) : height * dy
   }
-  function snap(v) { return Math.round(v / cell) * cell }
+  // Réglage du thème : aimanter à la grille (sinon, position libre au pixel près).
+  function snap(v) { return s.opt("ile_snap", true) === false ? Math.round(v) : Math.round(v / cell) * cell }
   Component.onCompleted: { place(clock, "ile:clock", 0.4, 0.17); place(card, "ile:card", 0.055, 0.56) }
   onWidthChanged: { place(clock, "ile:clock", 0.4, 0.17); place(card, "ile:card", 0.055, 0.56) }
 

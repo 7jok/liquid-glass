@@ -58,14 +58,14 @@ o.rebind("SUPER + SHIFT + CTRL + SPACE", "Bureaux", "liquid-glass profile pick")
 -- Plus aucune interface d'Omarchy sur le bureau Linux : chaque style a son
 -- lanceur, ses réglages et son menu d'alimentation (plugin liquid-glass.linux).
 --   ⌘Espace     lanceur du style (menu Démarrer en style Windows)
---   ⌘⌥Espace    réglages du style (Paramètres en style Windows)
+--   ⌘⌥Espace    Réglages (les mêmes partout, page du style en tête ; Paramètres en style Windows)
 --   ⌘Échap      alimentation (session caelestia, batterie forêt, menu Démarrer…)
 --   ⌘K          feuille des raccourcis, aux couleurs du style
 --   ⌃⌘T         teinte suivante du style (violet nuit → aube → rose, Windows clair/sombre…)
 local LG = "omarchy-shell liquid-glass.linux "
 o.rebind("SUPER + SPACE", "Lanceur du bureau", LG .. "launcher")
 o.rebind("SUPER + SHIFT + code:201", "Lanceur du bureau", LG .. "launcher")
-o.rebind("SUPER + ALT + SPACE", "Réglages du bureau", LG .. "menu home")
+o.rebind("SUPER + ALT + SPACE", "Réglages", LG .. "settings")
 o.rebind("SUPER + ESCAPE", "Alimentation", LG .. "power")
 o.rebind("SUPER + CTRL + O", "Réglages du bureau", LG .. "menu home")
 o.rebind("SUPER + CTRL + H", "Réglages du bureau", LG .. "menu home")
@@ -91,3 +91,20 @@ hl.window_rule({
   size = "980 640",
   center = true,
 })
+
+-- Zoom : toile du style Infini (la toile et ses fenêtres), loupe d'Hyprland ailleurs.
+--   ⌘ + molette / deux doigts   zoom au pointeur (Infini) ; bureau voisin sinon
+--   ⌘⌃Z / ⌘⌃⇧Z / ⌘⌃⌥Z         zoom avant / arrière / 100 %
+--   ⌘⌃+ / ⌘⌃−                  zoom avant / arrière (pavé numérique aussi)
+--   ⌘ + pincer (deux doigts)    zoom avant / arrière
+o.rebind("SUPER + mouse_up", "Zoom avant (toile Infini) / bureau précédent", LG .. "wheel up")
+o.rebind("SUPER + mouse_down", "Zoom arrière (toile Infini) / bureau suivant", LG .. "wheel down")
+o.rebind("SUPER + CTRL + Z", "Zoom avant", LG .. "zoom in")
+o.rebind("SUPER + CTRL + SHIFT + Z", "Zoom arrière", LG .. "zoom out")
+o.rebind("SUPER + CTRL + ALT + Z", "Zoom à 100 %", LG .. "zoom reset")
+for _, k in ipairs({ "equal", "plus", "KP_Add" }) do o.rebind("SUPER + CTRL + " .. k, "Zoom avant", LG .. "zoom in") end
+for _, k in ipairs({ "minus", "KP_Subtract" }) do o.rebind("SUPER + CTRL + " .. k, "Zoom arrière", LG .. "zoom out") end
+pcall(function()
+  hl.gesture({ fingers = 2, direction = "pinchout", mods = "SUPER", action = function() hl.exec_cmd(LG .. "zoom in") end })
+  hl.gesture({ fingers = 2, direction = "pinchin", mods = "SUPER", action = function() hl.exec_cmd(LG .. "zoom out") end })
+end)

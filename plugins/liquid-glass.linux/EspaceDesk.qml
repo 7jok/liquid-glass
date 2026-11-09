@@ -22,7 +22,7 @@ PanelWindow {
 
   // Paroles : la ligne chantée au centre, les voisines s'estompent.
   Column {
-    visible: win.s.showLyrics && win.s.lyrics.length > 0 && win.s.lineIndex >= 0
+    visible: win.s.showLyrics && win.s.lyrics.length > 0 && win.s.lineIndex >= 0 && win.s.opt("espace_lyrics", true) !== false
     anchors.centerIn: parent
     width: parent.width * 0.6
     spacing: 7
@@ -45,6 +45,7 @@ PanelWindow {
 
   // Activité : une case par minute, plus elle brille plus le processeur a travaillé.
   Rectangle {
+    visible: win.s.opt("espace_activity", true) !== false
     anchors.right: parent.right; anchors.rightMargin: 16; y: 14
     width: heat.width + 20; height: heat.height + 34
     radius: 10; color: win.s.alpha(win.s.surface, 0.6)
@@ -69,7 +70,7 @@ PanelWindow {
   Timer { interval: 60000; repeat: true; running: true; triggeredOnStart: true; onTriggered: win.sample() }
 
   Planets {
-    visible: win.s.showClock
+    visible: win.s.showClock && win.s.opt("espace_planets", true) !== false
     anchors.right: parent.right; anchors.rightMargin: 26
     anchors.bottom: parent.bottom; anchors.bottomMargin: 26
     width: 210; height: 210

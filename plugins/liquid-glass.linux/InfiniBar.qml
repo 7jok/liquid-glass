@@ -104,7 +104,7 @@ PanelWindow {
     anchors.centerIn: parent
     spacing: Math.round(8 * bar.k)
     Pill {
-      Btn { icon: "settings"; tint: bar.acc; onClicked: bar.panel("liquid-glass.settings") }
+      Btn { icon: "settings"; tint: bar.acc; onClicked: bar.run("omarchy-shell liquid-glass.settings openPage linux") }
       Item {
         width: recRow.implicitWidth + Math.round(8 * bar.k); height: Math.round(26 * bar.k)
         Row {
@@ -128,11 +128,13 @@ PanelWindow {
     }
     // Position sur la toile : visible quand on s'est éloigné du centre.
     Pill {
-      visible: !!bar.desk && !bar.desk.atHome
+      visible: !!bar.desk && !bar.desk.atHome && (!bar.s || bar.s.opt("infini_pos", true) !== false)
       Btn { icon: "my_location"; tint: bar.acc; onClicked: bar.desk.home() }
       Text {
         anchors.verticalCenter: parent.verticalCenter
-        text: bar.desk ? Math.round(-bar.desk.px) + ", " + Math.round(-bar.desk.py) : ""
+        // Position (en coordonnées de la toile) et zoom quand il n'est pas à 100 %.
+        text: bar.desk ? (Math.abs(bar.desk.zoom - 1) > 0.001 ? Math.round(bar.desk.zoom * 100) + " %  ·  " : "")
+                         + Math.round(-bar.desk.px / bar.desk.zoom) + ", " + Math.round(-bar.desk.py / bar.desk.zoom) : ""
         font.family: "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(11 * bar.k); color: bar.ink
         rightPadding: Math.round(6 * bar.k)
       }

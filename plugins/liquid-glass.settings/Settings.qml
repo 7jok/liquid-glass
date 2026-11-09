@@ -89,7 +89,26 @@ Item {
 
   // ------------------------------------------------------------- pages
   // [id, titre, glyphe, couleur de l'icône, groupe]
-  readonly property var pages: [
+  // Les mêmes Réglages sur tous les bureaux. Sur le bureau Linux, la page du style
+  // actif passe en tête (« Infini », « Debian »…) et les pages propres au Mac
+  // (barre des menus, Dock, île, coins actifs, verre…) sont masquées.
+  readonly property bool linuxDesk: val("profile.active", "mac") === "linux"
+  readonly property string linuxStyle: String(val("linux.style", "blanc"))
+  readonly property var styleNames: ({ blanc: T.t("Blanc"), sombre: T.t("Sombre"), jouet: T.t("Jouet"), violet: "Violet", expressive: "Expressive",
+    windows: "Windows", mono: "Mono", foret: T.t("Forêt"), ruban: T.t("Rubans"), espace: T.t("Espace"), cosmos: "Cosmos", ile: T.t("Île"),
+    hud: "7JOKS", infini: T.t("Infini"), gouts: T.t("Mes goûts"), debian: "Debian", fedora: "Fedora", mint: "Mint", kali: "Kali", arch: "Arch" })
+  readonly property var styleColors: ({ blanc: "#8e8e93", sombre: "#1c1c1e", jouet: "#ff6fb5", violet: "#8e6cf0", expressive: "#6750a4",
+    windows: "#0078d4", mono: "#3a3a3c", foret: "#4f8a5b", ruban: "#ff453a", espace: "#0a84ff", cosmos: "#5ac8fa", ile: "#a39e93",
+    hud: "#636366", infini: "#e8a3b4", gouts: "#ff9f0a", debian: "#d70a53", fedora: "#3c6eb4", mint: "#87cf3e", kali: "#367bf0", arch: "#1793d1" })
+  readonly property var macOnly: ["appearance", "intelligence", "control", "desktop", "menubar", "shortcuts", "corners", "alcove"]
+  // Profil connu après l'ouverture (ou bascule Mac ↔ Linux) : pas de page Mac affichée sur Linux.
+  onLinuxDeskChanged: if (linuxDesk && macOnly.indexOf(page) >= 0) { history = []; page = "linux" }
+  readonly property var pages: {
+    if (!linuxDesk) return allPages
+    var head = [["linux", styleNames[linuxStyle] || T.t("Bureau Linux"), 0xF033D, styleColors[linuxStyle] || "#2f9e9e", -1]]
+    return head.concat(allPages.filter(function(p) { return p[0] !== "linux" && macOnly.indexOf(p[0]) < 0 }))
+  }
+  readonly property var allPages: [
     ["wifi", "Wi-Fi", 0xF05A9, "#0a84ff", 0],
     ["bluetooth", "Bluetooth", 0xF00AF, "#0a84ff", 0],
     ["network", T.t("Réseau"), 0xF0318, "#0a84ff", 0],
@@ -295,6 +314,7 @@ Item {
     try {
       var p = JSON.parse(payloadJson || "{}")
       if (typeof p.page === "string") { history = []; page = pageInfo(p.page)[0] }
+      else if (linuxDesk && macOnly.indexOf(page) >= 0) { history = []; page = "linux" }
       else if (typeof p.page === "number" && pages[p.page]) { history = []; page = pages[p.page][0] }
     } catch (e) {}
   }
@@ -434,7 +454,9 @@ Item {
           onHeightChanged: Qt.callLater(reveal, activeItem)
           onContentHeightChanged: Qt.callLater(reveal, activeItem)
           function reveal(item) {
-            if (!item || nav.height < Style.space(120) || navCol.implicitHeight <= 0) return
+            if (!item || typeof item.mapToItem !== "function" || nav.height < Style.space(120) || navCol.implicitHeight <= 0) return
+            // Première page (la page du thème sur Linux) : tout en haut, carte du compte comprise.
+            if (item.parent && item.parent.index === 0) { nav.contentY = 0; return }
             var p = item.mapToItem(navCol, 0, 0)
             var maxY = Math.max(0, navCol.implicitHeight - nav.height)
             var pad = Style.space(12)
@@ -1998,6 +2020,8 @@ Item {
       readonly property string st: root.val("linux.style", "blanc")
       // Valeur par défaut d'un réglage musique selon le style (comme le service).
       function sdef(m) { return m[lp.st] !== undefined ? m[lp.st] : m["*"] }
+      // Réglage propre au thème affiché : linux.<style>__<clé> (la valeur commune sert de base).
+      function k(n) { return "linux." + lp.st + "__" + n }
       // Sur le bureau Linux, un style passe par la CLI (thème, fonds, bordures) ;
       // sur le Mac, on le note seulement pour la prochaine bascule.
       function pick(arg, key, v) { if (lp.active) root.launch(["liquid-glass", "profile", arg]); else root.set(key, v) }
@@ -2008,6 +2032,91 @@ Item {
           Btn { text: T.t("Choisir un bureau  ⌘⇧␣"); onClicked: { root.dismiss(); root.launch(["liquid-glass", "profile", "pick"]) } }
         }
       }
+      // ---------------- réglages propres au thème (chacun a les siens)
+      // [type, clé, libellé, sous-titre, défaut, extra] ; type : t (interrupteur), s (curseur
+      // [de, à, pas, format]), b (bouton : commande). Les clés sont lues par le style.
+      readonly property var own: ({
+        infini: [["t", "infini_clock", T.t("Horloge sur la toile"), T.t("Heures sur minutes, au centre de la toile"), true],
+                 ["t", "infini_frame", T.t("Cadre du visualiseur"), T.t("Posé sur la toile, il suit le glisser et le zoom"), true],
+                 ["t", "infini_viz", T.t("Visualiseur du bas"), T.t("Sur toute la largeur, sous la barre"), true],
+                 ["t", "infini_zoom_windows", T.t("Zoomer aussi les fenêtres"), T.t("⌘ + molette, ⌘ + pincer, ⌘⌃Z / ⌘⌃⇧Z : les fenêtres rapetissent avec la toile"), true],
+                 ["s", "infini_zoom_speed", T.t("Vitesse du zoom"), "", 1.08, [1.02, 1.25, 0.01, "pct"]],
+                 ["t", "infini_dblclick", T.t("Double-clic : retour au centre"), T.t("Et zoom à 100 %"), true],
+                 ["t", "infini_pos", T.t("Position dans la barre"), T.t("Coordonnées et zoom, clic pour revenir"), true]],
+        windows: [["c", "windows_align", T.t("Alignement de la barre des tâches"), "", "center", [["center", T.t("Centre")], ["left", T.t("Gauche")]]],
+                  ["t", "windows_weather", T.t("Météo dans la barre"), T.t("À gauche (pas avec l'alignement à gauche)"), true],
+                  ["t", "windows_search", T.t("Rechercher"), T.t("La pilule de recherche à côté de Démarrer"), true],
+                  ["t", "windows_taskview", T.t("Vue des tâches"), "", true],
+                  ["t", "windows_icons", T.t("Icônes du bureau"), T.t("Ce PC, Corbeille, Documents…"), true]],
+        hud: [["t", "hud_globe", T.t("Globe"), T.t("Vue du monde en fil de fer, à droite"), true],
+              ["t", "hud_files", T.t("Dossiers"), T.t("En bas à gauche"), true],
+              ["t", "hud_keyboard", T.t("Clavier"), T.t("En bas à droite, les touches s'allument"), true]],
+        cosmos: [["s", "cosmos_speed", T.t("Vitesse du système solaire"), "", 1, [0.25, 3, 0.05, "x"]],
+                 ["t", "cosmos_drift", T.t("Caméra automatique"), T.t("Repart seule après une minute sans action"), true],
+                 ["t", "cosmos_notifs", T.t("Satellites de notifications"), "", true],
+                 ["t", "cosmos_weather", T.t("Satellites météo"), T.t("Prévision des prochaines heures autour de la Terre"), true]],
+        ile: [["t", "ile_dock", T.t("Dock"), "", true],
+              ["t", "ile_dock_autohide", T.t("Masquer le dock"), T.t("Il apparaît quand la souris touche le bas"), true],
+              ["t", "ile_snap", T.t("Aimanter à la grille"), T.t("En déplaçant l'horloge et la carte musique"), true],
+              ["t", "ile_weather", T.t("Météo dans l'encoche"), "", true]],
+        ruban: [["t", "ruban_date", T.t("Date en filigrane"), "", true], ["t", "ruban_music", T.t("Bande musique"), "", true],
+                ["t", "ruban_weather", T.t("Bande météo"), "", true], ["t", "ruban_battery", T.t("Bloc batterie"), "", true]],
+        espace: [["t", "espace_lyrics", T.t("Paroles dans le ciel"), "", true], ["t", "espace_planets", T.t("Horloge à planètes"), "", true],
+                 ["t", "espace_activity", T.t("Activité du processeur"), T.t("Une case par minute, en haut à droite"), true]],
+        foret: [["t", "foret_seconds", T.t("Secondes"), "", true], ["t", "foret_weather", T.t("Météo dans la barre"), "", true],
+                ["t", "foret_media", T.t("Morceau dans la barre"), T.t("Pochette, temps et commandes"), true]],
+        mono: [["t", "mono_title", T.t("Titre de la fenêtre"), T.t("À la verticale dans la barre"), true],
+               ["t", "mono_edge", T.t("Tableau de bord par le haut"), T.t("La souris posée au milieu du bord haut l'ouvre"), true],
+               ["t", "mono_unlock", T.t("Cadenas au déverrouillage"), "", true]],
+        blanc: [["t", "blanc_fetch", T.t("Fiche système"), "", true], ["t", "blanc_track", T.t("Morceau en cours"), "", true],
+                ["t", "blanc_clock", T.t("Grande heure"), "", true]],
+        jouet: [["t", "jouet_magnify", T.t("Grossir au survol"), T.t("Les autocollants du dock rebondissent sous la souris"), true]],
+        gouts: [["b", "", T.t("Thème Omarchy"), T.t("Mes goûts reprend un thème Omarchy installé"), "", T.t("Suivant  ⌃⌘T"), ["liquid-glass", "profile", "tone"]]],
+        debian: [["t", "debian_seconds", T.t("Secondes"), "", false]],
+        fedora: [["t", "fedora_seconds", T.t("Secondes"), "", false]],
+        mint: [["t", "mint_seconds", T.t("Secondes"), "", false], ["t", "mint_launchers", T.t("Lanceurs du panneau"), "", true]],
+        kali: [["t", "kali_seconds", T.t("Secondes"), "", false], ["t", "kali_launchers", T.t("Lanceurs du panneau"), "", true]],
+        arch: [["t", "arch_seconds", T.t("Secondes"), "", false], ["t", "arch_launchers", T.t("Tâches épinglées"), "", true]]
+      })
+      readonly property var ownRows: own[lp.st] || []
+      SectionTitle { visible: lp.ownRows.length > 0; text: T.t("Propre à ") + (root.styleNames[lp.st] || lp.st) }
+      Group {
+        visible: lp.ownRows.length > 0
+        Repeater {
+          model: lp.ownRows
+          Item {
+            id: orow
+            required property var modelData
+            required property int index
+            width: parent ? parent.width : 0
+            height: childrenRect.height
+            // Séparateur fin entre les lignes (comme les autres groupes).
+            Rectangle { visible: orow.index > 0; z: 1; x: Style.space(14); width: parent.width - Style.space(28); height: 1; color: root.fg; opacity: 0.07 }
+            readonly property string key: "linux." + modelData[1]
+            ToggleRow { visible: orow.modelData[0] === "t"; label: orow.modelData[2]; sub: orow.modelData[3]; key: orow.key; def: orow.modelData[4] === true }
+            SliderRow {
+              visible: orow.modelData[0] === "s"
+              label: orow.modelData[2]; key: orow.key
+              from: orow.modelData[0] === "s" ? orow.modelData[5][0] : 0; to: orow.modelData[0] === "s" ? orow.modelData[5][1] : 1
+              step: orow.modelData[0] === "s" ? orow.modelData[5][2] : 0.1; def: Number(orow.modelData[4]) || 0
+              fmt: function(v) { return orow.modelData[0] === "s" && orow.modelData[5][3] === "pct" ? "+" + Math.round((v - 1) * 100) + " %" : "×" + Number(v).toFixed(2) }
+            }
+            Row_ {
+              visible: orow.modelData[0] === "c"; label: orow.modelData[2]; sub: orow.modelData[3]
+              Seg {
+                options: orow.modelData[0] === "c" ? orow.modelData[5] : []
+                value: String(root.val(orow.key, orow.modelData[4]))
+                onPicked: function(v) { root.set(orow.key, v) }
+              }
+            }
+            Row_ {
+              visible: orow.modelData[0] === "b"; label: orow.modelData[2]; sub: orow.modelData[3]
+              Btn { text: orow.modelData[0] === "b" ? orow.modelData[5] : ""; secondary: true; onClicked: root.launch(orow.modelData[6]) }
+            }
+          }
+        }
+      }
+      Hint { visible: lp.ownRows.length > 0; text: T.t("Musique, paroles, widgets et arrondi (plus bas) sont aussi mémorisés pour chaque thème : en changer garde les siens.") }
       SectionTitle { text: "Style" }
       Group {
         Row_ {
@@ -2020,7 +2129,7 @@ Item {
                   windows: T.t("Barre des tâches, menu Démarrer, Paramètres, comme Windows 11"),
                   mono: T.t("Cadre noir façon caelestia, barre latérale, tableau de bord"),
                   foret: T.t("Puces flottantes, météo en orbite, spectre musical (rice c01)") })[lp.st] || ""
-          Seg {
+          Chips {
             options: [["blanc", T.t("Blanc")], ["sombre", T.t("Sombre")], ["jouet", T.t("Jouet")], ["violet", "Violet"], ["expressive", "Expr."]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
@@ -2029,7 +2138,7 @@ Item {
         Row_ {
           label: T.t("Bureaux complets")
           sub: T.t("Chacun avec sa barre, son lanceur (⌘Espace) et ses réglages (⌘⌥Espace)")
-          Seg {
+          Chips {
             options: [["windows", "Windows"], ["mono", "Mono"], ["foret", T.t("Forêt")], ["ruban", T.t("Rubans")], ["espace", T.t("Espace")], ["cosmos", "Cosmos"], ["ile", T.t("Île")], ["hud", "7JOKS"], ["infini", T.t("Infini")], ["gouts", T.t("Mes goûts")]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
@@ -2038,7 +2147,7 @@ Item {
         Row_ {
           label: "Distributions"
           sub: T.t("Le panneau et le menu de GNOME, Cinnamon, Xfce ou Plasma")
-          Seg {
+          Chips {
             options: [["debian", "Debian"], ["fedora", "Fedora"], ["mint", "Mint"], ["kali", "Kali"], ["arch", "Arch"]]
             value: lp.st
             onPicked: function(v) { lp.pick(v, "linux.style", v) }
@@ -2048,7 +2157,7 @@ Item {
           label: T.t("Teinte")
           visible: lp.st === "violet"
           sub: T.t("Nuit (violet profond), aube (lilas clair) ou rose pastel")
-          Seg {
+          Chips {
             options: [["nuit", T.t("Nuit")], ["aube", T.t("Aube")], ["rose", "Rose"], ["minuit", T.t("Minuit")], ["crepuscule", T.t("Crépuscule")], ["lavande", T.t("Lavande")], ["prune", T.t("Prune")], ["ete", T.t("Été")], ["automne", T.t("Automne")], ["hiver", T.t("Hiver")], ["printemps", T.t("Printemps")]]
             value: root.val("linux.violet_tone", "nuit")
             onPicked: function(v) { lp.pick("violet:" + v, "linux.violet_tone", v) }
@@ -2128,8 +2237,8 @@ Item {
           sub: T.t("Anime le fond sans vidéo, en pause quand une fenêtre est ouverte")
           Seg {
             options: [["off", T.t("Fixe")], ["tourbillon", T.t("Tourbillon")], ["vague", T.t("Vague")], ["respire", T.t("Respire")]]
-            value: root.val("linux.live_wall", "off")
-            onPicked: function(v) { root.set("linux.live_wall", v) }
+            value: root.val(lp.k("live_wall"), root.val("linux.live_wall", "off"))
+            onPicked: function(v) { root.set(lp.k("live_wall"), v) }
           }
         }
         Row_ {
@@ -2142,7 +2251,7 @@ Item {
             onPicked: function(v) { lp.pick("espace:" + v, "linux.espace_tone", v) }
           }
         }
-        ToggleRow { visible: lp.st === "sombre"; label: T.t("Mur de tuiles"); key: "linux.sombre_wall"; def: true }
+        ToggleRow { visible: lp.st === "sombre"; label: T.t("Mur de tuiles"); key: lp.k("sombre_wall"); def: root.val("linux.sombre_wall", true) === true}
         Row_ {
           label: T.t("Teinte")
           visible: lp.st === "infini"
@@ -2179,7 +2288,7 @@ Item {
         Row_ {
           label: T.t("Couleurs")
           visible: true
-          sub: T.t("Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)")
+          sub: T.t("Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘Échap → Couleurs pour le nuancier)")
           Seg {
             options: [["theme", T.t("Du style")], ["fond", T.t("Du fond")], ["perso", T.t("Perso")]]
             value: root.val("linux." + lp.st + "_colors", lp.st === "expressive" ? "fond" : "theme")
@@ -2216,10 +2325,11 @@ Item {
             onPicked: function(v) { root.set("linux.scheme", v) }
           }
         }
-        SliderRow { label: T.t("Arrondi des cartes"); key: "linux.radius"; from: 0; to: 32; step: 1
-                    def: ({ blanc: 0, sombre: 8, jouet: 20, violet: 20, expressive: 24, windows: 8, mono: 18, foret: 16 })[lp.st] || 14
+        SliderRow { label: T.t("Arrondi des cartes"); key: lp.k("radius"); from: 0; to: 32; step: 1
+                    def: Number(root.val(lp.k("radius"), root.val("linux.radius", ({ blanc: 0, sombre: 8, jouet: 20, violet: 20, expressive: 24, windows: 8, mono: 18, foret: 16 })[lp.st] || 14)))
                     fmt: function(v) { return Math.round(v) + " px" } }
       }
+
 
       SectionTitle { text: T.t("Musique") }
       Group {
@@ -2228,64 +2338,64 @@ Item {
           sub: T.t("Les sons dessinés en bas de l'écran (cava), seulement pendant la lecture")
           Seg {
             options: [["bars", T.t("Barres")], ["wave", T.t("Vague")], ["mirror", T.t("Miroir")], ["blocks", T.t("Blocs")], ["line", T.t("Ligne")], ["radial", T.t("Anneau")], ["off", T.t("Aucun")]]
-            value: root.val("linux.viz", lp.sdef({ jouet: "blocks", violet: "wave", expressive: "wave", "*": "bars" }))
-            onPicked: function(v) { root.set("linux.viz", v) }
+            value: root.val(lp.k("viz"), root.val("linux.viz", lp.sdef({ jouet: "blocks", violet: "wave", expressive: "wave", "*": "bars" })))
+            onPicked: function(v) { root.set(lp.k("viz"), v) }
           }
         }
         Row_ {
           label: T.t("Couleur")
           Seg {
             options: [["auto", T.t("Thème")], ["cover", T.t("Pochette")], ["rainbow", T.t("Arc-en-ciel")], ["ink", T.t("Encre")]]
-            value: root.val("linux.viz_color", lp.sdef({ jouet: "rainbow", "*": "auto" }))
-            onPicked: function(v) { root.set("linux.viz_color", v) }
+            value: root.val(lp.k("viz_color"), root.val("linux.viz_color", lp.sdef({ jouet: "rainbow", "*": "auto" })))
+            onPicked: function(v) { root.set(lp.k("viz_color"), v) }
           }
         }
-        SliderRow { label: T.t("Hauteur"); key: "linux.viz_height"; from: 40; to: 400; step: 10; def: lp.sdef({ jouet: 130, sombre: 170, "*": 140 }); fmt: function(v) { return Math.round(v) + " px" } }
-        SliderRow { label: T.t("Sensibilité"); key: "linux.viz_gain"; from: 0.3; to: 3; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
-        SliderRow { label: T.t("Opacité"); key: "linux.viz_opacity"; from: 0.1; to: 1; step: 0.05; def: lp.sdef({ blanc: 0.85, "*": 0.9 }); fmt: function(v) { return Math.round(v * 100) + " %" } }
-        SliderRow { label: T.t("Nombre de barres"); key: "linux.cava_bars"; from: 24; to: 160; step: 4; def: 110; fmt: function(v) { return Math.round(v) } }
-        ToggleRow { label: T.t("Halo sur les basses"); key: "linux.pulse"; def: true; sub: T.t("Une lueur qui respire en bas de l'écran au rythme des basses") }
-        ToggleRow { label: T.t("Rebond"); key: "linux.bump"; def: true; sub: T.t("Horloges, lecteur et paroles sautent un peu sur chaque basse") }
-        ToggleRow { label: T.t("Couleur de la pochette"); key: "linux.cover_tint"; def: false; sub: T.t("Accents du visualiseur à la couleur de l'album en cours") }
+        SliderRow { label: T.t("Hauteur"); key: lp.k("viz_height"); from: 40; to: 400; step: 10; def: Number(root.val("linux.viz_height", lp.sdef({ jouet: 130, sombre: 170, "*": 140 }))); fmt: function(v) { return Math.round(v) + " px" } }
+        SliderRow { label: T.t("Sensibilité"); key: lp.k("viz_gain"); from: 0.3; to: 3; step: 0.1; def: Number(root.val("linux.viz_gain", 1)); fmt: function(v) { return "×" + v.toFixed(1) } }
+        SliderRow { label: T.t("Opacité"); key: lp.k("viz_opacity"); from: 0.1; to: 1; step: 0.05; def: Number(root.val("linux.viz_opacity", lp.sdef({ blanc: 0.85, "*": 0.9 }))); fmt: function(v) { return Math.round(v * 100) + " %" } }
+        SliderRow { label: T.t("Nombre de barres"); key: lp.k("cava_bars"); from: 24; to: 160; step: 4; def: Number(root.val("linux.cava_bars", 110)); fmt: function(v) { return Math.round(v) } }
+        ToggleRow { label: T.t("Halo sur les basses"); key: lp.k("pulse"); def: root.val("linux.pulse", true) === true; sub: T.t("Une lueur qui respire en bas de l'écran au rythme des basses") }
+        ToggleRow { label: T.t("Rebond"); key: lp.k("bump"); def: root.val("linux.bump", true) === true; sub: T.t("Horloges, lecteur et paroles sautent un peu sur chaque basse") }
+        ToggleRow { label: T.t("Couleur de la pochette"); key: lp.k("cover_tint"); def: root.val("linux.cover_tint", false) === true; sub: T.t("Accents du visualiseur à la couleur de l'album en cours") }
       }
       Group {
-        ToggleRow { label: T.t("Paroles"); key: "linux.lyrics"; def: true; sub: T.t("Paroles synchronisées (LRCLIB)") }
+        ToggleRow { label: T.t("Paroles"); key: lp.k("lyrics"); def: root.val("linux.lyrics", true) === true; sub: T.t("Paroles synchronisées (LRCLIB)") }
         Row_ {
           label: T.t("Affichage des paroles")
           sub: T.t("Mot géant chanté au centre, ligne entière, dans la carte du lecteur, ou rien")
           Seg {
             options: [["word", T.t("Mot géant")], ["line", T.t("Ligne")], ["card", T.t("Carte")], ["off", T.t("Aucune")]]
-            value: root.val("linux.lyrics_mode", lp.sdef({ expressive: "card", violet: "line", "*": "word" }))
-            onPicked: function(v) { root.set("linux.lyrics_mode", v) }
+            value: root.val(lp.k("lyrics_mode"), root.val("linux.lyrics_mode", lp.sdef({ expressive: "card", violet: "line", "*": "word" })))
+            onPicked: function(v) { root.set(lp.k("lyrics_mode"), v) }
           }
         }
         Row_ {
           label: "Position"
           Seg {
             options: [["center", T.t("Centre")], ["left", T.t("Gauche")], ["top", T.t("Haut")]]
-            value: root.val("linux.lyrics_pos", "center")
-            onPicked: function(v) { root.set("linux.lyrics_pos", v) }
+            value: root.val(lp.k("lyrics_pos"), root.val("linux.lyrics_pos", "center"))
+            onPicked: function(v) { root.set(lp.k("lyrics_pos"), v) }
           }
         }
-        SliderRow { label: T.t("Taille des paroles"); key: "linux.lyrics_size"; from: 0.4; to: 2.5; step: 0.1; def: 1; fmt: function(v) { return "×" + v.toFixed(1) } }
+        SliderRow { label: T.t("Taille des paroles"); key: lp.k("lyrics_size"); from: 0.4; to: 2.5; step: 0.1; def: Number(root.val("linux.lyrics_size", 1)); fmt: function(v) { return "×" + v.toFixed(1) } }
       }
 
       SectionTitle { text: T.t("Bureau") }
       Group {
-        ToggleRow { label: "Widgets"; key: "linux.widgets"; def: true; sub: T.t("Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)") }
-        ToggleRow { visible: lp.st === "violet"; label: T.t("Horloge bonbon"); key: "linux.w_stack"; def: true }
-        SliderRow { visible: lp.st === "violet"; label: T.t("Taille de l'horloge"); key: "linux.stack_size"; from: 80; to: 220; step: 4; def: 132; fmt: function(v) { return Math.round(v) + " px" } }
-        ToggleRow { visible: lp.st === "violet"; label: T.t("Anneau batterie"); key: "linux.w_ring"; def: true; sub: T.t("Ou la charge du processeur sur un ordinateur fixe") }
-        ToggleRow { visible: ["blanc", "sombre", "jouet"].indexOf(lp.st) >= 0; label: T.t("Horloge pixel"); key: "linux.w_pixclock"; def: true }
-        ToggleRow { visible: lp.st === "blanc" || lp.st === "sombre"; label: T.t("Jour en grand"); key: "linux.w_day"; def: true }
-        ToggleRow { visible: lp.st === "sombre"; label: T.t("Jour en kanji"); key: "linux.day_kanji"; def: true }
-        ToggleRow { visible: lp.st === "expressive"; label: T.t("Horloge cookie"); key: "linux.w_clock"; def: true }
-        ToggleRow { visible: lp.st !== "lain"; label: T.t("Lecteur"); key: "linux.w_music"; def: true }
-        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("Météo"); key: "linux.w_weather"; def: true }
-        ToggleRow { visible: lp.st !== "lain"; label: T.t("Système"); key: "linux.w_system"; def: true }
-        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("À faire"); key: "linux.w_todo"; def: true }
-        ToggleRow { visible: lp.st === "lain"; label: T.t("Horloge pixel"); key: "linux.clock"; def: true; sub: T.t("Grands chiffres en blocs façon tty-clock, à droite") }
-        ToggleRow { label: T.t("Visualiseur cava"); key: "linux.cava"; def: true; sub: T.t("Arrête complètement le visualiseur (et cava) si désactivé") }
+        ToggleRow { label: "Widgets"; key: lp.k("widgets"); def: root.val("linux.widgets", true) === true; sub: T.t("Tous les widgets du style (à glisser où tu veux ; chaque style garde ses places)") }
+        ToggleRow { visible: lp.st === "violet"; label: T.t("Horloge bonbon"); key: lp.k("w_stack"); def: root.val("linux.w_stack", true) === true}
+        SliderRow { visible: lp.st === "violet"; label: T.t("Taille de l'horloge"); key: lp.k("stack_size"); from: 80; to: 220; step: 4; def: Number(root.val("linux.stack_size", 132)); fmt: function(v) { return Math.round(v) + " px" } }
+        ToggleRow { visible: lp.st === "violet"; label: T.t("Anneau batterie"); key: lp.k("w_ring"); def: root.val("linux.w_ring", true) === true; sub: T.t("Ou la charge du processeur sur un ordinateur fixe") }
+        ToggleRow { visible: ["blanc", "sombre", "jouet"].indexOf(lp.st) >= 0; label: T.t("Horloge pixel"); key: lp.k("w_pixclock"); def: root.val("linux.w_pixclock", true) === true}
+        ToggleRow { visible: lp.st === "blanc" || lp.st === "sombre"; label: T.t("Jour en grand"); key: lp.k("w_day"); def: root.val("linux.w_day", true) === true}
+        ToggleRow { visible: lp.st === "sombre"; label: T.t("Jour en kanji"); key: lp.k("day_kanji"); def: root.val("linux.day_kanji", true) === true}
+        ToggleRow { visible: lp.st === "expressive"; label: T.t("Horloge cookie"); key: lp.k("w_clock"); def: root.val("linux.w_clock", true) === true}
+        ToggleRow { visible: lp.st !== "lain"; label: T.t("Lecteur"); key: lp.k("w_music"); def: root.val("linux.w_music", true) === true}
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("Météo"); key: lp.k("w_weather"); def: root.val("linux.w_weather", true) === true}
+        ToggleRow { visible: lp.st !== "lain"; label: T.t("Système"); key: lp.k("w_system"); def: root.val("linux.w_system", true) === true}
+        ToggleRow { visible: lp.st !== "lain" && lp.st !== "sombre"; label: T.t("À faire"); key: lp.k("w_todo"); def: root.val("linux.w_todo", true) === true}
+        ToggleRow { visible: lp.st === "lain"; label: T.t("Horloge pixel"); key: lp.k("clock"); def: root.val("linux.clock", true) === true; sub: T.t("Grands chiffres en blocs façon tty-clock, à droite") }
+        ToggleRow { label: T.t("Visualiseur cava"); key: lp.k("cava"); def: root.val("linux.cava", true) === true; sub: T.t("Arrête complètement le visualiseur (et cava) si désactivé") }
         SliderRow { label: T.t("Espaces de travail"); key: "linux.workspaces"; from: 4; to: 10; step: 1; def: 7; fmt: function(v) { return Math.round(v) } }
         Row_ {
           label: T.t("Disposition des widgets")
@@ -2508,6 +2618,24 @@ Item {
   function widgetSize(key) {
     var v = String(root.val("widgets." + key + "_size", key === "weather" ? "medium" : "small"))
     return v === "wide" ? "medium" : v
+  }
+
+  // Pastilles qui passent à la ligne (longues listes : styles, teintes…), même API que Seg.
+  component Chips: Flow {
+    id: ch
+    property var options: []
+    property string value: ""
+    signal picked(string v)
+    width: parent && parent.parent ? parent.parent.width - Style.space(40) : Style.space(480)
+    spacing: Style.space(6)
+    Repeater {
+      model: ch.options
+      Btn {
+        required property var modelData
+        text: modelData[1]; secondary: ch.value !== modelData[0]
+        onClicked: ch.picked(modelData[0])
+      }
+    }
   }
 
   component Seg: Rectangle {

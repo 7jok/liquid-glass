@@ -84,7 +84,7 @@ PanelWindow {
       }
     }
     Chip {
-      visible: s.hasTrack || s.resumeMode
+      visible: (s.hasTrack || s.resumeMode) && s.opt("foret_media", true) !== false
       width: 236
       onClicked: s.togglePanel("music")
       ClippingRectangle {
@@ -117,11 +117,11 @@ PanelWindow {
       spacing: 14
       Column {
         anchors.verticalCenter: parent.verticalCenter
-        Text { text: Qt.formatTime(win.now, "HH:mm:ss"); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.acc }
+        Text { text: Qt.formatTime(win.now, s.opt("foret_seconds", true) !== false ? "HH:mm:ss" : "HH:mm"); font.family: win.font; font.pixelSize: 11; font.weight: Font.Bold; color: win.acc }
         Text { text: win.now.toLocaleDateString(Qt.locale(T.loc), "dddd d MMMM"); font.family: win.font; font.pixelSize: 8; color: win.sub }
       }
       Row {
-        visible: !!s.weather
+        visible: !!s.weather && s.opt("foret_weather", true) !== false
         anchors.verticalCenter: parent.verticalCenter; spacing: 6
         MIcon { anchors.verticalCenter: parent.verticalCenter; icon: s.weatherIcon; size: 17; fill: 1; color: win.ink }
         Text { anchors.verticalCenter: parent.verticalCenter; text: s.weather ? s.weather.temp + "°C" : ""; font.family: win.font; font.pixelSize: 12; color: win.ink }

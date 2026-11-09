@@ -80,7 +80,7 @@ PanelWindow {
             radius: 10
             color: active || used ? s.rainbow[index % 6] : s.surfaceHigh
             border.width: 2.5; border.color: win.line
-            scale: wma.pressed ? 0.9 : (wma.containsMouse ? 1.1 : 1)
+            scale: wma.pressed ? 0.9 : (wma.containsMouse && win.s.opt("jouet_magnify", true) !== false ? 1.1 : 1)
             Behavior on width { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 3 } }
             Behavior on height { NumberAnimation { duration: 240; easing.type: Easing.OutBack; easing.overshoot: 3 } }
             Behavior on scale { NumberAnimation { duration: 140; easing.type: Easing.OutBack } }
@@ -184,7 +184,7 @@ PanelWindow {
     width: size; height: size; radius: size * 0.3
     color: fill; border.width: 3; border.color: win.line
     rotation: sma.containsMouse ? 0 : tilt
-    scale: sma.pressed ? 0.88 : (sma.containsMouse ? 1.14 : 1)
+    scale: sma.pressed ? 0.88 : (sma.containsMouse && win.s.opt("jouet_magnify", true) !== false ? 1.14 : 1)
     Behavior on scale { NumberAnimation { duration: 160; easing.type: Easing.OutBack; easing.overshoot: 3 } }
     Behavior on rotation { NumberAnimation { duration: 160 } }
     MIcon { anchors.centerIn: parent; icon: st.icon; size: st.size * 0.56; fill: 1; weight: 600; color: st.iconColor }

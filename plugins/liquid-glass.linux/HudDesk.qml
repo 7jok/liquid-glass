@@ -639,6 +639,7 @@ Scope {
       }
 
       Reveal {
+        visible: !root.s || root.s.opt("hud_globe", true) !== false
         at: 1600; width: rightCol.width; height: Math.round(150 * root.k)
         Column {
           width: rightCol.width; spacing: Math.round(2 * root.k)
@@ -649,7 +650,7 @@ Scope {
             width: rightCol.width; height: Math.round(130 * root.k)
             property real spin: 0
             // 1437 points redessinés : 8 images/s au lieu de 60 (le globe tourne lentement).
-            Timer { interval: 125; repeat: true; running: root.live; onTriggered: globe.spin = (globe.spin + 0.75) % 360 }
+            Timer { interval: 125; repeat: true; running: root.live && globe.visible; onTriggered: globe.spin = (globe.spin + 0.75) % 360 }
             onSpinChanged: requestPaint()
             readonly property var here: root.s && root.s.coords ? [Number(root.s.coords.lon), Number(root.s.coords.lat)] : [2.35, 48.85]
             onPaint: {
@@ -711,6 +712,7 @@ Scope {
 
     // ---------------- en bas à gauche : dossiers
     Reveal {
+      visible: !root.s || root.s.opt("hud_files", true) !== false
       at: 2300; dur: 500
       x: root.pad; y: root.sh - root.bottomH - root.pad + Math.round(8 * root.k)
       width: Math.round((root.sw - 3 * root.pad) * 0.44); height: root.bottomH
@@ -764,6 +766,7 @@ Scope {
 
     // ---------------- en bas à droite : clavier
     Reveal {
+      visible: !root.s || root.s.opt("hud_keyboard", true) !== false
       at: 700; dur: 600
       x: root.pad * 2 + Math.round((root.sw - 3 * root.pad) * 0.44); y: root.sh - root.bottomH - root.pad + Math.round(8 * root.k)
       width: root.sw - x - root.pad; height: root.bottomH

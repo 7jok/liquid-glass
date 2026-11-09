@@ -78,7 +78,8 @@ PanelWindow {
     anchors.left: parent.left
     anchors.leftMargin: 6
     anchors.verticalCenter: parent.verticalCenter
-    visible: !!s.weather
+    // Réglages du thème : météo à gauche (pas quand la barre est alignée à gauche, comme Windows).
+    visible: !!s.weather && s.opt("windows_weather", true) !== false && !win.alignLeft
     width: wRow.implicitWidth + 20
     onClicked: s.togglePanel("widgets")
     Row {
@@ -95,9 +96,12 @@ PanelWindow {
   }
 
   // ------------------------------------------------------------ centre
+  readonly property bool alignLeft: s.opt("windows_align", "center") === "left"
   Row {
     id: center
-    anchors.centerIn: parent
+    // Centrée (Windows 11) ou à gauche (« Alignement de la barre des tâches »).
+    x: win.alignLeft ? 6 : Math.round((parent.width - width) / 2)
+    anchors.verticalCenter: parent.verticalCenter
     spacing: 4
 
     TaskBtn {
@@ -110,6 +114,7 @@ PanelWindow {
     // Rechercher : pilule comme Windows 11 (s'ouvre sur le menu Démarrer).
     Rectangle {
       id: search
+      visible: s.opt("windows_search", true) !== false
       anchors.verticalCenter: parent.verticalCenter
       width: 196; height: 34; radius: 17
       color: searchMa.containsMouse ? (win.dark ? Qt.rgba(1, 1, 1, 0.1) : "#ffffff") : (win.dark ? Qt.rgba(1, 1, 1, 0.06) : Qt.rgba(1, 1, 1, 0.75))
@@ -126,6 +131,7 @@ PanelWindow {
     }
     TaskBtn {
       width: 40
+      visible: s.opt("windows_taskview", true) !== false
       active: s.panel === "tasks"
       onClicked: s.togglePanel("tasks")
       // Vue des tâches : deux fenêtres décalées.

@@ -37,6 +37,7 @@ PanelWindow {
   // Fiche système
   Slab {
     id: fetch
+    visible: win.s.opt("blanc_fetch", true) !== false
     x: 28; anchors.bottom: parent.bottom; anchors.bottomMargin: 28
     width: 250; height: col.height + 26
     Column {
@@ -66,8 +67,8 @@ PanelWindow {
 
   // Morceau en cours : bloc d'encre, comme un terminal posé sur le papier.
   Slab {
-    visible: win.s.hasTrack
-    x: 28 + 250 + 20; anchors.bottom: parent.bottom; anchors.bottomMargin: 28
+    visible: win.s.hasTrack && win.s.opt("blanc_track", true) !== false
+    x: (fetch.visible ? 28 + 250 + 20 : 28); anchors.bottom: parent.bottom; anchors.bottomMargin: 28
     width: 300; height: 96
     inverted: true
     Row {
@@ -93,7 +94,7 @@ PanelWindow {
 
   // Grande heure
   Column {
-    visible: win.s.showClock
+    visible: win.s.showClock && win.s.opt("blanc_clock", true) !== false
     anchors.right: parent.right; anchors.rightMargin: 28
     anchors.bottom: parent.bottom; anchors.bottomMargin: 20
     Text {

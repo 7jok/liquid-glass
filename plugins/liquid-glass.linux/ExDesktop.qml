@@ -619,7 +619,7 @@ PanelWindow {
             }
             MouseArea { id: lockMouse; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: win.run("omarchy-system-lock") }
           }
-          RoundBtn { size: 32; outlined: true; icon: "settings"; onClicked: win.run("omarchy-shell shell toggle liquid-glass.settings") }
+          RoundBtn { size: 32; outlined: true; icon: "settings"; onClicked: win.run("omarchy-shell liquid-glass.settings openPage linux") }
           RoundBtn { size: 32; outlined: true; icon: "power_settings_new"; onClicked: s.toggleMenu("power") }
         }
       }

@@ -34,24 +34,82 @@ Scope {
   property var addrs: []          // fenêtres flottantes du bureau actif
   property bool listed: false     // addrs est à jour
   property bool dragging: false
-  readonly property bool atHome: Math.abs(px) < 1 && Math.abs(py) < 1
+  // Zoom de la toile (⌘ + molette / deux doigts, ⌘⌃Z, ⌘⌃⇧Z, ⌘⌃⌥Z) : la toile et les
+  // fenêtres se rapprochent ou s'éloignent autour du pointeur (les fenêtres sont
+  // déplacées et redimensionnées, leur contenu se remet en page).
+  property real zoom: 1
+  // Réglages du thème : le zoom redimensionne aussi les fenêtres ; pas du zoom (molette).
+  readonly property bool zoomWindows: !s || s.opt("infini_zoom_windows", true) !== false
+  readonly property real wheelStep: Number(s ? s.opt("infini_zoom_speed", 1.08) : 1.08)
+  property real sentZ: 1
+  readonly property real zoomMin: 0.3
+  readonly property real zoomMax: 2.5
+  readonly property bool atHome: Math.abs(px) < 1 && Math.abs(py) < 1 && Math.abs(zoom - 1) < 0.001
 
   function pan(dx, dy) {
     if (dx === 0 && dy === 0) return
     px += dx; py += dy
     flushT.start()
   }
-  function home() { pan(-px, -py) }
+  // Zoom de facteur f autour du point (cx, cy) de l'écran (coordonnées locales).
+  function zoomAt(f, cx, cy) {
+    var z = Math.max(zoomMin, Math.min(zoomMax, zoom * f))
+    if (Math.abs(z - zoom) < 0.0001) return
+    var g = z / zoom
+    px = cx - (cx - px) * g
+    py = cy - (cy - py) * g
+    zoom = z
+    flushT.start()
+  }
+  // Zoom au clavier ou à ⌘ + molette : autour du pointeur (cursorpos), sinon du centre.
+  property real zoomPending: 1
+  function zoomStep(dir) {
+    if (dir === "reset") { zoomAt(1 / zoom, sw / 2, sh / 2); return }
+    var f = dir === "in" ? 1.25 : dir === "out" ? 0.8 : dir === "wheel-in" ? wheelStep : dir === "wheel-out" ? 1 / wheelStep : 1
+    zoomPending *= f
+    if (!cursorP.running) cursorP.running = true
+  }
+  Process {
+    id: cursorP
+    command: ["hyprctl", "cursorpos"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var p = String(text).split(","), x = Number(p[0]), y = Number(p[1])
+        var ox = root.screen ? root.screen.x : 0, oy = root.screen ? root.screen.y : 0
+        if (isNaN(x) || isNaN(y) || x < ox || y < oy || x > ox + root.sw || y > oy + root.sh) { x = ox + root.sw / 2; y = oy + root.sh / 2 }
+        var f = root.zoomPending
+        root.zoomPending = 1
+        root.zoomAt(f, x - ox, y - oy)
+      }
+    }
+  }
+  function home() { if (Math.abs(zoom - 1) > 0.001) zoomAt(1 / zoom, sw / 2, sh / 2); pan(-px, -py) }
+  // Bureau affiché sur l'écran de la toile (pas forcément l'écran actif).
+  function wsOf(json) {
+    try {
+      var ms = JSON.parse(json), name = root.screen ? root.screen.name : ""
+      for (var i = 0; i < ms.length; i++) if (ms[i].name === name || (name === "" && ms[i].focused)) return ms[i].activeWorkspace.id
+    } catch (e) {}
+    return -1
+  }
+  // Test : LG_ZOOM=0.6 zoome la toile 2,5 s après le démarrage (bureau de test seulement).
+  Timer {
+    running: !!root.s && root.s.testing === true && String(Quickshell.env("LG_ZOOM") || "") !== ""
+    interval: 2500
+    onTriggered: root.zoomAt(Number(Quickshell.env("LG_ZOOM")), root.sw / 2, root.sh / 2)
+  }
+  Component.onCompleted: if (service) service.infiniDesk = root
+  Component.onDestruction: if (service && service.infiniDesk === root) service.infiniDesk = null
 
   // Fenêtres du bureau actif. Les fenêtres en mosaïque passent en flottant : sur une
   // toile infinie, tout bouge ensemble.
   Process {
     id: listP
-    command: ["sh", "-c", "hyprctl -j activeworkspace; echo '@@'; hyprctl -j clients"]
+    command: ["sh", "-c", "hyprctl -j monitors; echo '@@'; hyprctl -j clients"]
     stdout: StdioCollector {
       onStreamFinished: {
         var p = text.split("@@"), ws = -1, out = [], tiled = []
-        try { ws = JSON.parse(p[0]).id } catch (e) {}
+        ws = root.wsOf(p[0])
         var cl = []
         try { cl = JSON.parse(p[1]) } catch (e) {}
         for (var i = 0; i < cl.length; i++) {
@@ -72,9 +130,10 @@ Scope {
   }
   // Au plus ~30 envois par seconde, un seul à la fois.
   Timer { id: flushT; interval: 33; onTriggered: root.flush() }
-  Process { id: moveP; onExited: if (Math.round(root.px - root.sentX) !== 0 || Math.round(root.py - root.sentY) !== 0) flushT.start() }
+  Process { id: moveP; onExited: if (Math.round(root.px - root.sentX) !== 0 || Math.round(root.py - root.sentY) !== 0 || Math.abs(root.zoom - root.sentZ) > 0.0001) flushT.start() }
   function flush() {
-    if (moveP.running || listP.running) { flushT.start(); return }
+    if (moveP.running || listP.running || zoomP.running) { flushT.start(); return }
+    if (Math.abs(zoom - sentZ) > 0.0001) { zoomP.running = true; return }
     if (!listed) { listP.running = true; return }
     var dx = Math.round(px - sentX), dy = Math.round(py - sentY)
     if (addrs.length === 0) { sentX = px; sentY = py; return }
@@ -83,6 +142,35 @@ Scope {
     sentX += dx; sentY += dy
     moveP.command = ["hyprctl", "--batch", b.join(" ; ")]
     moveP.running = true
+  }
+  // Zoom : géométrie actuelle des fenêtres -> position sur la toile (avec l'état déjà
+  // appliqué), puis nouvelle position et taille avec le zoom et la vue voulus.
+  Process {
+    id: zoomP
+    command: ["sh", "-c", "hyprctl -j monitors; echo '@@'; hyprctl -j clients"]
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var p = text.split("@@"), ws = -1, cl = []
+        ws = root.wsOf(p[0])
+        try { cl = JSON.parse(p[1]) } catch (e) {}
+        var ox = root.screen ? root.screen.x : 0, oy = root.screen ? root.screen.y : 0
+        var z0 = root.sentZ, x0 = root.sentX, y0 = root.sentY, z1 = root.zoom, x1 = root.px, y1 = root.py
+        var b = []
+        for (var i = 0; i < cl.length; i++) {
+          var c = cl[i]
+          if (!c.workspace || c.workspace.id !== ws || c.workspace.id < 0 || c.pinned || (c.fullscreen || 0) > 0 || !c.floating) continue
+          if (!root.zoomWindows) continue
+          var cx = (c.at[0] - ox - x0) / z0, cy = (c.at[1] - oy - y0) / z0
+          var w = Math.max(80, Math.round(c.size[0] / z0 * z1)), h = Math.max(60, Math.round(c.size[1] / z0 * z1))
+          var t = "window = \"address:" + c.address + "\""
+          b.push("dispatch hl.dsp.window.resize({ x = " + w + ", y = " + h + ", relative = false, " + t + " })")
+          b.push("dispatch hl.dsp.window.move({ x = " + Math.round(ox + x1 + cx * z1) + ", y = " + Math.round(oy + y1 + cy * z1) + ", " + t + " })")
+        }
+        root.sentZ = z1; root.sentX = x1; root.sentY = y1
+        if (b.length) { moveP.command = ["hyprctl", "--batch", b.join(" ; ")]; moveP.running = true }
+        else flushT.start()
+      }
+    }
   }
   // Un autre bureau, une nouvelle fenêtre : la liste est refaite au prochain glisser.
   Connections {
@@ -125,8 +213,10 @@ Scope {
       onPressed: function(m) { lx = m.x; ly = m.y; root.dragging = true; root.listed = false }
       onPositionChanged: function(m) { if (!pressed) return; root.pan(m.x - lx, m.y - ly); lx = m.x; ly = m.y }
       onReleased: root.dragging = false
-      onDoubleClicked: root.home()
+      onDoubleClicked: if (!root.s || root.s.opt("infini_dblclick", true) !== false) root.home()
       onWheel: function(w) {
+        // Ctrl + molette sur le fond : zoom au pointeur (⌘ + molette passe par Hyprland).
+        if (w.modifiers & Qt.ControlModifier) { root.zoomAt(Math.pow(1.0015, w.angleDelta.y), w.x, w.y); return }
         var dx = w.angleDelta.x, dy = w.angleDelta.y
         if (w.modifiers & Qt.ShiftModifier) { dx = dy; dy = 0 }
         if (w.pixelDelta.x !== 0 || w.pixelDelta.y !== 0) root.pan(w.pixelDelta.x, w.pixelDelta.y)
@@ -171,9 +261,12 @@ Scope {
       id: world
       x: root.px; y: root.py
       width: root.sw; height: root.sh
+      scale: root.zoom
+      transformOrigin: Item.TopLeft
 
       // Horloge empilée
       Column {
+        visible: !root.s || root.s.opt("infini_clock", true) !== false
         anchors.centerIn: parent
         anchors.verticalCenterOffset: -root.sh * 0.04
         spacing: -Math.round(92 * root.k)
@@ -193,7 +286,7 @@ Scope {
 
       // Cadre du visualiseur
       Rectangle {
-        visible: !root.s || root.s.showCava
+        visible: !root.s || (root.s.showCava && root.s.opt("infini_frame", true) !== false)
         x: Math.round(root.sw * 0.04); y: Math.round(root.sh * 0.5)
         width: Math.round(root.sw * 0.34); height: Math.round(root.sh * 0.17)
         radius: Math.round(10 * root.k)
@@ -232,7 +325,7 @@ Scope {
       property Timer tick: Timer { interval: 100; repeat: true; running: wave.idle; onTriggered: wave.phase = (wave.phase + Math.PI / 30) % (Math.PI * 2) }
     }
     Row {
-      visible: !root.s || root.s.showCava
+      visible: !root.s || (root.s.showCava && root.s.opt("infini_viz", true) !== false)
       anchors.bottom: parent.bottom
       x: 0; width: parent.width
       readonly property int n: 64

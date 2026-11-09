@@ -32,7 +32,8 @@ PanelWindow {
   property real tt: 0
   Timer {
     interval: 40; repeat: true; running: !win.covered
-    onTriggered: win.tt += 0.04
+    // Réglage du thème : vitesse du système solaire (×0,25 à ×3).
+    onTriggered: win.tt += 0.04 * Number(win.s.opt("cosmos_speed", 1))
   }
   property date now: new Date()
   Timer { interval: 1000; repeat: true; running: true; onTriggered: win.now = new Date() }
@@ -231,7 +232,7 @@ PanelWindow {
 
     // Satellites de notifications : les trois dernières tournent loin autour de la Terre.
     Repeater {
-      model: win.notes
+      model: win.s.opt("cosmos_notifs", true) !== false ? win.notes : []
       delegate: Rectangle {
         id: note
         required property var modelData
@@ -256,7 +257,7 @@ PanelWindow {
 
     // Satellites météo autour de la Terre : prévision des prochaines heures.
     Repeater {
-      model: win.s.weather && win.s.weather.hourly ? win.s.weather.hourly.slice(0, 12).filter(function(h, i) { return i % 3 === 0 }) : []
+      model: win.s.opt("cosmos_weather", true) !== false && win.s.weather && win.s.weather.hourly ? win.s.weather.hourly.slice(0, 12).filter(function(h, i) { return i % 3 === 0 }) : []
       delegate: Rectangle {
         id: fc
         required property var modelData

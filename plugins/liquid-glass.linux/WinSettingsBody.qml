@@ -453,7 +453,7 @@ Rectangle {
           }
           SettingRow { icon: "lock"; title: T.t("Écran de verrouillage"); sub: T.t("Horloge, image et état de la musique"); chevron: true; onClicked: s.power("lock") }
           SettingRow { icon: "settings_applications"; title: T.t("Réglages avancés de Liquid Glass"); sub: T.t("Tous les réglages du bureau"); chevron: true
-            onClicked: { s.menuOpen = false; Quickshell.execDetached(["sh", "-c", "omarchy-shell shell toggle liquid-glass.settings"]) } }
+            onClicked: { s.menuOpen = false; Quickshell.execDetached(["sh", "-c", "omarchy-shell liquid-glass.settings openPage linux"]) } }
         }
 
         // ======================================== Applications

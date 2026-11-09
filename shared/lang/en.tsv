@@ -67,6 +67,7 @@ Accueil	Home
 Actions	Actions
 Activer / désactiver	Toggle
 Activer Alcove	Enable Alcove
+Activité du processeur	CPU activity
 Activité · 1 h	Activity · 1 h
 Activités	Activities
 Activé	On
@@ -95,6 +96,7 @@ Agrandissement	Magnification
 Aide	Help
 Aide-moi à écrire un message poli	Help me write a polite message
 Aide-mémoire des raccourcis	Shortcut cheat sheet
+Aimanter à la grille	Snap to grid
 Ajouter des commandes	Add controls
 Ajouter un appareil	Add a device
 Ajouter un appareil…	Add a device…
@@ -104,6 +106,7 @@ Ajouter une imprimante, un scanner ou un fax…	Add Printer, Scanner or Fax…
 Ajouter une source	Add a source
 Ajouter…	Add…
 Ajoutez des apps ci-dessous	Add apps below
+Alignement de la barre des tâches	Taskbar alignment
 Alimentation	Power
 Alimentation et batterie	Power and battery
 Allemand	German
@@ -195,6 +198,8 @@ Baisser le son	Volume down
 Balayer vers le bas avec quatre doigts	Swipe down with four fingers
 Balayer vers le haut avec quatre doigts	Swipe up with four fingers
 Balayer à gauche ou à droite avec trois doigts	Swipe left or right with three fingers
+Bande musique	Music band
+Bande météo	Weather band
 Bandes en biais, grande date	Slanted bands, big date
 Barre	Bar
 Barre de titre avec feux tricolores	Title bar with traffic lights
@@ -214,6 +219,7 @@ Bleu	Blue
 Bleu Windows (par défaut)	Windows blue (default)
 Bleu glacé, Mars ou nébuleuse	Ice blue, Mars or nebula
 Bleu, rouge ou or	Blue, red or gold
+Bloc batterie	Battery block
 Bloc-notes flottant	Floating notepad
 Blocs	Blocks
 Bluetooth et appareils	Bluetooth and devices
@@ -245,12 +251,15 @@ CHÂSSIS	CHASSIS
 CLAVIER	KEYBOARD
 CONNEXIONS	CONNECTIONS
 CUPS n'est pas installé	CUPS is not installed
+Cadenas au déverrouillage	Padlock on unlock
 Cadran	Dial
+Cadre du visualiseur	Visualizer frame
 Cadre noir façon caelestia, barre latérale, tableau de bord	Black frame like caelestia, sidebar, dashboard
 Caelestia : cadre, tableau de bord	Caelestia: frame, dashboard
 Calculatrice	Calculator
 Calculette	Calculator
 Calendrier	Calendar
+Caméra automatique	Automatic camera
 Capsule noire en haut au centre, façon Alcove : survol pour agrandir, clic pour les commandes	Black capsule at top center, Alcove style: hover to expand, click for controls
 Capture	Screenshot
 Capture d'une zone	Screenshot of an area
@@ -266,7 +275,9 @@ Carte déplaçable ; double-clic pour le karaoké	Movable card; double-click for
 Carte graphique	Graphics card
 Casque connecté, avec sa batterie	Headset connected, with its battery
 Ce PC	This PC
+Ce PC, Corbeille, Documents…	This PC, Recycle Bin, Documents…
 Ce bureau	This desktop
+Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘Échap → Couleurs pour le nuancier)	The style's, from the wallpaper (Material You), or your own accent (⌘Esc → Colors for the swatches)
 Celles du style, tirées du fond d'écran (Material You), ou un accent à toi (⌘⌥Espace → Couleurs pour le nuancier)	From the style, from the wallpaper (Material You), or your own accent (⌘⌥Space → Colors for the palette)
 Celui de Mechvibes	The Mechvibes one
 Cendre	Ash
@@ -354,6 +365,7 @@ Console déroulante	Drop-down console
 Conteneurs	Containers
 Contrôles	Controls
 Conversion	Conversion
+Coordonnées et zoom, clic pour revenir	Coordinates and zoom, click to go back
 Copier	Copy
 Copier le chemin	Copy Path
 Copier · Coller · Couper	Copy · Paste · Cut
@@ -386,6 +398,7 @@ Dans l'île dynamique	In the Dynamic Island
 Dans la barre	In the bar
 Dans la barre (de gauche à droite)	In the bar (left to right)
 Date de modification	Date Modified
+Date en filigrane	Watermark date
 De transparent à teinté, sur tout le système	From clear to tinted, system-wide
 Demande ce que tu veux	Ask anything
 Demander	Ask
@@ -405,6 +418,7 @@ Disposition précédente	Previous layout
 Disposition suivante	Next layout
 Disque	Disk
 Disques	Disks
+Dock	Dock
 Document	Document
 Document 	Document 
 Document PDF	PDF document
@@ -412,6 +426,8 @@ Donne-moi cinq idées pour le week-end	Give me five ideas for the weekend
 Dossier	Folder
 Dossier de départ	Home folder
 Dossier vide	Empty folder
+Dossiers	Folders
+Double-clic : retour au centre	Double-click: back to center
 Douce	Soft
 Du fond	From wallpaper
 Du style	From style
@@ -453,9 +469,11 @@ Empreinte ou mot de passe	Fingerprint or password
 Empreintes digitales	Fingerprints
 En bas	Bottom
 En bas à droite	Bottom right
+En bas à droite, les touches s'allument	Bottom right, keys light up
 En bas à gauche	Bottom left
 En charge	Charging
 En cours	In progress
+En déplaçant l'horloge et la carte musique	When moving the clock and music card
 En grand à côté de la pochette (bulle du widget musique)	Large next to the cover (music widget bubble)
 En haut	Top
 En haut à droite	Top right
@@ -499,6 +517,7 @@ Espaces de travail	Workspaces
 Espagnol	Spanish
 Essai	Test
 Essentiels	Essentials
+Et zoom à 100 %	And zoom to 100 %
 Explique simplement comment marche un VPN	Explain simply how a VPN works
 Expressif	Expressive
 Expérience	Experience
@@ -528,6 +547,7 @@ Fermer la session de « 	Log out “
 Fermer les terminaux	Close terminals
 Fermer toutes les fenêtres	Close all windows
 Fermer, réduire dans le Dock, agrandir — sur toutes les apps flottantes ; double-clic sur la barre : agrandir	Close, minimize to Dock, zoom — on all floating apps; double-click the bar: zoom
+Fiche système	System card
 Fichier	File
 Fichiers	Files
 Filtrer (ex. capture, fenêtre, son)	Filter (e.g. screenshot, window, sound)
@@ -583,15 +603,18 @@ Gibbeuse décroissante	Waning gibbous
 Glace	Ice
 Glisse des fichiers sur l'île, ils restent ici jusqu'à ce que tu les retires	Drag files onto the island, they stay here until you remove them
 Glissez-le où vous voulez : il glisse et rebondit	Drag it anywhere: it glides and bounces
+Globe	Globe
 Goutte	Drop
 Graisse	Weight
 Grand	Large
+Grande heure	Big clock
 Grands chiffres en blocs façon tty-clock, à droite	Big block digits like tty-clock, on the right
 Graphisme	Graphics
 Grasse	Bold
 Grille	Grid
 Gris	Gray
 Gros dock, autocollants	Big dock, stickers
+Grossir au survol	Magnify on hover
 Grouper les fenêtres	Group windows
 Général	General
 Générés	Generated
@@ -602,6 +625,7 @@ Haut	Top
 Hauteur	Height
 Heure et langue	Time and language
 Heure par heure	Hour by hour
+Heures sur minutes, au centre de la toile	Hours over minutes, in the middle of the canvas
 Hier à 	Yesterday at 
 Historique	History
 Historique des notifications	Notification history
@@ -613,6 +637,8 @@ Horloge bonbon	Candy clock
 Horloge cookie	Cookie clock
 Horloge empilée, brume	Stacked clock, mist
 Horloge pixel	Pixel clock
+Horloge sur la toile	Clock on the canvas
+Horloge à planètes	Planet clock
 Horloge, image et état de la musique	Clock, image and music status
 Horloges, lecteur et paroles sautent un peu sur chaque basse	Clocks, player and lyrics hop a little on each bass hit
 Hors ligne	Offline
@@ -620,7 +646,9 @@ Humidité	Humidity
 ICI	HERE
 Icône quand des mises à jour Omarchy sont disponibles	Icon when Omarchy updates are available
 Icônes d'apps à gauche des indicateurs, comme le bouton Claude	App icons left of the indicators, like the Claude button
+Icônes du bureau	Desktop icons
 Ignorer en tapant au clavier	Ignore while typing
+Il apparaît quand la souris touche le bas	It appears when the pointer touches the bottom
 Image 	Image 
 Images	Pictures
 Imprimantes et scanners	Printers & Scanners
@@ -655,10 +683,13 @@ La Corbeille est vide	Trash is empty
 La barre est celle d'Omarchy, habillée en verre par le thème Liquid Glass. Organisation des widgets : omarchy bar --help.	The bar is Omarchy's, dressed in glass by the Liquid Glass theme. Widget layout: omarchy bar --help.
 La bulle l'agrandit	The bubble enlarges it
 La fonctionnalité d'entrée tactile ou avec un stylet n'est pas disponible sur cet écran	Pen and touch input is not available on this display
+La pilule de recherche à côté de Démarrer	The search pill next to Start
 La semaine commence le lundi	Week starts on Monday
+La souris posée au milieu du bord haut l'ouvre	Resting the pointer mid top edge opens it
 Lagon	Lagoon
 Lance Spotify ♪	Start Spotify ♪
 Lancer la page	Launch page
+Lanceurs du panneau	Panel launchers
 Langue	Language
 Langue d'affichage	Display language
 Langue de l'interface	Interface language
@@ -678,6 +709,7 @@ Lecture des raccourcis…	Reading shortcuts…
 Lecture en cours	Now Playing
 Lecture en cours sur le bureau	Now Playing on the desktop
 Lente	Slow
+Les autocollants du dock rebondissent sous la souris	Dock stickers bounce under the pointer
 Les notifications sont silencieuses	Notifications are silent
 Les paroles s'afficheront ici	Lyrics will appear here
 Les réponses passent par le CLI « claude » déjà connecté à votre compte ; rien d'autre n'est envoyé.	Answers go through the “claude” CLI already signed in to your account; nothing else is sent.
@@ -717,6 +749,7 @@ Masquer 	Hide
 Masquer automatiquement	Hide automatically
 Masquer automatiquement le Dock	Automatically hide the Dock
 Masquer la barre automatiquement	Automatically hide the menu bar
+Masquer le dock	Hide the dock
 Masquer les autres	Hide Others
 Masquée	Hidden
 Material 3, couleurs du fond	Material 3, wallpaper colors
@@ -736,6 +769,7 @@ Menu système	System menu
 Menus et outils	Menus and tools
 Mes appareils	My devices
 Mes goûts	My Taste
+Mes goûts reprend un thème Omarchy installé	My taste uses an installed Omarchy theme
 Message pour l'IA…	Message the AI…
 Mettre en veille	Sleep
 Micro	Microphone
@@ -776,6 +810,7 @@ Moniteurs	Monitors
 Moniteurs…	Monitors…
 Montagnes dans la brume, grosse horloge « bonbon » empilée	Misty mountains, big stacked “candy” clock
 Monter le son	Volume up
+Morceau dans la barre	Track in the bar
 Morceau en cours	Current track
 Morceau précédent	Previous track
 Morceau suivant	Next track
@@ -794,11 +829,14 @@ Mur de tuiles, mot géant	Tile wall, giant word
 Musique	Music
 Musique & mosaïque	Music & tiling
 Musique et paroles	Music and lyrics
+Musique, paroles, widgets et arrondi (plus bas) sont aussi mémorisés pour chaque thème : en changer garde les siens.	Music, lyrics, widgets and rounding (below) are also remembered per theme: switching keeps each one's own.
 MÉMOIRE	MEMORY
 Mémoire	Memory
 Mémoire RAM installée	Installed RAM
 Mémoriser la largeur	Remember width
 Météo	Weather
+Météo dans l'encoche	Weather in the notch
+Météo dans la barre	Weather in the bar
 Météo indisponible	Weather unavailable
 Météo…	Weather…
 Navigateur	Browser
@@ -873,6 +911,7 @@ Paramètres recommandés	Recommended settings
 Pare-feu Gufw	Gufw firewall
 Paroles	Lyrics
 Paroles bureau	Desktop lyrics
+Paroles dans le ciel	Lyrics in the sky
 Paroles en karaoké	Karaoke lyrics
 Paroles karaoké	Karaoke lyrics
 Paroles sur le bureau	Lyrics on the desktop
@@ -927,6 +966,7 @@ Pochette	Cover
 Pochette et titre à droite (déjà dans l'île)	Cover and title on the right (already in the island)
 Pochette et égaliseur aux couleurs de la pochette	Cover and equalizer in cover colors
 Pochette floue	Blurred cover
+Pochette, temps et commandes	Cover, time and controls
 Pointez dans un coin de l'écran pour déclencher l'action (pas en plein écran). ⌘F3 affiche aussi le bureau.	Point to a screen corner to trigger the action (not in full screen). ⌘F3 also shows the desktop.
 Police	Font
 Police de l'horloge	Clock font
@@ -934,7 +974,9 @@ Police de l'interface	Interface font
 Pomme	Apple
 Portugais	Portuguese
 Position ; se déplace aussi au doigt	Position; also moves with your finger
+Position dans la barre	Position in the bar
 Position à l'écran	Position on Screen
+Posé sur la toile, il suit le glisser et le zoom	On the canvas, it follows panning and zoom
 Pour ce thème	For this theme
 Pour qu'elles suivent la toile quand on la fait glisser	So they follow the canvas when you drag it
 Pour tout annuler : ~/.config-backup-<date>/restore.sh restaure l'état d'avant l'installation.	To undo everything: ~/.config-backup-<date>/restore.sh restores the state before install.
@@ -947,8 +989,10 @@ Printemps	Spring
 Proc.	CPU
 Processeur	Processor
 Profil	Profile
+Propre à 	Only for 
 Prune	Plum
 Présentation	View
+Prévision des prochaines heures autour de la Terre	Next hours' forecast around the Earth
 Prêt.	Ready.
 Prête	Ready
 Pseudo-mosaïque	Pseudo-tiling
@@ -1010,6 +1054,7 @@ Remplace l'OSD au-dessus du Dock	Replaces the OSD above the Dock
 Remplir	Fill
 Renommer	Rename
 Renommer ce PC	Rename this PC
+Repart seule après une minute sans action	Moves again after a minute idle
 Replacer	Reset position
 Replacer le widget	Reset widget position
 Reprendre · 	Resume · 
@@ -1072,10 +1117,13 @@ Sang	Blood
 Sans aucun accès donné aux apps : Hyprland signale seulement « une touche »	No access given to apps: Hyprland only reports “a key”
 Sans doubles espaces	No double spaces
 Sans retours	No line breaks
+Satellites de notifications	Notification satellites
+Satellites météo	Weather satellites
 Sauvegarde	Backup
 Scène suivante	Next scene
 Se connecter	Connect
 Se déconnecter	Log out
+Secondes	Seconds
 Secteur	Plugged in
 Sensibilité	Sensitivity
 Sept jours	Seven days
@@ -1107,6 +1155,7 @@ Style du verre	Glass style
 Stylet et fonctions tactiles	Pen and touch
 Suisse alémanique	Swiss German
 Suisse romand	Swiss French
+Suivant  ⌃⌘T	Next  ⌃⌘T
 Suppr	Del
 Supprimer	Delete
 Supprimer immédiatement	Delete Immediately
@@ -1114,6 +1163,7 @@ Sur batterie	On battery
 Sur le bureau, en grand	On the desktop, large
 Sur le fond d'écran	On the wallpaper
 Sur secteur	Plugged in
+Sur toute la largeur, sous la barre	Full width, under the bar
 Suspendre	Sleep
 Suspendre maintenant	Suspend now
 Système	System
@@ -1124,6 +1174,7 @@ Sélectionnez un thème à appliquer	Select a theme to apply
 TEMP.	TEMP
 TOTAL  ↓ 	TOTAL  ↓ 
 TRAFIC RÉSEAU	NETWORK TRAFFIC
+Tableau de bord par le haut	Dashboard from the top edge
 Tags	Tags
 Taille	Size
 Taille de l'horloge	Clock size
@@ -1154,10 +1205,12 @@ Texte	Text
 Texte brut	Plain text
 Texte de l'écran	Text from screen
 Thème	Theme
+Thème Omarchy	Omarchy theme
 Thème actif	Active theme
 Thème de contraste foncé	Dark contrast theme
 Thème sombre	Dark theme
 Tiens bon !	Hang in there!
+Titre de la fenêtre	Window title
 Total	Total
 Touch ID et mot de passe	Touch ID & Password
 Touche /	Key /
@@ -1196,10 +1249,12 @@ Très légère	Extra light
 Type	Kind
 Type du système	System type
 TÂCHES	TASKS
+Tâches épinglées	Pinned tasks
 Téléchargements	Downloads
 UTILISÉE 	USING 
 Un mode de concentration coupe les notifications. Sommeil active aussi Night Shift.	A focus mode silences notifications. Sleep also turns on Night Shift.
 Un pas après l'autre.	One step at a time.
+Une case par minute, en haut à droite	One cell per minute, top right
 Une lueur qui respire en bas de l'écran au rythme des basses	A glow breathing at the bottom of the screen with the bass
 Une page = un bureau de terminaux, à ton goût	One page = one desktop of terminals, your way
 Une seconde…	One sec…
@@ -1244,8 +1299,11 @@ Violet	Purple
 Visualiseur	Visualizer
 Visualiseur audio	Audio visualizer
 Visualiseur cava	Cava visualizer
+Visualiseur du bas	Bottom visualizer
 Vitesse de défilement	Scroll speed
 Vitesse du pointeur	Pointer speed
+Vitesse du système solaire	Solar system speed
+Vitesse du zoom	Zoom speed
 Vive	Vivid
 Voitures	Cars
 Volume dans l'île	Volume in the island
@@ -1260,6 +1318,8 @@ Voulez-vous vraiment supprimer définitivement les éléments de la Corbeille ?	
 Voulez-vous éteindre cet ordinateur ?	Do you want to shut down this computer?
 Vous pouvez ouvrir cette fenêtre en appuyant sur Option + Commande + Échap.	You can open this window by pressing Option + Command + Esc.
 Vue	Vision
+Vue des tâches	Task view
+Vue du monde en fil de fer, à droite	Wireframe world view, on the right
 VÉRIFICATION	CHECKING
 VÉRIFICATION…	CHECKING…
 Vérification	Authenticating
@@ -1276,6 +1336,7 @@ Xfce, menu des outils	Xfce, tools menu
 Zoom arrière	Zoom Out
 Zoom avant	Zoom In
 Zoom et glissement très lents de l'image	Very slow zoom and pan of the image
+Zoomer aussi les fenêtres	Zoom windows too
 actuel	current
 averses	showers
 averses de neige	snow showers
@@ -1316,8 +1377,10 @@ vérification…	checking…
 À droite	Right
 À faire	To do
 À gauche	Left
+À gauche (pas avec l'alignement à gauche)	On the left (not with left alignment)
 À gauche de la pile (aussi : clic droit sur la batterie)	Left of the battery (also: right click on the battery)
 À l'ouverture	At login
+À la verticale dans la barre	Vertical in the bar
 À propos	About
 À propos de ce Mac	About This Mac
 Ça compile ? On y va.	It compiles? Let's go.
@@ -1367,6 +1430,7 @@ vérification…	checking…
 ↩ question de suite  ·  ⎋ retour	↩ follow-up  ·  ⎋ back
 ⌃Espace	⌃Space
 ⌃Espace passe à la source suivante	⌃Space switches to the next source
+⌘ + molette, ⌘ + pincer, ⌘⌃Z / ⌘⌃⇧Z : les fenêtres rapetissent avec la toile	⌘ + scroll, ⌘ + pinch, ⌘⌃Z / ⌘⌃⇧Z: windows shrink with the canvas
 ⌘ = touche Super	⌘ = Super key
 ⌘ Espace	⌘ Space
 ⌘ ⇧ Espace	⌘ ⇧ Space

@@ -27,6 +27,7 @@ PanelWindow {
 
   // Date en filigrane
   Row {
+    visible: win.s.opt("ruban_date", true) !== false
     anchors.right: parent.right; anchors.rightMargin: 34; y: 2
     spacing: 18
     opacity: 0.32
@@ -48,7 +49,7 @@ PanelWindow {
 
   // Bande musique
   Item {
-    visible: win.s.hasTrack
+    visible: win.s.hasTrack && win.s.opt("ruban_music", true) !== false
     x: -14; anchors.bottom: parent.bottom; anchors.bottomMargin: 120
     width: 470; height: 92
     Rectangle { x: 8; y: 8; width: parent.width; height: parent.height; color: win.s.primary; transform: Matrix4x4 { matrix: win.skew(92) } }
@@ -74,7 +75,7 @@ PanelWindow {
 
   // Bande météo
   Item {
-    visible: !!win.s.weather
+    visible: !!win.s.weather && win.s.opt("ruban_weather", true) !== false
     x: -14; anchors.bottom: parent.bottom; anchors.bottomMargin: 40
     width: 330; height: 62
     Rectangle { x: 8; y: 8; width: parent.width; height: parent.height; color: win.s.colOnSurface; transform: Matrix4x4 { matrix: win.skew(62) } }
@@ -92,7 +93,7 @@ PanelWindow {
 
   // Batterie : un bloc en biais, le niveau ondule.
   Item {
-    visible: win.s.batteryPct >= 0
+    visible: win.s.batteryPct >= 0 && win.s.opt("ruban_battery", true) !== false
     anchors.right: parent.right; anchors.rightMargin: 36
     anchors.bottom: parent.bottom; anchors.bottomMargin: 40
     width: 170; height: 96

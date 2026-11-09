@@ -272,7 +272,7 @@ PanelWindow {
               ["terminal", T.t("Terminal"), "uwsm-app -- xdg-terminal-exec"],
               ["folder", T.t("Fichiers"), "uwsm-app -- nautilus --new-window"],
               ["system_update_alt", T.t("Mises à jour"), "omarchy-launch-floating-terminal-with-presentation omarchy-update"],
-              ["tune", T.t("Réglages"), "omarchy-shell shell toggle liquid-glass.settings"]
+              ["tune", T.t("Réglages"), "omarchy-shell liquid-glass.settings openPage linux"]
             ]
             delegate: Rectangle {
               required property var modelData

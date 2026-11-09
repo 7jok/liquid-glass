@@ -161,6 +161,7 @@ Scope {
       width: 20
       clip: true
       Column {
+        visible: s.opt("mono_title", true) !== false
         anchors.horizontalCenter: parent.horizontalCenter
         spacing: 8
         MIcon { anchors.horizontalCenter: parent.horizontalCenter; icon: "web_asset"; size: 15; color: s.secondary; visible: !!bar.activeWin }

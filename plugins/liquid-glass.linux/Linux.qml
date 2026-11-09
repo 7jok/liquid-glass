@@ -34,13 +34,19 @@ Item {
     onLoaded: { try { svc.cfg = JSON.parse(text()) } catch (e) {} }
   }
   readonly property var lcfg: Object.assign({}, cfg.linux || {}, JSON.parse(Quickshell.env("LG_TEST") || "{}"))
-  function opt(k, d) { return lcfg.hasOwnProperty(k) ? lcfg[k] : d }
+  // Réglage : d'abord la valeur propre au thème actif (linux.<style>__<clé>, écrite par
+  // Réglages → page du thème), puis la valeur commune (linux.<clé>), puis le défaut.
+  function opt(k, d) {
+    var sk = style + "__" + k
+    if (lcfg.hasOwnProperty(sk)) return lcfg[sk]
+    return lcfg.hasOwnProperty(k) ? lcfg[k] : d
+  }
   // Styles : blanc (défaut), sombre, jouet, violet (nuit/aube/rose), expressive (Material You), lain.
   // Tous sauf lain partagent les mêmes composants (Ex*), habillés par une « peau »
   // (palette, polices, arrondis, bordures, ombres) et un jeu de widgets.
   readonly property var styles: ["blanc", "sombre", "jouet", "violet", "expressive", "windows", "mono", "foret",
                                  "ruban", "espace", "cosmos", "ile", "hud", "infini", "gouts", "debian", "fedora", "mint", "kali", "arch"]
-  readonly property string style: styles.indexOf(String(opt("style", "blanc"))) >= 0 ? String(opt("style", "blanc")) : "blanc"
+  readonly property string style: styles.indexOf(String(lcfg.style || "blanc")) >= 0 ? String(lcfg.style || "blanc") : "blanc"
   readonly property bool ex: true
   // Familles de bureau : « ex » = barre en îlots + widgets (blanc… expressive),
   // puis trois bureaux complets avec leurs propres barres, menus et réglages.
@@ -65,6 +71,19 @@ Item {
   readonly property bool isHud: style === "hud"
   // Infini : toile sans bord qu'on fait glisser (InfiniDesk), cerisiers, visualiseur rose.
   readonly property bool isInfini: style === "infini"
+  property var infiniDesk: null   // InfiniDesk de l'écran principal (zoom de la toile)
+  // Zoom : la toile sur Infini, la loupe d'Hyprland ailleurs. dir = in | out | reset
+  function zoom(dir) {
+    if (isInfini && infiniDesk) { infiniDesk.zoomStep(dir); return }
+    Quickshell.execDetached(["hyprctl", "eval",
+      dir === "reset" ? "hl.config({ cursor = { zoom_factor = 1 } })"
+      : "local z = hl.get_config('cursor.zoom_factor') or 1; hl.config({ cursor = { zoom_factor = math.max(1, z " + (dir === "in" ? "+ 1" : "- 1") + ") } })"])
+  }
+  // ⌘ + molette / deux doigts : zoom de la toile sur Infini, bureaux voisins ailleurs.
+  function wheel(dir) {
+    if (isInfini && infiniDesk) { infiniDesk.zoomStep(dir === "up" ? "wheel-in" : "wheel-out"); return }
+    Quickshell.execDetached(["hyprctl", "dispatch", "hl.dsp.focus({ workspace = \"m" + (dir === "up" ? "-1" : "+1") + "\" })"])
+  }
   readonly property bool classic: !win11 && !isMono && !isForet && !isDistro && !isRuban && !isEspace && !isIle && !isHud && !isInfini
   // Sombre : mur de tuiles à la place de la scène musicale et des widgets.
   readonly property bool wall: style === "sombre" && opt("sombre_wall", true) !== false
@@ -1102,8 +1121,16 @@ Item {
   // ⌘K : feuille des raccourcis du bureau (à la place de celle d'Omarchy).
   property bool keysOpen: false
   function toggleKeys() { var o = !keysOpen; closeAll(); menuOpen = false; keysOpen = o }
+  // ⌘⌥Espace : les Réglages communs à tous les bureaux, ouverts sur la page du style
+  // (le style Windows garde ses Paramètres façon Windows 11).
+  function openSettings() {
+    if (win11) { toggleMenu("home"); return }
+    closeAll(); menuOpen = false
+    Quickshell.execDetached(["omarchy-shell", "liquid-glass.settings", "openPage", "linux"])
+  }
   function toggleMenu(page) {
     launcherOpen = false; panel = ""
+
     if (menuOpen && (!page || page === menuPage)) { menuOpen = false; return }
     menuPage = page || ""
     menuOpen = true
@@ -1348,7 +1375,7 @@ Item {
     delegate: Component { IleDesk { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
-    model: svc.isIle ? svc.mainScreen : []
+    model: svc.isIle && svc.opt("ile_dock", true) !== false ? svc.mainScreen : []
     delegate: Component { IleDock { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
@@ -1422,7 +1449,7 @@ Item {
     delegate: Component { WinTaskbar { required property var modelData; screen: modelData; service: svc } }
   }
   Variants {
-    model: svc.win11 && svc.showWidgets ? svc.mainScreen : []
+    model: svc.win11 && svc.showWidgets && svc.opt("windows_icons", true) !== false ? svc.mainScreen : []
     delegate: Component { WinDesktop { required property var modelData; screen: modelData; service: svc } }
   }
   LazyLoader { active: svc.win11 && (svc.launcherOpen || svc.panel !== ""); WinFlyouts { service: svc; screen: svc.primaryScreen } }
@@ -1447,8 +1474,8 @@ Item {
     delegate: Component { MonoBar { required property var modelData; screen: modelData; service: svc } }
   }
   LazyLoader { active: svc.isMono && svc.panel !== ""; MonoDash { service: svc; screen: svc.primaryScreen } }
-  LazyLoader { active: svc.isMono && !svc.testingNoExtras; MonoEdge { service: svc; screen: svc.primaryScreen } }
-  LazyLoader { active: svc.isMono; MonoUnlock { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.isMono && !svc.testingNoExtras && svc.opt("mono_edge", true) !== false; MonoEdge { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.isMono && svc.opt("mono_unlock", true) !== false; MonoUnlock { service: svc; screen: svc.primaryScreen } }
 
   // Forêt (ilyamiro c01) : barre en puces, volets musique / horloge / batterie
   Variants {

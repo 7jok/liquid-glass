@@ -87,8 +87,8 @@ PanelWindow {
       spacing: 10
       MIcon { anchors.verticalCenter: parent.verticalCenter; visible: win.s.playing; icon: "graphic_eq"; size: 14; color: win.ink }
       Text { anchors.verticalCenter: parent.verticalCenter; text: Qt.formatTime(win.now, "HH:mm"); color: win.ink; font.family: win.font; font.pixelSize: 12; font.weight: Font.DemiBold }
-      MIcon { anchors.verticalCenter: parent.verticalCenter; visible: !!win.s.weather; icon: win.s.weatherIcon; size: 14; color: win.ink }
-      Text { anchors.verticalCenter: parent.verticalCenter; visible: !!win.s.weather; text: win.s.weather ? win.s.weather.temp + "°" : ""; color: win.ink; font.family: win.font; font.pixelSize: 12 }
+      MIcon { anchors.verticalCenter: parent.verticalCenter; visible: !!win.s.weather && win.s.opt("ile_weather", true) !== false; icon: win.s.weatherIcon; size: 14; color: win.ink }
+      Text { anchors.verticalCenter: parent.verticalCenter; visible: !!win.s.weather && win.s.opt("ile_weather", true) !== false; text: win.s.weather ? win.s.weather.temp + "°" : ""; color: win.ink; font.family: win.font; font.pixelSize: 12 }
     }
 
     // Notification

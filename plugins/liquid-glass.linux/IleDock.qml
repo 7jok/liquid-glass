@@ -18,7 +18,8 @@ PanelWindow {
   WlrLayershell.namespace: "liquid-glass-linux-dock"
   WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-  property bool shown: edgeHover.hovered || bodyHover.hovered
+  // Réglage du thème : dock toujours visible ou seulement quand la souris est en bas.
+  property bool shown: s.opt("ile_dock_autohide", true) === false || edgeHover.hovered || bodyHover.hovered
   readonly property var pins: s.pinned(16)
 
   Item {

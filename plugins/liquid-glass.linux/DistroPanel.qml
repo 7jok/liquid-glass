@@ -122,7 +122,7 @@ PanelWindow {
 
       // Lanceurs rapides (pas sous GNOME).
       Repeater {
-        model: win.gnome ? [] : win.s.pinned(win.d.pins)
+        model: win.gnome || win.s.opt(win.s.style + "_launchers", true) === false ? [] : win.s.pinned(win.d.pins)
         delegate: Rectangle {
           id: pin
           required property var modelData
@@ -213,7 +213,7 @@ PanelWindow {
       Text {
         id: gclock
         anchors.centerIn: parent
-        text: win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, "HH:mm")
+        text: win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm")
         font.family: win.font; font.pixelSize: 13; font.weight: Font.DemiBold; color: "#ffffff"
       }
       MouseArea { id: gcm; anchors.fill: parent; hoverEnabled: true; onClicked: win.s.toggleMenu("home") }
@@ -291,7 +291,7 @@ PanelWindow {
           anchors.centerIn: parent
           Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: win.lay === "xfce" ? win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, "HH:mm") : Qt.formatTime(win.now, "HH:mm")
+            text: win.lay === "xfce" ? win.fr("ddd d MMM") + "  " + Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm") : Qt.formatTime(win.now, win.s.opt(win.s.style + "_seconds", false) === true ? "HH:mm:ss" : "HH:mm")
             font.family: win.font; font.pixelSize: win.plasma ? 13 : 12; color: win.ink
           }
           Text {

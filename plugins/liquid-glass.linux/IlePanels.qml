@@ -43,7 +43,7 @@ PanelWindow {
       x: 6; y: 6; width: parent.width - 12
       Repeater {
         model: [
-          [T.t("Moniteur système"), "uwsm-app -- xdg-terminal-exec -e btop"], [T.t("Réglages…"), "omarchy-shell shell toggle liquid-glass.settings"], ["-", ""],
+          [T.t("Moniteur système"), "uwsm-app -- xdg-terminal-exec -e btop"], [T.t("Réglages…"), "omarchy-shell liquid-glass.settings openPage linux"], ["-", ""],
           [T.t("Suspendre"), "@suspend"], [T.t("Redémarrer…"), "@reboot"], [T.t("Éteindre…"), "@off"], ["-", ""],
           [T.t("Verrouiller l'écran"), "@lock"], [T.t("Fermer la session"), "@logout"]
         ]

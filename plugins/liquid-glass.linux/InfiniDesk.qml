@@ -212,7 +212,7 @@ Scope {
               anchors.bottom: parent.bottom
               width: Math.round(7 * root.k); radius: 1
               height: Math.max(3, v * (root.sh * 0.17 - 30 * root.k))
-              Behavior on height { NumberAnimation { duration: 60 } }
+              Behavior on height { enabled: !wave.idle; NumberAnimation { duration: 60 } }
               gradient: Gradient {
                 GradientStop { position: 0; color: Qt.lighter(root.acc, 1.12) }
                 GradientStop { position: 1; color: Qt.rgba(root.acc.r * 0.55, root.acc.g * 0.4, root.acc.b * 0.45, 0.9) }
@@ -227,7 +227,9 @@ Scope {
     QtObject {
       id: wave
       property real phase: 0
-      NumberAnimation on phase { from: 0; to: Math.PI * 2; duration: 6000; loops: Animation.Infinite; running: root.live && !(root.s && root.s.playing) }
+      // Vague au repos : 10 images/s suffisent (mouvement lent), au lieu de 60.
+      readonly property bool idle: root.live && !(root.s && root.s.playing)
+      property Timer tick: Timer { interval: 100; repeat: true; running: wave.idle; onTriggered: wave.phase = (wave.phase + Math.PI / 30) % (Math.PI * 2) }
     }
     Row {
       visible: !root.s || root.s.showCava
@@ -249,7 +251,7 @@ Scope {
             width: parent.width - Math.max(2, Math.round(4 * root.k))
             height: Math.max(4, parent.v * parent.height)
             radius: Math.round(3 * root.k)
-            Behavior on height { NumberAnimation { duration: 70 } }
+            Behavior on height { enabled: !wave.idle; NumberAnimation { duration: 70 } }
             gradient: Gradient {
               GradientStop { position: 0; color: Qt.rgba(root.acc.r, root.acc.g, root.acc.b, 0.85) }
               GradientStop { position: 1; color: Qt.rgba(root.acc.r, root.acc.g, root.acc.b, 0.35) }

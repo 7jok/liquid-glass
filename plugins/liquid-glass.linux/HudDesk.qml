@@ -648,7 +648,8 @@ Scope {
             id: globe
             width: rightCol.width; height: Math.round(130 * root.k)
             property real spin: 0
-            NumberAnimation on spin { from: 0; to: 360; duration: 60000; loops: Animation.Infinite; running: root.live }
+            // 1437 points redessinés : 8 images/s au lieu de 60 (le globe tourne lentement).
+            Timer { interval: 125; repeat: true; running: root.live; onTriggered: globe.spin = (globe.spin + 0.75) % 360 }
             onSpinChanged: requestPaint()
             readonly property var here: root.s && root.s.coords ? [Number(root.s.coords.lon), Number(root.s.coords.lat)] : [2.35, 48.85]
             onPaint: {

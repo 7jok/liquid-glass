@@ -219,6 +219,9 @@ Item {
                                  ["ascii", "ASCII"], ["minimal", "Minimal"], ["abstract", T.t("Abstrait")], ["fruit", T.t("Fruits")], ["genere", T.t("Générés")]]
   readonly property var bgCollection: bgCats.slice(3).map(function(c) { return c[0] })
   property string bgFilter: "all"
+  // Les vignettes arrivent par paquets de 48 : ouvrir l'onglet ne décode pas 300 images.
+  property int bgLimit: 48
+  onBgFilterChanged: bgLimit = 48
   function bgCat(p) {
     if (root.isVideo(p)) return "dyn"
     var pre = String(p).split("/").pop().split("-")[0]
@@ -1315,7 +1318,7 @@ Item {
         spacing: Style.space(10)
         readonly property real cw: (width - 2 * spacing) / 3
         Repeater {
-          model: root.shownBackgrounds
+          model: root.shownBackgrounds.slice(0, root.bgLimit)
           delegate: Column {
             id: bgItem
             required property var modelData
@@ -1327,7 +1330,7 @@ Item {
               border.width: bgItem.on ? 3 : 0
               border.color: root.accent
               clip: true
-              Image { anchors.fill: parent; anchors.margins: bgItem.on ? 3 : 0; source: root.bgThumb(bgItem.modelData); fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(320, 200); asynchronous: true
+              Image { anchors.fill: parent; anchors.margins: bgItem.on ? 3 : 0; source: root.bgThumb(bgItem.modelData); fillMode: Image.PreserveAspectCrop; sourceSize: Qt.size(320, 200); asynchronous: true; cache: false
                       onStatusChanged: if (status === Image.Error && !root.isVideo(bgItem.modelData)) source = "file://" + bgItem.modelData }
               // Pastille « animé » sur les fonds vidéo.
               Rectangle {
@@ -1344,6 +1347,18 @@ Item {
             Text { width: bgGrid.cw; horizontalAlignment: Text.AlignHCenter; elide: Text.ElideMiddle; textFormat: Text.PlainText; text: bgItem.modelData.split("/").pop().replace(/\.[^.]+$/, ""); font.family: root.uiFont; font.pixelSize: Style.space(10); color: root.fg; opacity: 0.6 }
           }
         }
+      }
+      Rectangle {
+        visible: root.shownBackgrounds.length > root.bgLimit
+        anchors.horizontalCenter: parent.horizontalCenter
+        width: moreT.implicitWidth + Style.space(28); height: Style.space(30); radius: height / 2
+        color: moreM.containsMouse ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.25) : Qt.rgba(root.fg.r, root.fg.g, root.fg.b, 0.08)
+        Text {
+          id: moreT; anchors.centerIn: parent; textFormat: Text.PlainText
+          text: T.t("Afficher plus") + "  (" + (root.shownBackgrounds.length - root.bgLimit) + ")"
+          font.family: root.uiFont; font.pixelSize: Style.space(11.5); font.weight: Font.Medium; color: root.fg
+        }
+        MouseArea { id: moreM; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: root.bgLimit += 48 }
       }
     }
   }

@@ -152,9 +152,9 @@ Item {
         { id: "soleil", name: T.t("Soleil"), acc: "#ffc04d", sub2: "#c9b28a" }
       ] },
     { id: "ile", name: T.t("Île"), sub: T.t("Encoche noire, huit onglets, prune"), bg: themes + "ile/backgrounds/01-ile.jpg",
-      ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "space" },
+      ink: "#c9c2cc", sub2: "#8a8490", acc: "#c9c2cc", font: "Michroma", mock: "ile" },
     { id: "infini", name: T.t("Infini"), sub: T.t("Bureau sans bord à faire glisser, cerisiers"), bg: themes + "infini/backgrounds/01-infini.jpg",
-      ink: "#ece2e4", sub2: "#a8999c", acc: "#e8a3b4", font: "Bebas Neue", mock: "space", key: "infini_tone",
+      ink: "#ece2e4", sub2: "#a8999c", acc: "#e8a3b4", font: "Bebas Neue", mock: "infini", key: "infini_tone",
       tones: [
         { id: "sakura", name: "Sakura", acc: "#e8a3b4" },
         { id: "lilas", name: T.t("Lilas"), acc: "#c9b3f0" },
@@ -162,7 +162,7 @@ Item {
         { id: "peche", name: T.t("Pêche"), acc: "#f5b896" }
       ] },
     { id: "hud", name: "7JOKS", sub: T.t("Terminal de science-fiction, démarrage animé"), bg: themes + "hud/backgrounds/01-hud.jpg",
-      ink: "#e6e6e6", sub2: "#8a8a8a", acc: "#e6e6e6", font: "Share Tech Mono", mock: "space", key: "hud_tone",
+      ink: "#e6e6e6", sub2: "#8a8a8a", acc: "#e6e6e6", font: "Share Tech Mono", mock: "hud", key: "hud_tone",
       tones: [
         { id: "blanc", name: T.t("Blanc"), acc: "#e6e6e6" },
         { id: "cyan", name: "Cyan", acc: "#aacfd1" },
@@ -171,7 +171,7 @@ Item {
         { id: "rouge", name: T.t("Rouge"), acc: "#ff5a5a" }
       ] },
     { id: "cosmos", name: "Cosmos", sub: T.t("Terre, Lune et satellites"), bg: themes + "cosmos/backgrounds/01-cosmos.jpg",
-      ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "space", key: "cosmos_tone",
+      ink: "#e4eef2", sub2: "#92a6af", acc: "#9fdcf5", font: "JetBrainsMono Nerd Font", mock: "cosmos", key: "cosmos_tone",
       tones: [
         { id: "orbite", name: T.t("Orbite"), acc: "#9fdcf5" },
         { id: "mousse", name: T.t("Mousse"), acc: "#a8e0a4" },
@@ -375,7 +375,10 @@ Item {
                 color: "#2a2a2e"
                 Image {
                   anchors.fill: parent
-                  source: cell.eff.bg ? "file://" + cell.eff.bg : ""
+                  // Thème pas encore relié dans ~/.config/omarchy/themes : le fond du dépôt.
+                  property bool repo: false
+                  source: cell.eff.bg ? "file://" + (repo ? String(cell.eff.bg).replace(root.themes, root.home + "/Work/liquid-glass/themes/") : cell.eff.bg) : ""
+                  onStatusChanged: if (status === Image.Error && !repo) repo = true
                   sourceSize.width: 480
                   fillMode: Image.PreserveAspectCrop
                   asynchronous: true
@@ -653,6 +656,100 @@ Item {
       x: 12 * mk.u; y: 12 * mk.u; width: 92 * mk.u; height: 40 * mk.u; radius: 8 * mk.u; rotation: -3
       color: "#fffdf7"; border.width: 1.5; border.color: mk.it.ink
       Text { anchors.centerIn: parent; text: "12:34"; font.family: "Rubik"; font.pixelSize: Math.round(24 * mk.u); font.weight: Font.Black; color: mk.it.acc }
+    }
+    // Île : encoche noire en haut, heure large en Michroma, nom et trait du mot de passe.
+    Rectangle {
+      visible: mk.m === "ile"
+      anchors.horizontalCenter: parent.horizontalCenter; y: -6 * mk.u
+      width: 70 * mk.u; height: 20 * mk.u; radius: 7 * mk.u; color: "black"
+    }
+    Text {
+      visible: mk.m === "ile"
+      anchors.centerIn: parent; anchors.verticalCenterOffset: -8 * mk.u
+      text: "12:34"; font.family: "Michroma"; font.pixelSize: Math.round(30 * mk.u); color: mk.it.ink
+    }
+    Rectangle {
+      visible: mk.m === "ile"
+      anchors.horizontalCenter: parent.horizontalCenter; y: parent.height * 0.72
+      width: 70 * mk.u; height: 1; color: mk.it.sub2
+    }
+    // 7JOKS : colonnes de panneaux, cadre du terminal à onglets, clavier en bas à droite, globe.
+    Item {
+      visible: mk.m === "hud"
+      anchors.fill: parent
+      Rectangle { anchors.fill: parent; color: "black"; opacity: 0.55 }
+      Repeater {
+        model: [[6, 8], [6, 30], [6, 52], [6, 74], [190, 8], [190, 74]]
+        delegate: Column {
+          required property var modelData
+          x: modelData[0] * mk.u; y: modelData[1] * mk.u; spacing: 2 * mk.u
+          Rectangle { width: 40 * mk.u; height: 1; color: mk.it.acc }
+          Rectangle { width: 26 * mk.u; height: 2 * mk.u; color: mk.it.sub2 }
+          Rectangle { width: 34 * mk.u; height: 2 * mk.u; color: mk.it.sub2; opacity: 0.6 }
+        }
+      }
+      Rectangle { x: 52 * mk.u; y: 14 * mk.u; width: 132 * mk.u; height: 80 * mk.u; color: "transparent"; border.width: 1; border.color: mk.it.acc }
+      Repeater {
+        model: 4
+        delegate: Rectangle { required property int index; x: (52 + index * 33) * mk.u; y: 8 * mk.u; width: 30 * mk.u; height: 5 * mk.u; color: index === 0 ? mk.it.acc : "transparent"; border.width: 1; border.color: mk.it.sub2 }
+      }
+      Rectangle { x: 200 * mk.u; y: 36 * mk.u; width: 28 * mk.u; height: width; radius: width / 2; color: "transparent"; border.width: 1; border.color: mk.it.acc }
+      Text { x: 8 * mk.u; y: 102 * mk.u; text: "7JOKS"; font.family: "Michroma"; font.pixelSize: Math.round(12 * mk.u); color: mk.it.ink }
+      Grid {
+        x: 118 * mk.u; y: 102 * mk.u; columns: 12; spacing: 1.5 * mk.u
+        Repeater { model: 48; delegate: Rectangle { width: 7.5 * mk.u; height: 7.5 * mk.u; color: "transparent"; border.width: 1; border.color: mk.it.sub2 } }
+      }
+    }
+    // Cosmos : la Terre et la Lune, l'heure au milieu.
+    Item {
+      visible: mk.m === "cosmos"
+      anchors.fill: parent
+      // La vraie texture du bureau Cosmos, dans un rond ombré côté nuit.
+      ClippingRectangle {
+        x: 34 * mk.u; y: 18 * mk.u; width: 110 * mk.u; height: width; radius: width / 2; color: "#0b2340"
+        Image {
+          x: -parent.width * 0.55; width: parent.width * 2.2; height: parent.height
+          source: "file://" + Quickshell.env("HOME") + "/.config/omarchy/plugins/liquid-glass.linux/cosmos/earth.jpg"
+          sourceSize.width: 512; fillMode: Image.Stretch; asynchronous: true
+        }
+        Rectangle {
+          anchors.fill: parent
+          gradient: Gradient {
+            orientation: Gradient.Horizontal
+            GradientStop { position: 0; color: Qt.rgba(1, 1, 1, 0.12) }
+            GradientStop { position: 0.6; color: "transparent" }
+            GradientStop { position: 1; color: Qt.rgba(0, 0, 0, 0.75) }
+          }
+        }
+      }
+      Rectangle { x: 170 * mk.u; y: 70 * mk.u; width: 30 * mk.u; height: width; radius: width / 2
+        gradient: Gradient { GradientStop { position: 0; color: "#e6e6e6" } GradientStop { position: 1; color: "#6e6e6e" } } }
+      Text { x: 60 * mk.u; y: 62 * mk.u; text: "12:34:56"; font.family: "JetBrainsMono Nerd Font"; font.pixelSize: Math.round(13 * mk.u); color: "white" }
+    }
+    // Infini : horloge empilée, cadre du visualiseur, barres roses en bas.
+    Column {
+      visible: mk.m === "infini"
+      anchors.horizontalCenter: parent.horizontalCenter; y: 6 * mk.u
+      spacing: -22 * mk.u
+      Text { anchors.horizontalCenter: parent.horizontalCenter; text: "12"; font.family: "Bebas Neue"; font.pixelSize: Math.round(58 * mk.u); color: "white"; opacity: 0.92 }
+      Text { anchors.horizontalCenter: parent.horizontalCenter; text: "34"; font.family: "Bebas Neue"; font.pixelSize: Math.round(58 * mk.u); color: "white"; opacity: 0.45 }
+    }
+    Row {
+      visible: mk.m === "infini"
+      anchors.bottom: parent.bottom; x: 0; width: parent.width
+      Repeater {
+        model: [9, 14, 11, 18, 22, 15, 12, 20, 26, 17, 13, 19, 24, 16, 10, 15, 21, 28, 18, 12, 16, 23, 14, 11]
+        delegate: Item {
+          required property int modelData
+          width: mk.width / 24; height: 30 * mk.u
+          Rectangle { anchors.bottom: parent.bottom; anchors.horizontalCenter: parent.horizontalCenter; width: parent.width - 2; height: modelData * mk.u; radius: 1; color: mk.it.acc; opacity: 0.85 }
+        }
+      }
+    }
+    Rectangle {
+      visible: mk.m === "infini"
+      x: 10 * mk.u; y: 72 * mk.u; width: 80 * mk.u; height: 28 * mk.u; radius: 4 * mk.u
+      color: Qt.rgba(0.1, 0.08, 0.09, 0.6); border.width: 1; border.color: mk.it.acc
     }
     // Espace : barre fine, lignes de paroles, orbites.
     Rectangle { visible: mk.m === "space"; width: parent.width; height: 7 * mk.u; color: Qt.rgba(0, 0, 0, 0.6) }

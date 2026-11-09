@@ -63,8 +63,8 @@ Trackpad, moniteurs dans Écrans, fenêtre Réglages déplaçable, widgets qui a
 déverrouillage, horloge du widget nette (texte vectoriel), morceau fantôme effacé quand aucun lecteur ne joue.
 
 ## Reste
-Klack (sons de clavier) : il faut ajouter l'utilisateur au groupe `input` (`sudo usermod -aG input $USER`),
-à valider par l'utilisateur · galerie de widgets · horloge mondiale.
+Galerie de widgets · horloge mondiale · accents par appui long (impossible sans injecter des touches,
+donc sans wtype) · Visual Intelligence (⌘⇧Espace reste le sélecteur de profil).
 
 ## Ajouts récents
 
@@ -92,3 +92,14 @@ Klack (sons de clavier) : il faut ajouter l'utilisateur au groupe `input` (`sudo
 - **Correctif** : `liquid-glass set` écrit config.toml sous verrou et de façon atomique (deux écritures simultanées avaient écrasé l'en-tête et cassé la config, donc les paroles).
 
 - **Bureau « Linux » (⌘⇧Espace)** : un second bureau sans rien de macOS, d'après github.com/Teiguuu/dotfiles (rice lain). `liquid-glass profile mac|linux|toggle|status` ou Réglages → Bureau Linux. Chaque profil garde son `shell.json` (`~/.config/liquid-glass/profiles/`), son thème (`lain` : sombre, sarcelle, fonds Teiguuu récupérés au premier passage, non versionnés) et son réglage Hyprland (`hypr/liquid-glass-linux.lua` : tiling dwindle, espaces 5/8, bordure 2 px en dégradé, coins carrés, animations back_out, raccourcis Omarchy d'origine). Plugin `liquid-glass.linux` : barre façon waybar (luminosité, heure | date, réseau ; bureaux dans une pastille ; clavier, CPU, mémoire, température, batterie, notifications, alimentation), horloge pixel façon tty-clock, bande cava en bas (seulement pendant la lecture), carte de paroles sarcelle (dernier morceau + ▶ Reprendre quand Spotify est fermé). Le service Spotify n'y met ni pochette en fond ni couleurs dynamiques. Verrouillage et OSD restent ceux de Liquid Glass (échanger le plugin de verrouillage à chaud laisse deux gestionnaires IPC « lock » en concurrence).
+
+## macOS 27 « Golden Gate »
+
+- **Finder** (`apps/finder`, `liquid-glass finder [dossier]`, ⌘⌥Espace) : un seul processus Quickshell pour toutes les fenêtres, qui se ferme avec la dernière. Barre latérale bord à bord (Favoris, Emplacements avec éjection, Tags), barre d'outils uniforme, présentations Icônes / Liste / Colonnes / Galerie (⌘1-4), recherche, Coup d'œil (Espace), Lire les informations (⌘I), Aller au dossier (⌘⇧G), Corbeille (gio), alias, compresser, dupliquer, tags (`finder-tags.json`), barre du chemin et barre d'état. Menu « Aller » dans la barre des menus : `liquid-glass finder --go <dossier|recents|apps|goto>`.
+- **Icônes et curseurs macOS** : MacTahoe (vinceliuice, GPL-3) copié par `scripts/install-mac-icons.sh` dans `~/.local/share/icons` (sans sudo).
+- **Fonds officiels** : `scripts/fetch-mac-wallpapers.py`, de Cheetah à Golden Gate (6K réduits à 3840 px, non versionnés), catégorie « macOS » dans Réglages → Fond d'écran. **Bureau dynamique** : `liquid-glass dynamic-wallpaper tick|list`, selon l'heure (Golden Gate, plage de Tahoe, Big Sur, Mojave, Catalina) ou le mode clair / sombre.
+- **Réglages** : curseur Liquid Glass (transparent → teinté), Accessibilité (zoom ⌥⌘8, taille du pointeur, réduire la transparence / les animations), Claude (à la place de Siri), Touch ID et mot de passe (fprintd), Langue et région (sources de saisie, ⌃Espace), Imprimantes et scanners (CUPS), Alcove (île dynamique) et Klack (sons du clavier, sans groupe `input`).
+- **Spotlight « Rechercher ou demander »** : une question → réponse de Claude en direct dans une bulle, questions de suite (Entrée), ⇥ pour demander.
+- **Île** : la source de saisie s'affiche quand elle change.
+- **Raccourcis Mac** : ⌘Z/⇧⌘Z, ⌘N, ⌘R, ⌘B, ⌘U, ⌘D envoyés en Ctrl aux apps (rien dans les terminaux), ⌃Espace (clavier suivant), ⌃⌘Espace (émojis), ⌥⌘D (masquer le Dock), zoom ⌥⌘8 et ⌥⌘ + molette. Le menu Omarchy passe sur ⌃⌥⌘Espace.
+- **Fenêtres** : ombre plus marquée sur la fenêtre active, comme macOS 27.

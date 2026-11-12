@@ -123,6 +123,10 @@ ok "liquid-glass, liquid-glass-spotify, liquid-glass-tty, liquid-glass-keys → 
 if [ "$DO_ANIMATED" = 1 ]; then
   say "Fonds d'écran animés"
   nice -n 15 "$REPO/bin/liquid-glass" animated-wallpapers && ok "vidéos en boucle dans themes/*/backgrounds"
+  # ~160 fonds vivants Minecraft et pixel art (plusieurs Go), en arrière-plan.
+  mkdir -p "$HOME/.cache/liquid-glass"
+  nohup nice -n 15 "$REPO/scripts/fetch-live-wallpapers.py" >"$HOME/.cache/liquid-glass/install-live.log" 2>&1 &
+  ok "fonds animés Minecraft et pixel art en téléchargement (~/.cache/liquid-glass/install-live.log)"
 fi
 
 # ---------------------------------------------------------------- 5. config centrale

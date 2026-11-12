@@ -1127,13 +1127,17 @@ Item {
   // ⌘K : feuille des raccourcis du bureau (à la place de celle d'Omarchy).
   property bool keysOpen: false
   function toggleKeys() { var o = !keysOpen; closeAll(); menuOpen = false; keysOpen = o }
-  // ⌘⌥Espace : les Réglages communs à tous les bureaux, ouverts sur la page du style
-  // (le style Windows garde ses Paramètres façon Windows 11).
+  // ⌘⌥Espace : les réglages du thème, ouverts sur sa page à lui (plus les Réglages
+  // du Mac) ; le style Windows garde ses Paramètres façon Windows 11.
   function openSettings() {
     if (win11) { toggleMenu("home"); return }
     closeAll(); menuOpen = false
-    Quickshell.execDetached(["omarchy-shell", "liquid-glass.settings", "openPage", "linux"])
+    toggleMenu("style")
   }
+  // Réglages du thème (Set<Thème>.qml, chargés plus bas) ; "" = StyleMenu, "windows" = WinSettings.
+  readonly property var settingsThemes: ["blanc", "sombre", "jouet", "violet", "expressive", "gouts", "mono", "foret", "ruban",
+    "espace", "cosmos", "ile", "hud", "infini", "debian", "fedora", "mint", "kali", "arch"]
+  readonly property string settingsKind: win11 ? "windows" : (settingsThemes.indexOf(style) < 0 ? "" : (style === "debian" || style === "fedora" ? "gnome" : style))
   function toggleMenu(page) {
     launcherOpen = false; panel = ""
 
@@ -1502,7 +1506,27 @@ Item {
   LazyLoader { active: !svc.win11 && !svc.isDistro && !svc.isRuban && !svc.isCosmos && svc.launcherOpen; Launcher { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.isDistro && svc.launcherOpen; DistroMenu { service: svc; screen: svc.primaryScreen } }
   LazyLoader { active: svc.keysOpen; KeySheet { service: svc; screen: svc.primaryScreen } }
-  LazyLoader { active: !svc.win11 && svc.menuOpen; StyleMenu { service: svc; screen: svc.primaryScreen } }
+  // Réglages de chaque thème (⌘Échap, ⌘⌥Espace, boutons des barres) : un fichier par thème,
+  // même moteur (SetCore, SetData.js). Windows garde ses Paramètres façon Windows 11.
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "ruban"; SetRuban { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "blanc"; SetBlanc { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "sombre"; SetSombre { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "jouet"; SetJouet { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "violet"; SetViolet { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "expressive"; SetExpressive { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "gouts"; SetGouts { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "mono"; SetMono { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "foret"; SetForet { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "espace"; SetEspace { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "cosmos"; SetCosmos { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "ile"; SetIle { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "hud"; SetHud { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "infini"; SetInfini { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "gnome"; SetGnome { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "mint"; SetMint { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "kali"; SetKali { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === "arch"; SetArch { service: svc; screen: svc.primaryScreen } }
+  LazyLoader { active: svc.menuOpen && svc.settingsKind === ""; StyleMenu { service: svc; screen: svc.primaryScreen } }
 
   LazyLoader {
     active: svc.wallsOpen

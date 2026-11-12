@@ -24,7 +24,7 @@ PanelWindow {
 
   readonly property string home: Quickshell.env("HOME")
   readonly property var cats: [["all", T.t("Tout")], ["lain", "Lain"], ["anime", "Anime"], ["abstract", T.t("Abstrait")], ["ascii", "ASCII"],
-                               ["minimal", "Minimal"], ["fruit", T.t("Fruits")], ["espace", T.t("Espace")], ["distros", "Distros"], ["genere", T.t("Générés")]]
+                               ["minimal", "Minimal"], ["fruit", T.t("Fruits")], ["espace", T.t("Espace")], ["distros", "Distros"], ["genere", T.t("Générés")], ["live", T.t("Animés")]]
   property string cat: "all"
   property var all: []
   // Filtre couleur (une teinte dominante par fond, calculée par `liquid-glass wall-colors`)
@@ -73,8 +73,8 @@ PanelWindow {
     command: ["bash", "-c",
       "for f in \"$HOME\"/.config/omarchy/themes/lain/backgrounds/* " +
       "  \"$HOME\"/.config/omarchy/themes/{blanc,sombre,jouet,violet,violet-aube,rose,windows,windows-sombre,mono,mono-papier,mono-sakura,foret,ruban,espace,debian,fedora,mint,kali,arch}/backgrounds/* " +
-      "  \"$HOME\"/.local/share/liquid-glass/wallpapers/*; do " +
-      "  case \"$f\" in *.jpg|*.jpeg|*.png|*.webp|*.JPG|*.PNG) [ -f \"$f\" ] && echo \"$f\";; esac; done"]
+      "  \"$HOME\"/.local/share/liquid-glass/wallpapers/* \"$HOME\"/.local/share/liquid-glass/live/*; do " +
+      "  case \"$f\" in *.jpg|*.jpeg|*.png|*.webp|*.JPG|*.PNG|*.mp4) [ -f \"$f\" ] && echo \"$f\";; esac; done"]
     stdout: StdioCollector {
       onStreamFinished: {
         var out = [], lines = text.split("\n"), cur = String(win.s.bgPath || ""), idx = 0
@@ -82,9 +82,12 @@ PanelWindow {
           var f = lines[i].trim()
           if (f === "") continue
           var name = f.split("/").pop()
-          var c = f.indexOf("/themes/lain/") >= 0 ? "lain" : f.indexOf("/themes/espace/") >= 0 ? "espace"
+          var live = f.indexOf("/liquid-glass/live/") >= 0
+          var c = live ? "live" : f.indexOf("/themes/lain/") >= 0 ? "lain" : f.indexOf("/themes/espace/") >= 0 ? "espace"
             : /\/themes\/(debian|fedora|mint|kali|arch)\//.test(f) ? "distros" : (f.indexOf("/omarchy/themes/") >= 0 ? "genere" : name.split("-")[0])
-          var thumb = f.indexOf("/liquid-glass/wallpapers/") >= 0 ? win.home + "/.cache/liquid-glass/thumbs/" + name : ""
+          // Fonds animés (scripts/fetch-live-wallpapers.py) : l'affiche de la vidéo.
+          var thumb = live ? win.home + "/.cache/liquid-glass/posters/" + name.replace(/\.mp4$/, ".jpg")
+            : f.indexOf("/liquid-glass/wallpapers/") >= 0 ? win.home + "/.cache/liquid-glass/thumbs/" + name : ""
           if (f === cur) idx = out.length
           out.push({ path: f, name: name.replace(/\.[^.]+$/, ""), cat: c, thumb: thumb })
         }

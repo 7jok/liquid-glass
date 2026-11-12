@@ -105,7 +105,7 @@ PanelWindow {
     anchors.centerIn: parent
     spacing: Math.round(8 * bar.k)
     Pill {
-      Btn { icon: "settings"; tint: bar.acc; onClicked: bar.run("omarchy-shell liquid-glass.settings openPage linux") }
+      Btn { icon: "settings"; tint: bar.acc; onClicked: bar.run("omarchy-shell liquid-glass.linux settings") }
       Item {
         width: recRow.implicitWidth + Math.round(8 * bar.k); height: Math.round(26 * bar.k)
         Row {

@@ -85,13 +85,21 @@ o.rebind("SUPER + CTRL + M", "Rice au hasard (1 à 13 terminaux)", "liquid-glass
 o.rebind("SUPER + CTRL + SHIFT + M", "Fermer le rice", "liquid-glass rice stop")
 o.rebind("SUPER + CTRL + ALT + M", "Rice : pages à composer", LG .. "rice")
 
--- Paramètres (style Windows) : vraie fenêtre, flottante et centrée.
-hl.window_rule({
-  name = "liquid-glass-win-settings",
-  match = { title = "^Paramètres$", class = "^(org\\.quickshell|quickshell)$" },
+-- Paramètres (style Windows) : vraie fenêtre, flottante et centrée. Par o.window
+-- pour qu'Omarchy la sache flottante d'elle-même : sur un bureau en mode flottant,
+-- sa règle d'ouverture ne la redimensionne et ne la décale plus (le saut à l'ouverture).
+o.window({ title = "^Paramètres$", class = "^(org\\.quickshell|quickshell)$" }, {
   float = true,
   size = "980 640",
   center = true,
+})
+
+-- Les fenêtres Quickshell (Paramètres, Finder…) dessinent leurs propres boutons :
+-- pas de barre de titre d'Omarchy par-dessus (sinon deux × □ −).
+hl.window_rule({
+  name = "liquid-glass-quickshell-nobar",
+  match = { class = "^(org\\.quickshell|quickshell)$" },
+  ["hyprbars:no_bar"] = true,
 })
 
 -- Zoom : toile du style Infini (la toile et ses fenêtres), loupe d'Hyprland ailleurs.
